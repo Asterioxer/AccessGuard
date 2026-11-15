@@ -1,17 +1,17 @@
 {
   "errors": [],
-  "generated_at": "2026-11-15T11:50:08Z",
+  "generated_at": "2026-11-15T12:15:59Z",
   "metrics": {
     "_totals": {
-      "CONFIDENCE.HIGH": 4,
+      "CONFIDENCE.HIGH": 5,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 1,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 5,
+      "SEVERITY.LOW": 6,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 2715,
+      "loc": 2986,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -76,7 +76,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 41,
+      "loc": 43,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -89,7 +89,7 @@
       "SEVERITY.LOW": 1,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 116,
+      "loc": 128,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -102,7 +102,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 101,
+      "loc": 135,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -271,7 +271,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 126,
+      "loc": 270,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -284,7 +284,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 172,
+      "loc": 211,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -328,15 +328,15 @@
       "skipped_tests": 0
     },
     "backend/app\\gis\\routing_engine.py": {
-      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.HIGH": 1,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 0,
+      "SEVERITY.LOW": 1,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 264,
+      "loc": 300,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -414,7 +414,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 31,
+      "loc": 35,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -515,7 +515,7 @@
       "test_name": "try_except_pass"
     },
     {
-      "code": "22             breakdown_data = json.loads(seg.score_criteria_breakdown)\n23         except Exception:\n24             pass\n25 \n",
+      "code": "23             breakdown_data = json.loads(seg.score_criteria_breakdown)\n24         except Exception:\n25             pass\n26 \n",
       "col_offset": 8,
       "end_col_offset": 16,
       "filename": "backend/app\\api\\v1\\segments.py",
@@ -526,10 +526,31 @@
       },
       "issue_severity": "LOW",
       "issue_text": "Try, Except, Pass detected.",
-      "line_number": 23,
+      "line_number": 24,
       "line_range": [
-        23,
-        24
+        24,
+        25
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html",
+      "test_id": "B110",
+      "test_name": "try_except_pass"
+    },
+    {
+      "code": "332                     )\n333             except Exception:\n334                 pass\n335 \n",
+      "col_offset": 12,
+      "end_col_offset": 20,
+      "filename": "backend/app\\gis\\routing_engine.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 703,
+        "link": "https://cwe.mitre.org/data/definitions/703.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Try, Except, Pass detected.",
+      "line_number": 333,
+      "line_range": [
+        333,
+        334
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html",
       "test_id": "B110",

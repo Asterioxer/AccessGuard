@@ -16,8 +16,10 @@ COPY backend/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy backend application
+# Copy backend application and database migrations
 COPY backend/app /app/app
+COPY backend/alembic /app/alembic
+COPY backend/alembic.ini /app/alembic.ini
 
 # Create unprivileged user for security
 RUN useradd -m -u 1000 appuser && \

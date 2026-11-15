@@ -28,9 +28,9 @@ def health_check(db: Session = Depends(get_db)) -> Dict[str, Any]:
         "uptime_seconds": round(time.time() - START_TIME, 1)
     }
 
-@router.get("/metrics")
-def system_metrics(db: Session = Depends(get_db)) -> Dict[str, Any]:
-    """Operational monitoring metrics."""
+@router.get("/system-info")
+def system_info(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Operational platform configuration and telemetry info."""
     return {
         "project": settings.PROJECT_NAME,
         "version": settings.VERSION,

@@ -36,9 +36,52 @@ class CVPipeline:
         self.adapter = self._init_adapter(adapter_name)
         logger.info(f"Switched CV pipeline adapter to: {adapter_name}")
 
+    def preprocess_image(self, img_bgr: np.ndarray) -> Tuple[np.ndarray, Dict[str, Any]]:
+        """
+        Applies image quality checks and adaptive preprocessing:
+        1. Blur detection via Laplacian variance.
+        2. Low-contrast / fog detection with adaptive CLAHE enhancement on the L-channel.
+        3. Color consistency verification.
+        """
+        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        
+        # 1. Blur evaluation (variance of Laplacian)
+        laplacian_var = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+        is_blurred = laplacian_var < 80.0
+
+        # 2. Contrast evaluation
+        gray_std = float(np.std(gray))
+        is_low_contrast = gray_std < 22.0
+        
+        processed_bgr = img_bgr.copy()
+        clahe_applied = False
+        
+        # Apply CLAHE if low-contrast or fog condition detected
+        if is_low_contrast:
+            try:
+                lab = cv2.cvtColor(processed_bgr, cv2.COLOR_BGR2LAB)
+                l_channel, a_channel, b_channel = cv2.split(lab)
+                clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+                l_enhanced = clahe.apply(l_channel)
+                lab_enhanced = cv2.merge((l_enhanced, a_channel, b_channel))
+                processed_bgr = cv2.cvtColor(lab_enhanced, cv2.COLOR_LAB2BGR)
+                clahe_applied = True
+            except Exception as e:
+                logger.warning(f"CLAHE contrast enhancement failed: {e}")
+
+        quality_meta = {
+            "laplacian_variance": round(laplacian_var, 2),
+            "is_blurred": is_blurred,
+            "contrast_std": round(gray_std, 2),
+            "is_low_contrast": is_low_contrast,
+            "clahe_applied": clahe_applied,
+            "channels": processed_bgr.shape[2] if len(processed_bgr.shape) == 3 else 1
+        }
+        return processed_bgr, quality_meta
+
     def process_image(self, image_bytes: bytes) -> Tuple[List[DetectedBarrier], np.ndarray]:
         """
-        Decodes image bytes into BGR array, executes adapter prediction,
+        Decodes image bytes into BGR array, executes preprocessing and adapter prediction,
         and applies uncertainty calibration.
         """
         nparr = np.frombuffer(image_bytes, np.uint8)
@@ -46,9 +89,17 @@ class CVPipeline:
         if img_bgr is None:
             raise ValueError("Failed to decode image from bytes.")
             
-        raw_detections = self.adapter.predict(img_bgr)
+        preprocessed_bgr, quality_meta = self.preprocess_image(img_bgr)
+        raw_detections = self.adapter.predict(preprocessed_bgr)
+        
+        # If image was severely blurred, apply an uncertainty penalty
+        if quality_meta.get("is_blurred"):
+            for d in raw_detections:
+                d.uncertainty_score = min(0.85, round(d.uncertainty_score + 0.15, 2))
+                d.evidence["blur_warning"] = "Image exhibits significant motion blur or soft focus."
+
         calibrated_detections = self.calibrate_detections(raw_detections)
-        return calibrated_detections, img_bgr
+        return calibrated_detections, preprocessed_bgr
 
     def process_video(
         self,

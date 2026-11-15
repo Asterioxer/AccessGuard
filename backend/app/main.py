@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, Counter, Histogram
 
 from app.config import settings
 from app.core.limiter import limiter
@@ -107,5 +108,11 @@ def root_info():
         "version": settings.VERSION,
         "docs_url": "/docs",
         "health_url": "/health",
+        "metrics_url": "/metrics",
         "api_v1": settings.API_V1_STR
     }
+
+@app.get("/metrics", tags=["Observability"])
+def prometheus_metrics():
+    """Exposes real-time Prometheus metrics for telemetry and monitoring."""
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)

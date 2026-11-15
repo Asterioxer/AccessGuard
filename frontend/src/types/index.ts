@@ -81,6 +81,13 @@ export interface BarrierEncountered {
   longitude?: number;
 }
 
+export interface DirectRouteComparison {
+  direct_distance_meters: number;
+  accessible_detour_meters: number;
+  direct_route_has_stairs: boolean;
+  stairs_avoided_by_accessible_route: number;
+}
+
 export interface RouteResponse {
   success: boolean;
   total_distance_meters: number;
@@ -93,6 +100,8 @@ export interface RouteResponse {
   segments_traversed: string[];
   routing_notes: string[];
   geojson: any;
+  algorithm_used?: string;
+  direct_route_comparison?: DirectRouteComparison;
 }
 
 export interface User {

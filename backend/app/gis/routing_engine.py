@@ -102,7 +102,9 @@ class AccessibilityRoutingEngine:
         end_lat: float,
         end_lon: float,
         wheelchair_profile: str = "manual_wheelchair",
-        avoid_unverified: bool = True
+        avoid_unverified: bool = True,
+        algorithm: str = "dijkstra",
+        include_alternatives: bool = False
     ) -> RouteResponse:
         """
         Finds the most accessible path between start and end coordinates.
@@ -160,8 +162,15 @@ class AccessibilityRoutingEngine:
             )
 
         try:
-            # Dijkstra path search using accessibility cost weight
-            node_path = nx.dijkstra_path(self.graph, start_node, end_node, weight="cost")
+            # Path search using barrier-aware accessibility cost weight
+            algo_choice = algorithm.lower() if algorithm else "dijkstra"
+            if algo_choice == "astar":
+                def _haversine_h(u_node, v_node):
+                    return haversine_distance_meters(u_node[0], u_node[1], v_node[0], v_node[1])
+                node_path = nx.astar_path(self.graph, start_node, end_node, heuristic=_haversine_h, weight="cost")
+            else:
+                algo_choice = "dijkstra"
+                node_path = nx.dijkstra_path(self.graph, start_node, end_node, weight="cost")
         except nx.NetworkXNoPath:
             return RouteResponse(
                 success=False,
@@ -174,7 +183,8 @@ class AccessibilityRoutingEngine:
                 path_coordinates=[],
                 segments_traversed=[],
                 routing_notes=["No accessible continuous pedestrian route connects these locations."],
-                geojson={"type": "FeatureCollection", "features": []}
+                geojson={"type": "FeatureCollection", "features": []},
+                algorithm_used=algo_choice
             )
 
         # Reconstruct path details
@@ -297,6 +307,32 @@ class AccessibilityRoutingEngine:
             ]
         }
 
+        # Optional alternative direct shortest route comparison
+        direct_comparison = None
+        if include_alternatives:
+            try:
+                direct_path = nx.dijkstra_path(self.graph, start_node, end_node, weight="distance")
+                direct_dist = d_start + d_end
+                direct_stairs_count = 0
+                for j in range(len(direct_path) - 1):
+                    e_data = self.graph.get_edge_data(direct_path[j], direct_path[j+1])
+                    direct_dist += e_data["distance"]
+                    if e_data.get("has_stairs"):
+                        direct_stairs_count += 1
+                tradeoff_dist = round(total_distance - direct_dist, 1)
+                direct_comparison = {
+                    "direct_distance_meters": round(direct_dist, 1),
+                    "accessible_detour_meters": max(0.0, tradeoff_dist),
+                    "direct_route_has_stairs": direct_stairs_count > 0,
+                    "stairs_avoided_by_accessible_route": direct_stairs_count
+                }
+                if direct_stairs_count > 0:
+                    routing_notes.append(
+                        f"Accessibility tradeoff: Accessible route is {max(0.0, tradeoff_dist):.0f}m longer, avoiding {direct_stairs_count} staircase(s) present on the direct shortest path."
+                    )
+            except Exception:
+                pass
+
         return RouteResponse(
             success=True,
             total_distance_meters=round(total_distance, 1),
@@ -308,5 +344,7 @@ class AccessibilityRoutingEngine:
             path_coordinates=path_coords,
             segments_traversed=segments_traversed,
             routing_notes=routing_notes,
-            geojson=geojson
+            geojson=geojson,
+            algorithm_used=algo_choice,
+            direct_route_comparison=direct_comparison
         )

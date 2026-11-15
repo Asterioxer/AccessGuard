@@ -92,6 +92,8 @@ export const api = {
     destination: { latitude: number; longitude: number };
     wheelchair_profile?: string;
     avoid_unverified_barriers?: boolean;
+    algorithm?: string;
+    include_alternatives?: boolean;
   }) =>
     request<RouteResponse>('/routing/accessible-route', {
       method: 'POST',

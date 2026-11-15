@@ -11,6 +11,8 @@ class RouteRequest(BaseModel):
     wheelchair_profile: str = Field(default="manual_wheelchair", description="manual_wheelchair, powered_wheelchair, stroller")
     avoid_unverified_barriers: bool = True
     max_acceptable_grade: str = "C" # Don't route through D or F segments unless no other path exists
+    algorithm: str = Field(default="dijkstra", description="dijkstra or astar")
+    include_alternatives: bool = Field(default=False, description="Calculate shortest direct route alongside accessible route")
 
 class BarrierEncountered(BaseModel):
     segment_id: str
@@ -33,3 +35,5 @@ class RouteResponse(BaseModel):
     segments_traversed: List[str] = []
     routing_notes: List[str] = []
     geojson: Dict[str, Any]
+    algorithm_used: str = "dijkstra"
+    direct_route_comparison: Optional[Dict[str, Any]] = None

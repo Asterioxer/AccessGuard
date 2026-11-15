@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, timezone
-from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Dict, Any, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -12,6 +12,7 @@ from app.schemas.segment import (
 )
 from app.gis.scoring import calculate_segment_accessibility_score
 from app.gis.osm_importer import create_pedestrian_segment_models
+from app.core.security import require_role, Role
 
 router = APIRouter(prefix="/segments", tags=["Pedestrian Segments"])
 
@@ -54,17 +55,30 @@ def format_segment_schema(seg: PedestrianSegment) -> PedestrianSegmentSchema:
     )
 
 @router.get("", response_model=List[PedestrianSegmentSchema])
-def list_segments(db: Session = Depends(get_db)):
-    """Retrieves all pedestrian segments with accessibility scoring."""
-    segments = db.query(PedestrianSegment).all()
+def list_segments(
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    min_score: Optional[float] = Query(None, ge=0.0, le=100.0),
+    grade: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    """Retrieves pedestrian segments with accessibility scoring and pagination."""
+    query = db.query(PedestrianSegment)
+    
     # Auto-seed demo network if table is empty
-    if not segments:
+    if query.count() == 0:
         demo_segs = create_pedestrian_segment_models()
         for s in demo_segs:
             db.add(s)
         db.commit()
-        segments = db.query(PedestrianSegment).all()
+        query = db.query(PedestrianSegment)
 
+    if grade:
+        query = query.filter(PedestrianSegment.score_grade == grade.upper())
+    if min_score is not None:
+        query = query.filter(PedestrianSegment.accessibility_score >= min_score)
+
+    segments = query.order_by(PedestrianSegment.name.asc()).offset(offset).limit(limit).all()
     return [format_segment_schema(s) for s in segments]
 
 @router.get("/geojson", response_model=SegmentGeoJSONCollection)

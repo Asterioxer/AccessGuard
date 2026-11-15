@@ -72,7 +72,9 @@ flowchart TD
 - **Computer Vision**: OpenCV (`cv2`), PyTorch, Torchvision, ONNX interface.
 - **Database**: PostgreSQL 16 with PostGIS (with SQLite in-memory test compatibility).
 - **Containerization**: Docker, Docker Compose, Multi-stage builds, Alpine Nginx.
-- **Testing**: Pytest (28 automated tests covering all modules), Playwright E2E.
+- **Testing**: Pytest (39 automated unit, integration, and security tests covering all modules), Playwright E2E.
+- **Database Migrations**: Alembic versioned schema tracking.
+- **Observability**: Prometheus `/metrics` endpoint with request and inference telemetry.
 - **CI/CD**: GitHub Actions CI workflow.
 
 ---
@@ -150,7 +152,12 @@ npm run build
 - [Architecture Blueprint](docs/architecture.md)
 - [Database Schema & PostGIS Models](docs/database_schema.md)
 - [REST API Documentation](docs/api_documentation.md)
+- [GIS and Routing Intelligence Guide](docs/gis_and_routing.md)
 - [Model Evaluation Framework & Benchmark Results](docs/model_evaluation.md)
+- [Model Cards](docs/model_cards/)
+- [Public Datasets & Research Expansion](docs/dataset_documentation.md)
 - [Security Assessment & Threat Model (STRIDE)](docs/security_assessment.md)
-- [Deployment Instructions](docs/deployment.md)
+- [Deployment & Operational Recovery Instructions](docs/deployment.md)
 - [Demonstration Walkthrough](docs/demonstration.md)
+- [Senior Technical Interview & Portfolio Guide](docs/interview_preparation.md)
+- [Independent Engineering Audit Reports](docs/audit/)

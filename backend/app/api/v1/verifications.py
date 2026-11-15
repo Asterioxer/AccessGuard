@@ -9,7 +9,7 @@ from app.db.models import Observation, VerificationReview, User, PedestrianSegme
 from app.schemas.verification import VerificationSubmit, VerificationResponse
 from app.schemas.observation import ObservationResponse
 from app.api.v1.observations import format_observation_response
-from app.core.security import get_current_user_payload
+from app.core.security import get_current_user_payload, require_role, Role
 from app.core.config_wrapper import get_settings
 from app.gis.scoring import calculate_segment_accessibility_score
 
@@ -119,3 +119,43 @@ def get_verification_queue(
     ).order_by(Observation.created_at.asc()).limit(limit).all()
 
     return [format_observation_response(o) for o in tentative_obs]
+
+@router.post("/{observation_id}/admin-override", response_model=ObservationResponse)
+def admin_override_status(
+    observation_id: str,
+    new_status: str, # "verified", "rejected", "disputed"
+    user_payload: dict = Depends(require_role(Role.ADMIN)),
+    db: Session = Depends(get_db)
+):
+    """
+    Administrative endpoint allowing authorized administrators to override observation verification status.
+    Requires minimum role: admin.
+    """
+    obs = db.query(Observation).filter(Observation.id == observation_id).first()
+    if not obs:
+        raise HTTPException(status_code=404, detail="Observation not found")
+
+    valid_statuses = ["tentative", "verified", "disputed", "rejected"]
+    if new_status.lower() not in valid_statuses:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status '{new_status}'. Must be one of: {valid_statuses}"
+        )
+
+    obs.status = new_status.lower()
+    db.commit()
+
+    # Recalculate segment score if segment is associated
+    if obs.segment_id:
+        seg_obs = db.query(Observation).filter(Observation.segment_id == obs.segment_id).all()
+        score, grade, breakdown = calculate_segment_accessibility_score(seg_obs)
+        matched_seg = db.query(PedestrianSegment).filter(PedestrianSegment.id == obs.segment_id).first()
+        if matched_seg:
+            matched_seg.accessibility_score = score
+            matched_seg.score_grade = grade
+            matched_seg.score_criteria_breakdown = json.dumps(breakdown.model_dump())
+            matched_seg.last_evaluated_at = datetime.now(timezone.utc)
+            db.commit()
+
+    db.refresh(obs)
+    return format_observation_response(obs)

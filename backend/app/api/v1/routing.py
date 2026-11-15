@@ -36,7 +36,9 @@ def compute_accessible_route(
         end_lat=request.destination.latitude,
         end_lon=request.destination.longitude,
         wheelchair_profile=request.wheelchair_profile,
-        avoid_unverified=request.avoid_unverified_barriers
+        avoid_unverified=request.avoid_unverified_barriers,
+        algorithm=request.algorithm,
+        include_alternatives=request.include_alternatives
     )
 
     if not route_result.success:
