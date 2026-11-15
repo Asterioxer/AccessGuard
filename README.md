@@ -2,7 +2,7 @@
 > **Public-Benefit Accessibility Intelligence Platform**  
 > Analyzing street-level imagery and short videos to map wheelchair accessibility barriers, maintain transparent sidewalk ratings, and navigate barrier-free routes.
 
-[![CI Pipeline](https://github.com/accessguard/accessguard/actions/workflows/ci.yml/badge.svg)](https://github.com/accessguard/accessguard/actions)
+[![CI Pipeline](https://github.com/Asterioxer/AccessGuard/actions/workflows/ci.yml/badge.svg)](https://github.com/Asterioxer/AccessGuard/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
 [![React 18](https://img.shields.io/badge/React-18-cyan.svg)](https://react.dev/)
