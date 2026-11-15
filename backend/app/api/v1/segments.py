@@ -1,0 +1,133 @@
+import json
+from datetime import datetime, timezone
+from typing import List, Dict, Any
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.db.session import get_db
+from app.db.models import PedestrianSegment, Observation
+from app.schemas.segment import (
+    PedestrianSegmentSchema, ScoringCriteriaBreakdown,
+    SegmentGeoJSONCollection, SegmentGeoJSONFeature
+)
+from app.gis.scoring import calculate_segment_accessibility_score
+from app.gis.osm_importer import create_pedestrian_segment_models
+
+router = APIRouter(prefix="/segments", tags=["Pedestrian Segments"])
+
+def format_segment_schema(seg: PedestrianSegment) -> PedestrianSegmentSchema:
+    breakdown_data = {}
+    if seg.score_criteria_breakdown:
+        try:
+            breakdown_data = json.loads(seg.score_criteria_breakdown)
+        except Exception:
+            pass
+
+    breakdown = ScoringCriteriaBreakdown(
+        base_score=breakdown_data.get("base_score", 100.0),
+        stairs_penalty=breakdown_data.get("stairs_penalty", 0.0),
+        curb_ramp_missing_penalty=breakdown_data.get("curb_ramp_missing_penalty", 0.0),
+        surface_damage_penalty=breakdown_data.get("surface_damage_penalty", 0.0),
+        obstruction_penalty=breakdown_data.get("obstruction_penalty", 0.0),
+        curb_ramp_bonus=breakdown_data.get("curb_ramp_bonus", 0.0),
+        verified_weight_applied=breakdown_data.get("verified_weight_applied", 1.0),
+        net_score=breakdown_data.get("net_score", seg.accessibility_score),
+        penalties_detail=breakdown_data.get("penalties_detail", []),
+        bonuses_detail=breakdown_data.get("bonuses_detail", [])
+    )
+
+    return PedestrianSegmentSchema(
+        id=seg.id,
+        osm_way_id=seg.osm_way_id,
+        name=seg.name,
+        start_lat=seg.start_lat,
+        start_lon=seg.start_lon,
+        end_lat=seg.end_lat,
+        end_lon=seg.end_lon,
+        geometry_geojson=seg.geometry_geojson,
+        length_meters=seg.length_meters,
+        accessibility_score=seg.accessibility_score,
+        score_grade=seg.score_grade,
+        score_breakdown=breakdown,
+        barrier_count=seg.barrier_count,
+        last_evaluated_at=seg.last_evaluated_at
+    )
+
+@router.get("", response_model=List[PedestrianSegmentSchema])
+def list_segments(db: Session = Depends(get_db)):
+    """Retrieves all pedestrian segments with accessibility scoring."""
+    segments = db.query(PedestrianSegment).all()
+    # Auto-seed demo network if table is empty
+    if not segments:
+        demo_segs = create_pedestrian_segment_models()
+        for s in demo_segs:
+            db.add(s)
+        db.commit()
+        segments = db.query(PedestrianSegment).all()
+
+    return [format_segment_schema(s) for s in segments]
+
+@router.get("/geojson", response_model=SegmentGeoJSONCollection)
+def get_segments_geojson(db: Session = Depends(get_db)):
+    """Returns pedestrian network in standard GeoJSON format for interactive map layers."""
+    segments = db.query(PedestrianSegment).all()
+    if not segments:
+        demo_segs = create_pedestrian_segment_models()
+        for s in demo_segs:
+            db.add(s)
+        db.commit()
+        segments = db.query(PedestrianSegment).all()
+
+    features = []
+    for s in segments:
+        try:
+            coords = json.loads(s.geometry_geojson)
+        except Exception:
+            coords = [[s.start_lon, s.start_lat], [s.end_lon, s.end_lat]]
+
+        feature = SegmentGeoJSONFeature(
+            type="Feature",
+            geometry={
+                "type": "LineString",
+                "coordinates": coords
+            },
+            properties={
+                "id": s.id,
+                "name": s.name,
+                "accessibility_score": s.accessibility_score,
+                "score_grade": s.score_grade,
+                "barrier_count": s.barrier_count,
+                "length_meters": s.length_meters
+            }
+        )
+        features.append(feature)
+
+    return SegmentGeoJSONCollection(type="FeatureCollection", features=features)
+
+@router.get("/{segment_id}", response_model=PedestrianSegmentSchema)
+def get_segment(segment_id: str, db: Session = Depends(get_db)):
+    """Retrieves single segment with full transparent criteria breakdown."""
+    seg = db.query(PedestrianSegment).filter(PedestrianSegment.id == segment_id).first()
+    if not seg:
+        raise HTTPException(status_code=404, detail="Segment not found")
+    return format_segment_schema(seg)
+
+@router.post("/{segment_id}/recalculate", response_model=PedestrianSegmentSchema)
+def recalculate_segment_score(segment_id: str, db: Session = Depends(get_db)):
+    """Forces recalculation of accessibility score based on linked observations."""
+    seg = db.query(PedestrianSegment).filter(PedestrianSegment.id == segment_id).first()
+    if not seg:
+        raise HTTPException(status_code=404, detail="Segment not found")
+
+    observations = db.query(Observation).filter(Observation.segment_id == segment_id).all()
+    score, grade, breakdown = calculate_segment_accessibility_score(observations)
+
+    seg.accessibility_score = score
+    seg.score_grade = grade
+    seg.score_criteria_breakdown = json.dumps(breakdown.model_dump())
+    seg.barrier_count = sum(len(o.detections) for o in observations)
+    seg.last_evaluated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(seg)
+
+    return format_segment_schema(seg)
