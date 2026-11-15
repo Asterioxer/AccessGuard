@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     
+    # Environment
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    
     # Security
     SECRET_KEY: str = "accessguard-development-secret-key-replace-in-production-32bytesmin"
     ALGORITHM: str = "HS256"
@@ -60,6 +63,9 @@ class Settings(BaseSettings):
     }
 
 settings = Settings()
+
+if settings.ENVIRONMENT.lower() == "production" and ("development" in settings.SECRET_KEY.lower() or len(settings.SECRET_KEY) < 32):
+    raise RuntimeError("CRITICAL SECURITY ERROR: Production deployment requires an explicitly configured SECRET_KEY of at least 32 characters.")
 
 # Ensure directories exist
 settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)

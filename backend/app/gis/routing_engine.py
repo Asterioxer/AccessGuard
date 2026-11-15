@@ -32,7 +32,8 @@ class AccessibilityRoutingEngine:
             )
             
             # Weight multiplier based on accessibility score and barriers
-            score = getattr(seg, "accessibility_score", 100.0)
+            score = getattr(seg, "accessibility_score", 50.0)
+            grade = getattr(seg, "score_grade", "U")
             
             # Check if segment has severe impassable obstacles (stairs, missing curb ramps)
             has_stairs = False
@@ -44,13 +45,15 @@ class AccessibilityRoutingEngine:
 
             if has_stairs:
                 cost_multiplier = 100.0 # Extreme penalty to force path around stairs
-            elif score >= 90.0:
+            elif grade == "A" or score >= 90.0:
                 cost_multiplier = 1.0
-            elif score >= 75.0:
+            elif grade == "B" or score >= 75.0:
                 cost_multiplier = 1.25
-            elif score >= 55.0:
+            elif grade == "C" or score >= 55.0:
                 cost_multiplier = 2.0
-            elif score >= 35.0:
+            elif grade == "U":
+                cost_multiplier = 2.5 # Caution penalty for unassessed routes to prioritize verified accessible paths
+            elif grade == "D" or score >= 35.0:
                 cost_multiplier = 4.5
             else:
                 cost_multiplier = 30.0 # Grade F
@@ -123,6 +126,7 @@ class AccessibilityRoutingEngine:
         start_node, d_start = self._find_nearest_node(start_lat, start_lon)
         end_node, d_end = self._find_nearest_node(end_lat, end_lon)
 
+        MAX_SNAP_METERS = 500.0
         if not start_node or not end_node:
             return RouteResponse(
                 success=False,
@@ -135,6 +139,23 @@ class AccessibilityRoutingEngine:
                 path_coordinates=[],
                 segments_traversed=[],
                 routing_notes=["Could not locate accessible pedestrian network near endpoints."],
+                geojson={"type": "FeatureCollection", "features": []}
+            )
+
+        if d_start > MAX_SNAP_METERS or d_end > MAX_SNAP_METERS:
+            return RouteResponse(
+                success=False,
+                total_distance_meters=0.0,
+                estimated_duration_minutes=0.0,
+                overall_accessibility_score=0.0,
+                route_grade="F",
+                avoids_stairs=True,
+                barriers_encountered=[],
+                path_coordinates=[],
+                segments_traversed=[],
+                routing_notes=[
+                    f"Selected location is too far from mapped pedestrian network (Start: {d_start:.0f}m, End: {d_end:.0f}m. Max allowed: {MAX_SNAP_METERS:.0f}m)."
+                ],
                 geojson={"type": "FeatureCollection", "features": []}
             )
 
@@ -163,6 +184,8 @@ class AccessibilityRoutingEngine:
         score_weighted_sum = 0.0
         barriers_encountered: List[BarrierEncountered] = []
         avoids_stairs = True
+        has_unassessed = False
+        assessed_count = 0
         
         # Add initial connector if start node is slightly offset
         path_coords.append([start_lat, start_lon])
@@ -197,6 +220,12 @@ class AccessibilityRoutingEngine:
 
             # Check barriers on this segment
             seg_obj = edge_data.get("segment_obj")
+            seg_grade = getattr(seg_obj, "score_grade", "U") if seg_obj else "U"
+            if seg_grade == "U":
+                has_unassessed = True
+            else:
+                assessed_count += 1
+
             if seg_obj:
                 for obs in getattr(seg_obj, "observations", []):
                     for det in getattr(obs, "detections", []):
@@ -223,7 +252,9 @@ class AccessibilityRoutingEngine:
         overall_score = max(0.0, min(100.0, overall_score))
 
         # Assign route letter grade
-        if overall_score >= 90.0:
+        if assessed_count == 0 and segments_traversed:
+            route_grade = "U"
+        elif overall_score >= 90.0:
             route_grade = "A"
         elif overall_score >= 75.0:
             route_grade = "B"
@@ -242,6 +273,8 @@ class AccessibilityRoutingEngine:
             f"Selected route avoids severe stairs and steep inclines.",
             f"Segment accessibility average: {overall_score:.1f}/100 (Grade {route_grade})."
         ]
+        if has_unassessed:
+            routing_notes.append("Notice: Route traverses unassessed pedestrian segments. On-the-ground accessibility is unverified for these sections.")
 
         # Build GeoJSON feature
         geojson_coords = [[pt[1], pt[0]] for pt in path_coords] # [[lon, lat], ...]

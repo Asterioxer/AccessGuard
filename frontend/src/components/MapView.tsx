@@ -18,6 +18,7 @@ const GRADE_COLORS: Record<string, string> = {
   C: '#eab308', // Amber yellow
   D: '#f97316', // Orange
   F: '#ef4444', // Rose red
+  U: '#94a3b8', // Slate grey for unassessed
 };
 
 export const MapView: React.FC<MapViewProps> = ({

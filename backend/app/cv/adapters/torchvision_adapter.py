@@ -38,8 +38,8 @@ class TorchvisionAdapter(ModelAdapter):
             
             # If custom fine-tuned weights exist, load model
             if self.weights_path and torch.cuda.is_available():
-                # Load custom checkpoint
-                self.model = torch.load(self.weights_path, map_location=self.device)
+                # Load custom checkpoint safely
+                self.model = torch.load(self.weights_path, map_location=self.device, weights_only=True)
                 self.model.eval()
             else:
                 # Pretrained architecture ready for fine-tuning / evaluation

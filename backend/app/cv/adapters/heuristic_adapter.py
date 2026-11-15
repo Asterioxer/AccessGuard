@@ -112,6 +112,24 @@ class HeuristicCVAdapter(ModelAdapter):
                         
                 step_count = len(dedup_y)
                 if step_count >= 3:
+                    # Check for alternating gradient signs indicating flat surface stripes (e.g. zebra crosswalk)
+                    # Flat painted stripes have top (+grad) and bottom (-grad) edges alternating rapidly,
+                    # whereas physical stair nosings share unidirectional gradient sign across successive steps.
+                    sign_samples = []
+                    for y in dedup_y:
+                        y_idx = min(roi.shape[0] - 1, max(0, y - roi_ymin))
+                        grad_val = np.mean(grad_y[y_idx, min_x:max_x])
+                        sign_samples.append(grad_val)
+
+                    sign_flips = 0
+                    for idx in range(len(sign_samples) - 1):
+                        if (sign_samples[idx] > 20 and sign_samples[idx+1] < -20) or (sign_samples[idx] < -20 and sign_samples[idx+1] > 20):
+                            sign_flips += 1
+
+                    if sign_flips >= 2:
+                        # Pavement marking / crosswalk detected rather than physical stair step risers
+                        return None
+
                     # Bounding box in normalized coords
                     ymin = max(0.0, float(dedup_y[0] - 10) / h)
                     ymax = min(1.0, float(dedup_y[-1] + 20) / h)

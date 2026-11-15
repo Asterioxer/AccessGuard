@@ -31,6 +31,21 @@ def calculate_segment_accessibility_score(
     Returns:
         (net_score, score_grade, breakdown_details)
     """
+    if not observations:
+        breakdown = ScoringCriteriaBreakdown(
+            base_score=50.0,
+            stairs_penalty=0.0,
+            curb_ramp_missing_penalty=0.0,
+            surface_damage_penalty=0.0,
+            obstruction_penalty=0.0,
+            curb_ramp_bonus=0.0,
+            verified_weight_applied=1.0,
+            net_score=50.0,
+            penalties_detail=[],
+            bonuses_detail=["Segment has not been field surveyed. Accessibility is unconfirmed."]
+        )
+        return 50.0, "U", breakdown
+
     base_score = 100.0
     total_penalty = 0.0
     total_bonus = 0.0

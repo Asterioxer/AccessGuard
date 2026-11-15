@@ -1,0 +1,42 @@
+{
+  "jwt_audit": {
+    "hardcoded_default_secret_active": true,
+    "default_secret_warning": "CRITICAL: Default SECRET_KEY is hardcoded in config.py. Must enforce production check.",
+    "expired_token_rejected": true,
+    "none_algorithm_rejected": true
+  },
+  "cors_audit": {
+    "allow_all_origins_wildcard": false,
+    "allowed_origins": [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "http://127.0.0.1:3000",
+      "http://127.0.0.1:5173",
+      "http://localhost:8080"
+    ],
+    "status": "PASS: CORS restricted to explicit origin list."
+  },
+  "rate_limiting_audit": {
+    "has_rate_limiting_middleware": true,
+    "limiter_type": "Limiter",
+    "status": "PASS: slowapi rate limiting active on sensitive endpoints."
+  },
+  "upload_validation_audit": {
+    "malicious_script_rejected": true,
+    "oversized_payload_rejected": true,
+    "magic_byte_header_verified": true,
+    "decompression_bomb_check": {
+      "has_pixel_dimension_limit": false,
+      "issue": "PIL/OpenCV loads images without explicit MAX_IMAGE_PIXELS threshold, risking memory exhaustion from high-resolution bombs (e.g. 50,000x50,000 px)."
+    }
+  },
+  "privacy_scrubbing_audit": {
+    "exif_stripped": true,
+    "face_blur_mechanism": "OpenCV Haar cascade Gaussian blur (No facial recognition)",
+    "license_plate_blur_mechanism": "Contour aspect-ratio blurring"
+  },
+  "verification_sybil_audit": {
+    "duplicate_vote_prevention": "Per-user duplicate voting blocked via verification_reviews table constraint.",
+    "sybil_attack_vulnerability": "HIGH: Any client can register multiple unverified accounts with arbitrary emails without email verification, enabling automated consensus rigging."
+  }
+}

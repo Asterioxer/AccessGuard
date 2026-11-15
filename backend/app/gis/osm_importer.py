@@ -142,8 +142,8 @@ def create_pedestrian_segment_models() -> List[PedestrianSegment]:
             end_lon=data["end_lon"],
             geometry_geojson=json.dumps(coords),
             length_meters=round(length, 1),
-            accessibility_score=100.0,
-            score_grade="A",
+            accessibility_score=50.0,
+            score_grade="U",
             score_criteria_breakdown="{}",
             barrier_count=0
         )

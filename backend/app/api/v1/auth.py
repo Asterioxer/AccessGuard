@@ -1,15 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.db.models import User
 from app.schemas.auth import UserRegister, UserLogin, Token, UserResponse
 from app.core.security import verify_password, get_password_hash, create_access_token, get_current_user_payload
+from app.core.limiter import limiter
 from app.core.logging import logger
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register(user_in: UserRegister, db: Session = Depends(get_db)):
+@limiter.limit("20/minute")
+def register(request: Request, user_in: UserRegister, db: Session = Depends(get_db)):
     """Registers a new user account with role-based access control."""
     existing = db.query(User).filter(User.email == user_in.email).first()
     if existing:
@@ -31,7 +33,8 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
     return user
 
 @router.post("/login", response_model=Token)
-def login(login_in: UserLogin, db: Session = Depends(get_db)):
+@limiter.limit("30/minute")
+def login(request: Request, login_in: UserLogin, db: Session = Depends(get_db)):
     """Authenticates credentials and issues signed JWT bearer token."""
     user = db.query(User).filter(User.email == login_in.email).first()
     if not user or not verify_password(login_in.password, user.hashed_password):

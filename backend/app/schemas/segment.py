@@ -25,7 +25,7 @@ class PedestrianSegmentSchema(BaseModel):
     geometry_geojson: str
     length_meters: float
     accessibility_score: float = Field(..., ge=0.0, le=100.0)
-    score_grade: str # A, B, C, D, F
+    score_grade: str # A, B, C, D, F, U
     score_breakdown: ScoringCriteriaBreakdown
     barrier_count: int
     last_evaluated_at: datetime

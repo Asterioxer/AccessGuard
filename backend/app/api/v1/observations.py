@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from typing import Optional, List
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, status, Request
 from sqlalchemy.orm import Session
 import cv2
 
@@ -16,6 +16,7 @@ from app.schemas.observation import (
 )
 from app.core.config_wrapper import get_settings
 from app.core.security import get_optional_user_payload
+from app.core.limiter import limiter
 from app.core.sanitize import (
     validate_upload, extract_exif_gps, strip_exif_and_reencode, apply_privacy_redaction
 )
@@ -89,7 +90,9 @@ def format_observation_response(obs: Observation) -> ObservationResponse:
     )
 
 @router.post("/upload", response_model=ObservationResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("60/minute")
 async def upload_observation(
+    request: Request,
     file: UploadFile = File(...),
     latitude: Optional[float] = Form(None),
     longitude: Optional[float] = Form(None),

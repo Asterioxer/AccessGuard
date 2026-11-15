@@ -1,0 +1,43 @@
+{
+  "disconnected_graph": {
+    "success": false,
+    "notes": [
+      "No accessible continuous pedestrian route connects these locations."
+    ],
+    "handled_gracefully": true
+  },
+  "all_paths_inaccessible": {
+    "success": true,
+    "avoids_stairs": false,
+    "route_grade": "F",
+    "barriers_encountered": 1,
+    "notes": [
+      "Optimized for manual wheelchair.",
+      "Selected route avoids severe stairs and steep inclines.",
+      "Segment accessibility average: 25.0/100 (Grade F)."
+    ]
+  },
+  "unknown_segments_audit": {
+    "calculated_score": 50.0,
+    "calculated_grade": "U",
+    "default_model_score": 50.0,
+    "default_model_grade": "U",
+    "is_silently_classified_as_grade_a": false,
+    "status": "PASS: Unsurveyed segments classified as Grade U (Unassessed) with caution cost weighting."
+  },
+  "out_of_bounds_snap": {
+    "success": false,
+    "total_distance_meters": 0.0,
+    "snapped_across_continents": false,
+    "issue": "No maximum snap radius check at routing entry: Coordinates thousands of km away snap to the nearest node."
+  },
+  "alternative_path_selection": {
+    "success": true,
+    "avoids_stairs": true,
+    "segments_traversed": [
+      "s_b1",
+      "s_b2"
+    ],
+    "took_accessible_bypass": true
+  }
+}

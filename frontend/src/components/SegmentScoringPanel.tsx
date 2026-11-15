@@ -42,6 +42,8 @@ export const SegmentScoringPanel: React.FC<SegmentScoringPanelProps> = ({
         return 'bg-amber-950 text-amber-400 border-amber-800';
       case 'D':
         return 'bg-orange-950 text-orange-400 border-orange-800';
+      case 'U':
+        return 'bg-slate-900 text-slate-400 border-slate-700';
       default:
         return 'bg-rose-950 text-rose-400 border-rose-800';
     }

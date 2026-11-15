@@ -4,6 +4,11 @@ from typing import Optional, Tuple
 from PIL import Image, ExifTags
 import numpy as np
 
+# Decompression bomb and resource limit guards
+MAX_IMAGE_PIXELS = 16_000_000 # Max 16 Megapixels
+MAX_IMAGE_DIMENSION = 4096 # Max 4096px along width or height
+Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
+
 # Magic byte signatures for strict validation
 MAGIC_BYTES = {
     "jpeg": [b"\xff\xd8\xff"],
@@ -15,7 +20,7 @@ MAGIC_BYTES = {
 
 def validate_upload(file_bytes: bytes, filename: str, max_size_bytes: int) -> Tuple[bool, str, str]:
     """
-    Validates file size, extension, and magic header bytes.
+    Validates file size, extension, magic header bytes, and image dimension boundaries.
     Returns (is_valid, mime_type, media_category['image'|'video'])
     """
     if len(file_bytes) == 0:
@@ -24,17 +29,22 @@ def validate_upload(file_bytes: bytes, filename: str, max_size_bytes: int) -> Tu
         return False, f"file_exceeds_max_size_{max_size_bytes}", "unknown"
     
     ext = filename.lower().split(".")[-1] if "." in filename else ""
+    is_image = False
+    mime_type = "application/octet-stream"
     
     # Image checks
     if ext in ["jpg", "jpeg"]:
         if any(file_bytes.startswith(sig) for sig in MAGIC_BYTES["jpeg"]):
-            return True, "image/jpeg", "image"
+            is_image = True
+            mime_type = "image/jpeg"
     elif ext == "png":
         if any(file_bytes.startswith(sig) for sig in MAGIC_BYTES["png"]):
-            return True, "image/png", "image"
+            is_image = True
+            mime_type = "image/png"
     elif ext == "webp":
         if file_bytes.startswith(b"RIFF") and len(file_bytes) > 12 and file_bytes[8:12] == b"WEBP":
-            return True, "image/webp", "image"
+            is_image = True
+            mime_type = "image/webp"
             
     # Video checks
     elif ext in ["mp4", "m4v"]:
@@ -44,6 +54,17 @@ def validate_upload(file_bytes: bytes, filename: str, max_size_bytes: int) -> Tu
     elif ext in ["mov", "qt"]:
         if b"ftyp" in file_bytes[:32] or b"moov" in file_bytes[:64] or b"wide" in file_bytes[:32]:
             return True, "video/quicktime", "video"
+
+    if is_image:
+        # Check pixel dimensions to protect against decompression bombs
+        try:
+            with Image.open(io.BytesIO(file_bytes)) as img:
+                w, h = img.size
+                if w * h > MAX_IMAGE_PIXELS or w > MAX_IMAGE_DIMENSION or h > MAX_IMAGE_DIMENSION:
+                    return False, f"image_dimensions_exceed_limit_{w}x{h}_max_{MAX_IMAGE_DIMENSION}x{MAX_IMAGE_DIMENSION}", "image"
+            return True, mime_type, "image"
+        except Exception as e:
+            return False, f"invalid_or_corrupt_image: {str(e)}", "image"
             
     return False, "unsupported_media_type_or_mismatched_magic_bytes", "unknown"
 
@@ -103,20 +124,23 @@ def strip_exif_and_reencode(image_bytes: bytes, output_format: str = "JPEG") -> 
     Strips EXIF, GPS, camera serials, and privacy metadata, re-encoding raw pixel buffer.
     """
     try:
-        img = Image.open(io.BytesIO(image_bytes))
-        # Create fresh image without metadata
-        data = list(img.get_flattened_data()) if hasattr(img, "get_flattened_data") else list(img.getdata())
-        clean_img = Image.new(img.mode, img.size)
-        clean_img.putdata(data)
-        
-        out_buf = io.BytesIO()
-        if output_format.upper() in ["JPG", "JPEG"]:
-            if clean_img.mode in ("RGBA", "P"):
-                clean_img = clean_img.convert("RGB")
-            clean_img.save(out_buf, format="JPEG", quality=88, optimize=True)
-        else:
-            clean_img.save(out_buf, format="PNG", optimize=True)
-        return out_buf.getvalue()
+        with Image.open(io.BytesIO(image_bytes)) as img:
+            # Dimension bound guard
+            if img.width * img.height > MAX_IMAGE_PIXELS or img.width > MAX_IMAGE_DIMENSION or img.height > MAX_IMAGE_DIMENSION:
+                return image_bytes
+            
+            # Create fresh image without metadata
+            clean_img = Image.new(img.mode, img.size)
+            clean_img.paste(img)
+            
+            out_buf = io.BytesIO()
+            if output_format.upper() in ["JPG", "JPEG"]:
+                if clean_img.mode in ("RGBA", "P"):
+                    clean_img = clean_img.convert("RGB")
+                clean_img.save(out_buf, format="JPEG", quality=88, optimize=True)
+            else:
+                clean_img.save(out_buf, format="PNG", optimize=True)
+            return out_buf.getvalue()
     except Exception:
         # Fallback to returning original if transformation fails
         return image_bytes

@@ -12,11 +12,11 @@ class MockObs:
         self.status = status
         self.detections = detections
 
-def test_empty_observations_gives_perfect_score():
+def test_empty_observations_gives_unassessed_score():
     score, grade, breakdown = calculate_segment_accessibility_score([])
-    assert score == 100.0
-    assert grade == "A"
-    assert breakdown.base_score == 100.0
+    assert score == 50.0
+    assert grade == "U"
+    assert breakdown.base_score == 50.0
     assert breakdown.stairs_penalty == 0.0
 
 def test_stairs_impassable_penalty():

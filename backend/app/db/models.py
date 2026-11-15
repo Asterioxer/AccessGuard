@@ -42,8 +42,8 @@ class PedestrianSegment(Base):
     length_meters = Column(Float, default=50.0)
     
     # Transparent Accessibility Scoring (0.0 to 100.0)
-    accessibility_score = Column(Float, default=100.0)
-    score_grade = Column(String, default="A") # A, B, C, D, F
+    accessibility_score = Column(Float, default=50.0)
+    score_grade = Column(String, default="U") # A, B, C, D, F, U (Unassessed)
     score_criteria_breakdown = Column(Text, default="{}") # JSON of penalty/bonus components
     barrier_count = Column(Integer, default=0)
     last_evaluated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

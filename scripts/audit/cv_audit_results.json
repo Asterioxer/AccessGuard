@@ -1,0 +1,84 @@
+{
+  "adapters": {
+    "dummy": {
+      "type": "Mocked / Deterministic test stub",
+      "is_model_driven": false,
+      "has_fallback": false
+    },
+    "heuristic": {
+      "type": "Classical Heuristic Computer Vision (OpenCV)",
+      "is_model_driven": false,
+      "has_fallback": false
+    },
+    "torchvision": {
+      "type": "PyTorch deep learning wrapper with Heuristic fallback",
+      "is_model_driven": false,
+      "fallback_active": true,
+      "notes": "Falls back to HeuristicCVAdapter if no GPU/weights supplied."
+    },
+    "yolo": {
+      "type": "YOLO / ONNX stub with Heuristic fallback",
+      "is_model_driven": false,
+      "fallback_active": true,
+      "notes": "Falls back to HeuristicCVAdapter unconditionally when model_path is None."
+    }
+  },
+  "crosswalk_test": {
+    "false_positive_stairs_detected": false,
+    "details": [
+      [
+        "surface_damage",
+        0.76,
+        0.18
+      ]
+    ]
+  },
+  "lighting_stress_test": {
+    "underexposure_night": {
+      "mean_brightness": 17.495735677083335,
+      "detected": true,
+      "uncertainty_score": 0.55
+    },
+    "glare_overexposure": {
+      "mean_brightness": 250.137451171875,
+      "detected": true,
+      "uncertainty_score": 0.3
+    },
+    "low_contrast_fog": {
+      "std_contrast": 1.49069692108079,
+      "detected": false,
+      "uncertainty_score": null
+    }
+  },
+  "channel_consistency": {
+    "bgr_detection_count": 2,
+    "rgb_detection_count": 2,
+    "bgr_confidences": [
+      0.94,
+      0.76
+    ],
+    "rgb_confidences": [
+      0.94,
+      0.76
+    ],
+    "sensitive_to_channel_order": false
+  },
+  "dataset_leakage_audit": {
+    "has_train_test_split": false,
+    "sample_count": 5,
+    "data_leakage_identified": true,
+    "leakage_mechanism": "Heuristic thresholds (edge density > 0.025, step count clustering) were tuned directly against the 5 synthetic evaluation scenes."
+  },
+  "indian_infrastructure_audit": {
+    "represented_in_evaluation": false,
+    "critical_unhandled_barriers": [
+      "Open/broken storm-water drain slabs (kaccha drains)",
+      "Dislodged, uneven interlocking paver blocks",
+      "Sidewalk encroachment by parked two-wheelers and street vendor stalls",
+      "High curb transitions (30cm - 50cm without curb cuts vs Western ADA 15cm)",
+      "Monsoon waterlogging / puddles obscuring sidewalk depth",
+      "Utility poles and telecom transformer boxes obstructing the middle of footpaths",
+      "Stray cattle / animal obstacles"
+    ]
+  }
+}
