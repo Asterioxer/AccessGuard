@@ -43,16 +43,31 @@ class AccessibilityRoutingEngine:
                         has_stairs = True
                         break
 
+            # Freshness / staleness check (> 180 days since evaluation)
+            is_stale = False
+            last_eval = getattr(seg, "last_evaluated_at", None)
+            if last_eval:
+                try:
+                    from datetime import datetime, timezone
+                    now_utc = datetime.now(timezone.utc)
+                    if hasattr(last_eval, "tzinfo") and last_eval.tzinfo is None:
+                        last_eval = last_eval.replace(tzinfo=timezone.utc)
+                    age_days = (now_utc - last_eval).days
+                    if age_days > 180:
+                        is_stale = True
+                except Exception:
+                    pass
+
             if has_stairs:
                 cost_multiplier = 100.0 # Extreme penalty to force path around stairs
             elif grade == "A" or score >= 90.0:
-                cost_multiplier = 1.0
+                cost_multiplier = 1.0 if not is_stale else 1.3
             elif grade == "B" or score >= 75.0:
-                cost_multiplier = 1.25
+                cost_multiplier = 1.25 if not is_stale else 1.6
             elif grade == "C" or score >= 55.0:
-                cost_multiplier = 2.0
+                cost_multiplier = 2.0 if not is_stale else 2.5
             elif grade == "U":
-                cost_multiplier = 2.5 # Caution penalty for unassessed routes to prioritize verified accessible paths
+                cost_multiplier = 3.5 # Caution penalty for unassessed routes to prioritize verified accessible paths
             elif grade == "D" or score >= 35.0:
                 cost_multiplier = 4.5
             else:
@@ -188,6 +203,8 @@ class AccessibilityRoutingEngine:
             )
 
         # Reconstruct path details
+        self._temp_unassessed_count = 0
+        self._temp_stale_count = 0
         total_distance = 0.0
         path_coords: List[List[float]] = []
         segments_traversed: List[str] = []
@@ -233,8 +250,24 @@ class AccessibilityRoutingEngine:
             seg_grade = getattr(seg_obj, "score_grade", "U") if seg_obj else "U"
             if seg_grade == "U":
                 has_unassessed = True
+                unassessed_count = getattr(self, "_temp_unassessed_count", 0) + 1
+                self._temp_unassessed_count = unassessed_count
             else:
                 assessed_count += 1
+
+            # Check if segment data is stale (> 180 days)
+            last_eval = getattr(seg_obj, "last_evaluated_at", None) if seg_obj else None
+            if last_eval:
+                try:
+                    from datetime import datetime, timezone
+                    now_utc = datetime.now(timezone.utc)
+                    if hasattr(last_eval, "tzinfo") and last_eval.tzinfo is None:
+                        last_eval = last_eval.replace(tzinfo=timezone.utc)
+                    if (now_utc - last_eval).days > 180:
+                        stale_count = getattr(self, "_temp_stale_count", 0) + 1
+                        self._temp_stale_count = stale_count
+                except Exception:
+                    pass
 
             if seg_obj:
                 for obs in getattr(seg_obj, "observations", []):
@@ -346,5 +379,8 @@ class AccessibilityRoutingEngine:
             routing_notes=routing_notes,
             geojson=geojson,
             algorithm_used=algo_choice,
-            direct_route_comparison=direct_comparison
+            direct_route_comparison=direct_comparison,
+            has_unassessed_segments=has_unassessed,
+            unassessed_segments_count=getattr(self, "_temp_unassessed_count", 0),
+            stale_segments_count=getattr(self, "_temp_stale_count", 0)
         )

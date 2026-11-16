@@ -1,17 +1,28 @@
 {
   "opencv_heuristic_adapter": {
     "adapter_name": "opencv_heuristic_adapter",
-    "num_test_scenes": 10,
-    "ground_truth_count": 10,
-    "prediction_count": 6,
-    "macro_precision": 0.2,
-    "macro_recall": 0.0667,
-    "macro_f1": 0.1,
-    "mAP_50": 0.0727,
-    "mAP_50_95": 0.0436,
-    "expected_calibration_error": 0.6667,
+    "num_test_scenes": 25,
+    "ground_truth_count": 25,
+    "prediction_count": 11,
+    "macro_precision": 0.2571,
+    "macro_recall": 0.2333,
+    "macro_f1": 0.2327,
+    "mAP_50": 0.2364,
+    "mAP_50_95": 0.0836,
+    "expected_calibration_error": 0.3755,
     "per_class_metrics": {
       "construction_obstacle": {
+        "ground_truth_count": 8,
+        "prediction_count": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 8,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "pole_or_bollard": {
         "ground_truth_count": 3,
         "prediction_count": 0,
         "true_positives": 0,
@@ -22,49 +33,38 @@
         "f1_score": 0.0,
         "average_precision": 0.0
       },
-      "pole_or_bollard": {
-        "ground_truth_count": 1,
-        "prediction_count": 0,
-        "true_positives": 0,
-        "false_positives": 0,
-        "false_negatives": 1,
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1_score": 0.0,
-        "average_precision": 0.0
-      },
       "raised_curb": {
-        "ground_truth_count": 2,
+        "ground_truth_count": 4,
         "prediction_count": 0,
         "true_positives": 0,
         "false_positives": 0,
-        "false_negatives": 2,
+        "false_negatives": 4,
         "precision": 0.0,
         "recall": 0.0,
         "f1_score": 0.0,
         "average_precision": 0.0
       },
       "stairs": {
-        "ground_truth_count": 1,
-        "prediction_count": 5,
-        "true_positives": 0,
+        "ground_truth_count": 4,
+        "prediction_count": 7,
+        "true_positives": 2,
         "false_positives": 5,
-        "false_negatives": 1,
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1_score": 0.0,
-        "average_precision": 0.0
+        "false_negatives": 2,
+        "precision": 0.2857,
+        "recall": 0.5,
+        "f1_score": 0.3636,
+        "average_precision": 0.5455
       },
       "surface_damage": {
-        "ground_truth_count": 3,
-        "prediction_count": 1,
-        "true_positives": 1,
+        "ground_truth_count": 6,
+        "prediction_count": 4,
+        "true_positives": 4,
         "false_positives": 0,
         "false_negatives": 2,
         "precision": 1.0,
-        "recall": 0.3333,
-        "f1_score": 0.5,
-        "average_precision": 0.3636
+        "recall": 0.6667,
+        "f1_score": 0.8,
+        "average_precision": 0.6364
       }
     },
     "confusion_matrix": {
@@ -79,45 +79,36 @@
       ],
       "matrix": [
         [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1
-        ],
-        [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
           2,
           0,
-          1,
+          0,
+          0,
+          0,
+          0,
+          2
+        ],
+        [
+          0,
+          0,
+          0,
           0,
           0,
           0,
           0
         ],
         [
+          3,
+          0,
           1,
           0,
           0,
           0,
-          0,
-          0,
-          1
+          2
         ],
         [
           0,
           0,
-          0,
+          3,
           0,
           0,
           0,
@@ -133,7 +124,16 @@
           3
         ],
         [
-          2,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          7
+        ],
+        [
+          1,
           0,
           0,
           0,
@@ -144,32 +144,43 @@
       ]
     },
     "latency": {
-      "mean_ms": 17.19,
-      "p50_ms": 15.65,
-      "p95_ms": 26.97,
-      "p99_ms": 31.41,
-      "fps": 58.2
+      "mean_ms": 14.95,
+      "p50_ms": 13.1,
+      "p95_ms": 30.56,
+      "p99_ms": 31.06,
+      "fps": 66.9
     },
     "memory": {
-      "ram_rss_mb": 411.27,
+      "ram_rss_mb": 428.91,
       "vram_allocated_mb": 0.0,
-      "ram_delta_mb": 361.94,
+      "ram_delta_mb": 365.88,
       "vram_delta_mb": 0.0
     }
   },
   "torchvision_adapter": {
     "adapter_name": "torchvision_adapter",
-    "num_test_scenes": 10,
-    "ground_truth_count": 10,
-    "prediction_count": 6,
-    "macro_precision": 0.2,
-    "macro_recall": 0.0667,
-    "macro_f1": 0.1,
-    "mAP_50": 0.0727,
-    "mAP_50_95": 0.0436,
-    "expected_calibration_error": 0.6667,
+    "num_test_scenes": 25,
+    "ground_truth_count": 25,
+    "prediction_count": 0,
+    "macro_precision": 0.0,
+    "macro_recall": 0.0,
+    "macro_f1": 0.0,
+    "mAP_50": 0.0,
+    "mAP_50_95": 0.0,
+    "expected_calibration_error": 0.0,
     "per_class_metrics": {
       "construction_obstacle": {
+        "ground_truth_count": 8,
+        "prediction_count": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 8,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "pole_or_bollard": {
         "ground_truth_count": 3,
         "prediction_count": 0,
         "true_positives": 0,
@@ -180,49 +191,38 @@
         "f1_score": 0.0,
         "average_precision": 0.0
       },
-      "pole_or_bollard": {
-        "ground_truth_count": 1,
-        "prediction_count": 0,
-        "true_positives": 0,
-        "false_positives": 0,
-        "false_negatives": 1,
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1_score": 0.0,
-        "average_precision": 0.0
-      },
       "raised_curb": {
-        "ground_truth_count": 2,
+        "ground_truth_count": 4,
         "prediction_count": 0,
         "true_positives": 0,
         "false_positives": 0,
-        "false_negatives": 2,
+        "false_negatives": 4,
         "precision": 0.0,
         "recall": 0.0,
         "f1_score": 0.0,
         "average_precision": 0.0
       },
       "stairs": {
-        "ground_truth_count": 1,
-        "prediction_count": 5,
+        "ground_truth_count": 4,
+        "prediction_count": 0,
         "true_positives": 0,
-        "false_positives": 5,
-        "false_negatives": 1,
+        "false_positives": 0,
+        "false_negatives": 4,
         "precision": 0.0,
         "recall": 0.0,
         "f1_score": 0.0,
         "average_precision": 0.0
       },
       "surface_damage": {
-        "ground_truth_count": 3,
-        "prediction_count": 1,
-        "true_positives": 1,
+        "ground_truth_count": 6,
+        "prediction_count": 0,
+        "true_positives": 0,
         "false_positives": 0,
-        "false_negatives": 2,
-        "precision": 1.0,
-        "recall": 0.3333,
-        "f1_score": 0.5,
-        "average_precision": 0.3636
+        "false_negatives": 6,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
       }
     },
     "confusion_matrix": {
@@ -243,7 +243,7 @@
           0,
           0,
           0,
-          1
+          4
         ],
         [
           0,
@@ -255,22 +255,13 @@
           0
         ],
         [
-          2,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          1,
           0,
           0,
           0,
           0,
           0,
-          1
+          0,
+          6
         ],
         [
           0,
@@ -279,7 +270,7 @@
           0,
           0,
           0,
-          1
+          4
         ],
         [
           0,
@@ -291,7 +282,16 @@
           3
         ],
         [
-          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          8
+        ],
+        [
+          0,
           0,
           0,
           0,
@@ -302,37 +302,37 @@
       ]
     },
     "latency": {
-      "mean_ms": 23.86,
-      "p50_ms": 22.5,
-      "p95_ms": 31.53,
-      "p99_ms": 35.8,
-      "fps": 41.9
+      "mean_ms": 10.28,
+      "p50_ms": 10.33,
+      "p95_ms": 11.97,
+      "p99_ms": 12.66,
+      "fps": 97.3
     },
     "memory": {
-      "ram_rss_mb": 415.61,
+      "ram_rss_mb": 430.26,
       "vram_allocated_mb": 0.0,
-      "ram_delta_mb": 1.03,
+      "ram_delta_mb": 0.22,
       "vram_delta_mb": 0.0
     }
   },
   "yolo_adapter": {
     "adapter_name": "yolo_adapter",
-    "num_test_scenes": 10,
-    "ground_truth_count": 10,
-    "prediction_count": 20,
-    "macro_precision": 0.2,
-    "macro_recall": 0.0667,
-    "macro_f1": 0.1,
-    "mAP_50": 0.0727,
-    "mAP_50_95": 0.0436,
-    "expected_calibration_error": 0.5215,
+    "num_test_scenes": 25,
+    "ground_truth_count": 25,
+    "prediction_count": 27,
+    "macro_precision": 0.0,
+    "macro_recall": 0.0,
+    "macro_f1": 0.0,
+    "mAP_50": 0.0,
+    "mAP_50_95": 0.0,
+    "expected_calibration_error": 0.4834,
     "per_class_metrics": {
       "construction_obstacle": {
-        "ground_truth_count": 3,
+        "ground_truth_count": 8,
         "prediction_count": 0,
         "true_positives": 0,
         "false_positives": 0,
-        "false_negatives": 3,
+        "false_negatives": 8,
         "precision": 0.0,
         "recall": 0.0,
         "f1_score": 0.0,
@@ -340,9 +340,20 @@
       },
       "curb_ramp_missing": {
         "ground_truth_count": 0,
-        "prediction_count": 5,
+        "prediction_count": 7,
         "true_positives": 0,
-        "false_positives": 5,
+        "false_positives": 7,
+        "false_negatives": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "narrow_sidewalk": {
+        "ground_truth_count": 0,
+        "prediction_count": 1,
+        "true_positives": 0,
+        "false_positives": 1,
         "false_negatives": 0,
         "precision": 0.0,
         "recall": 0.0,
@@ -350,164 +361,6 @@
         "average_precision": 0.0
       },
       "pole_or_bollard": {
-        "ground_truth_count": 1,
-        "prediction_count": 0,
-        "true_positives": 0,
-        "false_positives": 0,
-        "false_negatives": 1,
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1_score": 0.0,
-        "average_precision": 0.0
-      },
-      "raised_curb": {
-        "ground_truth_count": 2,
-        "prediction_count": 0,
-        "true_positives": 0,
-        "false_positives": 0,
-        "false_negatives": 2,
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1_score": 0.0,
-        "average_precision": 0.0
-      },
-      "stairs": {
-        "ground_truth_count": 1,
-        "prediction_count": 5,
-        "true_positives": 0,
-        "false_positives": 5,
-        "false_negatives": 1,
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1_score": 0.0,
-        "average_precision": 0.0
-      },
-      "steep_incline": {
-        "ground_truth_count": 0,
-        "prediction_count": 9,
-        "true_positives": 0,
-        "false_positives": 9,
-        "false_negatives": 0,
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1_score": 0.0,
-        "average_precision": 0.0
-      },
-      "surface_damage": {
-        "ground_truth_count": 3,
-        "prediction_count": 1,
-        "true_positives": 1,
-        "false_positives": 0,
-        "false_negatives": 2,
-        "precision": 1.0,
-        "recall": 0.3333,
-        "f1_score": 0.5,
-        "average_precision": 0.3636
-      }
-    },
-    "confusion_matrix": {
-      "classes": [
-        "stairs",
-        "curb_ramp_present",
-        "surface_damage",
-        "raised_curb",
-        "pole_or_bollard",
-        "construction_obstacle",
-        "background"
-      ],
-      "matrix": [
-        [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1
-        ],
-        [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          2,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1
-        ],
-        [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1
-        ],
-        [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          3
-        ],
-        [
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          14
-        ]
-      ]
-    },
-    "latency": {
-      "mean_ms": 441.03,
-      "p50_ms": 437.44,
-      "p95_ms": 526.45,
-      "p99_ms": 549.64,
-      "fps": 2.3
-    },
-    "memory": {
-      "ram_rss_mb": 504.59,
-      "vram_allocated_mb": 0.0,
-      "ram_delta_mb": 2.13,
-      "vram_delta_mb": 0.0
-    }
-  },
-  "onnx_adapter": {
-    "adapter_name": "onnx_adapter",
-    "num_test_scenes": 10,
-    "ground_truth_count": 10,
-    "prediction_count": 6,
-    "macro_precision": 0.2,
-    "macro_recall": 0.0667,
-    "macro_f1": 0.1,
-    "mAP_50": 0.0727,
-    "mAP_50_95": 0.0436,
-    "expected_calibration_error": 0.6667,
-    "per_class_metrics": {
-      "construction_obstacle": {
         "ground_truth_count": 3,
         "prediction_count": 0,
         "true_positives": 0,
@@ -518,49 +371,49 @@
         "f1_score": 0.0,
         "average_precision": 0.0
       },
-      "pole_or_bollard": {
-        "ground_truth_count": 1,
-        "prediction_count": 0,
-        "true_positives": 0,
-        "false_positives": 0,
-        "false_negatives": 1,
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1_score": 0.0,
-        "average_precision": 0.0
-      },
       "raised_curb": {
-        "ground_truth_count": 2,
+        "ground_truth_count": 4,
         "prediction_count": 0,
         "true_positives": 0,
         "false_positives": 0,
-        "false_negatives": 2,
+        "false_negatives": 4,
         "precision": 0.0,
         "recall": 0.0,
         "f1_score": 0.0,
         "average_precision": 0.0
       },
       "stairs": {
-        "ground_truth_count": 1,
-        "prediction_count": 5,
+        "ground_truth_count": 4,
+        "prediction_count": 0,
         "true_positives": 0,
-        "false_positives": 5,
-        "false_negatives": 1,
+        "false_positives": 0,
+        "false_negatives": 4,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "steep_incline": {
+        "ground_truth_count": 0,
+        "prediction_count": 19,
+        "true_positives": 0,
+        "false_positives": 19,
+        "false_negatives": 0,
         "precision": 0.0,
         "recall": 0.0,
         "f1_score": 0.0,
         "average_precision": 0.0
       },
       "surface_damage": {
-        "ground_truth_count": 3,
-        "prediction_count": 1,
-        "true_positives": 1,
+        "ground_truth_count": 6,
+        "prediction_count": 0,
+        "true_positives": 0,
         "false_positives": 0,
-        "false_negatives": 2,
-        "precision": 1.0,
-        "recall": 0.3333,
-        "f1_score": 0.5,
-        "average_precision": 0.3636
+        "false_negatives": 6,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
       }
     },
     "confusion_matrix": {
@@ -581,7 +434,7 @@
           0,
           0,
           0,
-          1
+          4
         ],
         [
           0,
@@ -593,22 +446,13 @@
           0
         ],
         [
-          2,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          1,
           0,
           0,
           0,
           0,
           0,
-          1
+          0,
+          6
         ],
         [
           0,
@@ -617,7 +461,7 @@
           0,
           0,
           0,
-          1
+          4
         ],
         [
           0,
@@ -629,27 +473,227 @@
           3
         ],
         [
-          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          8
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          27
+        ]
+      ]
+    },
+    "latency": {
+      "mean_ms": 412.49,
+      "p50_ms": 382.93,
+      "p95_ms": 522.35,
+      "p99_ms": 537.67,
+      "fps": 2.4
+    },
+    "memory": {
+      "ram_rss_mb": 525.49,
+      "vram_allocated_mb": 0.0,
+      "ram_delta_mb": 0.01,
+      "vram_delta_mb": 0.0
+    }
+  },
+  "onnx_adapter": {
+    "adapter_name": "onnx_adapter",
+    "num_test_scenes": 25,
+    "ground_truth_count": 25,
+    "prediction_count": 27,
+    "macro_precision": 0.0,
+    "macro_recall": 0.0,
+    "macro_f1": 0.0,
+    "mAP_50": 0.0,
+    "mAP_50_95": 0.0,
+    "expected_calibration_error": 0.4834,
+    "per_class_metrics": {
+      "construction_obstacle": {
+        "ground_truth_count": 8,
+        "prediction_count": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 8,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "curb_ramp_missing": {
+        "ground_truth_count": 0,
+        "prediction_count": 7,
+        "true_positives": 0,
+        "false_positives": 7,
+        "false_negatives": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "narrow_sidewalk": {
+        "ground_truth_count": 0,
+        "prediction_count": 1,
+        "true_positives": 0,
+        "false_positives": 1,
+        "false_negatives": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "pole_or_bollard": {
+        "ground_truth_count": 3,
+        "prediction_count": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 3,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "raised_curb": {
+        "ground_truth_count": 4,
+        "prediction_count": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 4,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "stairs": {
+        "ground_truth_count": 4,
+        "prediction_count": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 4,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "steep_incline": {
+        "ground_truth_count": 0,
+        "prediction_count": 19,
+        "true_positives": 0,
+        "false_positives": 19,
+        "false_negatives": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "surface_damage": {
+        "ground_truth_count": 6,
+        "prediction_count": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 6,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      }
+    },
+    "confusion_matrix": {
+      "classes": [
+        "stairs",
+        "curb_ramp_present",
+        "surface_damage",
+        "raised_curb",
+        "pole_or_bollard",
+        "construction_obstacle",
+        "background"
+      ],
+      "matrix": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          4
+        ],
+        [
+          0,
           0,
           0,
           0,
           0,
           0,
           0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          6
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          4
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          8
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          27
         ]
       ]
     },
     "latency": {
-      "mean_ms": 25.06,
-      "p50_ms": 23.49,
-      "p95_ms": 36.19,
-      "p99_ms": 42.99,
-      "fps": 39.9
+      "mean_ms": 427.02,
+      "p50_ms": 406.44,
+      "p95_ms": 578.8,
+      "p99_ms": 637.98,
+      "fps": 2.3
     },
     "memory": {
-      "ram_rss_mb": 504.75,
+      "ram_rss_mb": 597.44,
       "vram_allocated_mb": 0.0,
-      "ram_delta_mb": 0.15,
+      "ram_delta_mb": -0.01,
       "vram_delta_mb": 0.0
     }
   }

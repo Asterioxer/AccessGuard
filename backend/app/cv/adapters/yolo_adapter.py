@@ -69,17 +69,11 @@ class YOLOAdapter(ModelAdapter):
             self.load()
 
         if hasattr(self, "onnx_subadapter") and self.onnx_subadapter is not None:
-            preds = self.onnx_subadapter.predict(image_bgr)
-            if preds:
-                return preds
-            # Fall back to heuristic adapter if ONNX didn't trigger
-            from app.cv.adapters.heuristic_adapter import HeuristicCVAdapter
-            return HeuristicCVAdapter().predict(image_bgr)
+            return self.onnx_subadapter.predict(image_bgr)
 
         if self.model is None:
-            # Fallback to heuristic CV adapter
-            from app.cv.adapters.heuristic_adapter import HeuristicCVAdapter
-            return HeuristicCVAdapter().predict(image_bgr)
+            logger.info("YOLOAdapter: no active model weights; returning empty detections.")
+            return []
 
         h, w = image_bgr.shape[:2]
         try:
@@ -135,13 +129,7 @@ class YOLOAdapter(ModelAdapter):
                         )
                     )
 
-            # If no YOLO predictions found on raw model, supplement with heuristic if needed
-            if not detections:
-                from app.cv.adapters.heuristic_adapter import HeuristicCVAdapter
-                return HeuristicCVAdapter().predict(image_bgr)
-
             return detections
         except Exception as e:
-            logger.warning(f"Error during YOLO prediction ({e}); falling back to heuristic adapter.")
-            from app.cv.adapters.heuristic_adapter import HeuristicCVAdapter
-            return HeuristicCVAdapter().predict(image_bgr)
+            logger.warning(f"Error during YOLO prediction ({e}); returning empty detections.")
+            return []

@@ -23,6 +23,10 @@ from app.api.v1.verifications import router as verify_router
 from app.api.v1.analytics import router as analytics_router
 from app.api.v1.health import router as health_router
 from app.api.v1.live_cv import router as live_cv_router
+from app.api.v1.ingestion import router as ingestion_router
+from app.api.v1.segmentation import router as segmentation_router
+from app.api.v1.video import router as video_router
+from app.api.v1.reality import router as reality_router
 
 setup_logging()
 
@@ -102,6 +106,10 @@ app.include_router(routing_router, prefix=settings.API_V1_STR)
 app.include_router(verify_router, prefix=settings.API_V1_STR)
 app.include_router(analytics_router, prefix=settings.API_V1_STR)
 app.include_router(live_cv_router, prefix=settings.API_V1_STR)
+app.include_router(ingestion_router, prefix=settings.API_V1_STR)
+app.include_router(segmentation_router, prefix=settings.API_V1_STR)
+app.include_router(video_router, prefix=settings.API_V1_STR)
+app.include_router(reality_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def root_info():

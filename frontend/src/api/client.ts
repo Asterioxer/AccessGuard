@@ -195,4 +195,88 @@ export const api = {
     }
     return response.json();
   },
+
+  // Mission 005: Autonomous Ingestion
+  getProviders: () => request<any[]>('/ingestion/providers'),
+
+  getIngestionJobs: () => request<any[]>('/ingestion/jobs'),
+
+  createIngestionJob: (data: {
+    provider: string;
+    bbox: [number, number, number, number];
+    interval_minutes?: number;
+    priority?: string;
+  }) =>
+    request<any>('/ingestion/jobs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }),
+
+  runIngestionJob: (jobId: string) =>
+    request<any>(`/ingestion/jobs/${jobId}/run`, {
+      method: 'POST',
+    }),
+
+  queryProviderImagery: (data: {
+    provider: string;
+    bbox: [number, number, number, number];
+    limit?: number;
+  }) =>
+    request<any>('/ingestion/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }),
+
+  getObservationProvenance: (obsId: string) =>
+    request<any>(`/ingestion/provenance/${obsId}`),
+
+  // Mission 005: Pixel-Level Segmentation
+  getSegmentationClasses: () => request<{ classes: any[]; total_classes: number }>('/cv/segmentation/classes'),
+
+  predictSegmentation: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const token = getAuthToken();
+    const headers: HeadersInit = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE}/cv/segmentation/predict`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!res.ok) throw new Error(`Segmentation failed: ${res.status}`);
+    return res.json();
+  },
+
+  // Mission 005: Video Intelligence
+  uploadVideo: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const token = getAuthToken();
+    const headers: HeadersInit = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE}/video/process`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!res.ok) throw new Error(`Video upload failed: ${res.status}`);
+    return res.json();
+  },
+
+  getVideoJob: (jobId: string) => request<any>(`/video/jobs/${jobId}`),
+
+  // Mission 005 Addendum: Reality Test Engine
+  getRealityScorecard: () => request<any>('/reality/scorecard'),
+
+  triggerRealityEvaluation: () =>
+    request<any>('/reality/evaluate', {
+      method: 'POST',
+    }),
+
+  getRealityFailures: () => request<any>('/reality/failures'),
 };

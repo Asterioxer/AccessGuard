@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Shield, Navigation, CheckCircle2, BarChart3, Upload, User as UserIcon, LogOut, Key, Camera, Activity } from 'lucide-react';
+import { Shield, Navigation, CheckCircle2, BarChart3, Upload, User as UserIcon, LogOut, Key, Camera, Activity, Cpu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface NavbarProps {
-  activeTab: 'map' | 'route' | 'verification' | 'analytics' | 'live_camera' | 'evaluation';
-  setActiveTab: (tab: 'map' | 'route' | 'verification' | 'analytics' | 'live_camera' | 'evaluation') => void;
+  activeTab: 'map' | 'route' | 'verification' | 'analytics' | 'live_camera' | 'evaluation' | 'autonomous';
+  setActiveTab: (tab: 'map' | 'route' | 'verification' | 'analytics' | 'live_camera' | 'evaluation' | 'autonomous') => void;
   onOpenUpload: () => void;
 }
 
@@ -133,6 +133,18 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onOpenU
               >
                 <Activity className="w-4 h-4" />
                 <span>Evaluation & Datasets</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('autonomous')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
+                  activeTab === 'autonomous'
+                    ? 'bg-slate-800 text-indigo-400 border border-indigo-700/50'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Cpu className="w-4 h-4" />
+                <span>Autonomous AI</span>
               </button>
             </nav>
 

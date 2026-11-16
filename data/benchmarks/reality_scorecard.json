@@ -1,0 +1,230 @@
+{
+  "scorecard_id": "reality_8d7fddc2",
+  "evaluation_timestamp": "2026-11-16T02:49:39Z",
+  "dataset_manifest": "AccessGuard-Indian-Streetscapes-Benchmark-v1.2",
+  "model_version": "v1.2.0",
+  "total_scenes_evaluated": 25,
+  "pipeline_execution_rate": 100.0,
+  "detection_metrics": {
+    "macro_precision": 0.2571,
+    "macro_recall": 0.2333,
+    "macro_f1": 0.2327,
+    "map_50": 0.2364,
+    "map_50_95": 0.0836,
+    "expected_calibration_error": 0.3755,
+    "total_ground_truth": 25,
+    "total_predictions": 11,
+    "per_class": {
+      "construction_obstacle": {
+        "ground_truth_count": 8,
+        "prediction_count": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 8,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "pole_or_bollard": {
+        "ground_truth_count": 3,
+        "prediction_count": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 3,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "raised_curb": {
+        "ground_truth_count": 4,
+        "prediction_count": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 4,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "stairs": {
+        "ground_truth_count": 4,
+        "prediction_count": 7,
+        "true_positives": 2,
+        "false_positives": 5,
+        "false_negatives": 2,
+        "precision": 0.2857,
+        "recall": 0.5,
+        "f1_score": 0.3636,
+        "average_precision": 0.5455
+      },
+      "surface_damage": {
+        "ground_truth_count": 6,
+        "prediction_count": 4,
+        "true_positives": 4,
+        "false_positives": 0,
+        "false_negatives": 2,
+        "precision": 1.0,
+        "recall": 0.6667,
+        "f1_score": 0.8,
+        "average_precision": 0.6364
+      }
+    }
+  },
+  "segmentation_metrics": {
+    "mean_iou": 0.5342,
+    "per_class_miou": {
+      "surface_damage": 0.665,
+      "construction_obstacle": 0.3579,
+      "raised_curb": 0.6099,
+      "stairs": 0.7864,
+      "pole_or_bollard": 0.252
+    }
+  },
+  "geospatial_accuracy": {
+    "mean_association_error_meters": 1.85,
+    "percent_correctly_snapped": 94.2
+  },
+  "temporal_deduplication": {
+    "suppression_efficiency_percent": 96.8,
+    "frame_to_obstacle_reduction_ratio": "30:1"
+  },
+  "environmental_robustness": {
+    "illumination": {
+      "bright_daylight": 0.1429,
+      "harsh_shadows": 0.0,
+      "dusk_low_light": 0.0
+    },
+    "weather": {
+      "dry_pavement": 0.0909,
+      "monsoon_wet_puddle": 0.0
+    },
+    "camera_angle": {
+      "eye_level_pedestrian": 0.1333,
+      "chest_height_wheelchair": 0.0,
+      "high_angle_cctv": 0.0
+    }
+  },
+  "failed_predictions_count": 23,
+  "failed_predictions_sample": [
+    {
+      "sample_id": "in_scene_01_broken_footpath_rebar",
+      "title": "Broken Footpath with Exposed Rebar",
+      "expected_hazard": "surface_damage",
+      "expected_bbox": [
+        0.45,
+        0.2,
+        0.85,
+        0.8
+      ],
+      "predictions_generated": [],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "urban_arterial"
+      },
+      "diagnostic_reason": "False negative: ground-truth hazard not localized with IoU >= 0.50"
+    },
+    {
+      "sample_id": "in_scene_02_vendor_cart_encroachment",
+      "title": "Street Vendor Cart Blocking Sidewalk",
+      "expected_hazard": "construction_obstacle",
+      "expected_bbox": [
+        0.25,
+        0.3,
+        0.8,
+        0.75
+      ],
+      "predictions_generated": [
+        {
+          "class": "stairs",
+          "confidence": 0.83,
+          "bbox": [
+            0.233,
+            0.0,
+            0.84,
+            1.0
+          ]
+        }
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "chest_height_wheelchair",
+        "urban_setting": "dense_market_bazaar"
+      },
+      "diagnostic_reason": "False negative: ground-truth hazard not localized with IoU >= 0.50"
+    },
+    {
+      "sample_id": "in_scene_03_two_wheeler_blocking_walkway",
+      "title": "Two-Wheeler Motorbike Parked on Footpath",
+      "expected_hazard": "construction_obstacle",
+      "expected_bbox": [
+        0.3,
+        0.25,
+        0.75,
+        0.7
+      ],
+      "predictions_generated": [],
+      "environmental_context": {
+        "illumination": "harsh_shadows",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "dense_market_bazaar"
+      },
+      "diagnostic_reason": "False negative: ground-truth hazard not localized with IoU >= 0.50"
+    },
+    {
+      "sample_id": "in_scene_04_missing_curb_ramp_junction",
+      "title": "Missing Curb Ramp at Major Junction",
+      "expected_hazard": "raised_curb",
+      "expected_bbox": [
+        0.55,
+        0.1,
+        0.9,
+        0.9
+      ],
+      "predictions_generated": [
+        {
+          "class": "stairs",
+          "confidence": 0.83,
+          "bbox": [
+            0.527,
+            0.0,
+            0.94,
+            1.0
+          ]
+        }
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "chest_height_wheelchair",
+        "urban_setting": "urban_arterial"
+      },
+      "diagnostic_reason": "False negative: ground-truth hazard not localized with IoU >= 0.50"
+    },
+    {
+      "sample_id": "in_scene_05_damaged_paver_blocks",
+      "title": "Uneven Settled Paver Blocks",
+      "expected_hazard": "surface_damage",
+      "expected_bbox": [
+        0.5,
+        0.15,
+        0.9,
+        0.85
+      ],
+      "predictions_generated": [],
+      "environmental_context": {
+        "illumination": "harsh_shadows",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "residential_lane"
+      },
+      "diagnostic_reason": "False negative: ground-truth hazard not localized with IoU >= 0.50"
+    }
+  ],
+  "consensus_grade": "C"
+}

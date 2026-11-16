@@ -9,11 +9,12 @@ import { SegmentScoringPanel } from './components/SegmentScoringPanel';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { LiveCamera } from './components/LiveCamera';
 import { EvaluationDashboard } from './components/EvaluationDashboard';
+import { AutonomousDashboard } from './components/AutonomousDashboard';
 import { api } from './api/client';
 import { Observation, PedestrianSegment, RouteResponse } from './types';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'map' | 'route' | 'verification' | 'analytics' | 'live_camera' | 'evaluation'>('map');
+  const [activeTab, setActiveTab] = useState<'map' | 'route' | 'verification' | 'analytics' | 'live_camera' | 'evaluation' | 'autonomous'>('map');
   const [observations, setObservations] = useState<Observation[]>([]);
   const [segments, setSegments] = useState<PedestrianSegment[]>([]);
   const [selectedSegment, setSelectedSegment] = useState<PedestrianSegment | null>(null);
@@ -146,6 +147,15 @@ export const App: React.FC = () => {
           <div className="h-full overflow-y-auto p-6 bg-slate-950">
             <div className="max-w-7xl mx-auto">
               <EvaluationDashboard />
+            </div>
+          </div>
+        )}
+
+        {/* Tab 7: Autonomous Field Intelligence & Reality Scorecard */}
+        {activeTab === 'autonomous' && (
+          <div className="h-full overflow-y-auto p-6 bg-slate-950">
+            <div className="max-w-7xl mx-auto">
+              <AutonomousDashboard />
             </div>
           </div>
         )}

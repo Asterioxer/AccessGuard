@@ -1,0 +1,1043 @@
+{
+  "dataset_name": "AccessGuard-Indian-Streetscapes-Benchmark-v1.2",
+  "description": "Standardized 25-scene evaluation collection for Indian pedestrian infrastructure barriers.",
+  "license": "CC-BY-4.0",
+  "attribution": "AccessGuard Open Source Accessibility Intelligence Initiative",
+  "standards_alignment": "CPWD Harmonised Guidelines and Standards for Universal Accessibility in India (2021)",
+  "total_scenes": 25,
+  "scenes": [
+    {
+      "sample_id": "in_scene_01_broken_footpath_rebar",
+      "image_file": "images/in_scene_01_broken_footpath_rebar.jpg",
+      "title": "Broken Footpath with Exposed Rebar",
+      "description": "Severely degraded concrete footpath slab with exposed iron rebar, presenting catastrophic wheelchair wheel-entrapment hazard.",
+      "accessibility_hazard": "surface_damage",
+      "ground_truth_bbox": [
+        0.45,
+        0.2,
+        0.85,
+        0.8
+      ],
+      "ground_truth_polygon": [
+        [
+          0.2,
+          0.45
+        ],
+        [
+          0.8,
+          0.45
+        ],
+        [
+          0.82,
+          0.65
+        ],
+        [
+          0.75,
+          0.85
+        ],
+        [
+          0.25,
+          0.85
+        ],
+        [
+          0.18,
+          0.65
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "urban_arterial"
+      },
+      "audit_compliance_notes": "Violates CPWD 2021 Section 3.2.1: Walking surfaces must be stable, firm, and slip resistant without abrupt vertical gaps > 6mm.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_02_vendor_cart_encroachment",
+      "image_file": "images/in_scene_02_vendor_cart_encroachment.jpg",
+      "title": "Street Vendor Cart Blocking Sidewalk",
+      "description": "Mobile wooden push-cart parked on footpath, reducing usable clear pedestrian path width to 45cm (below ADA 900mm / CPWD 1200mm).",
+      "accessibility_hazard": "construction_obstacle",
+      "ground_truth_bbox": [
+        0.25,
+        0.3,
+        0.8,
+        0.75
+      ],
+      "ground_truth_polygon": [
+        [
+          0.3,
+          0.25
+        ],
+        [
+          0.75,
+          0.25
+        ],
+        [
+          0.75,
+          0.8
+        ],
+        [
+          0.3,
+          0.8
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "chest_height_wheelchair",
+        "urban_setting": "dense_market_bazaar"
+      },
+      "audit_compliance_notes": "Encroachment causes complete physical blockage, forcing wheelchair users onto vehicular carriageway.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_03_two_wheeler_blocking_walkway",
+      "image_file": "images/in_scene_03_two_wheeler_blocking_walkway.jpg",
+      "title": "Two-Wheeler Motorbike Parked on Footpath",
+      "description": "Motorcycle parked perpendicular across the paved walkway, completely obstructing barrier-free traversal.",
+      "accessibility_hazard": "construction_obstacle",
+      "ground_truth_bbox": [
+        0.3,
+        0.25,
+        0.75,
+        0.7
+      ],
+      "ground_truth_polygon": [
+        [
+          0.25,
+          0.3
+        ],
+        [
+          0.7,
+          0.3
+        ],
+        [
+          0.68,
+          0.75
+        ],
+        [
+          0.27,
+          0.75
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "harsh_shadows",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "dense_market_bazaar"
+      },
+      "audit_compliance_notes": "Common urban barrier requiring enforcement and active mobility corridor clearance.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_04_missing_curb_ramp_junction",
+      "image_file": "images/in_scene_04_missing_curb_ramp_junction.jpg",
+      "title": "Missing Curb Ramp at Major Junction",
+      "description": "Footpath terminates at a 220mm vertical drop without a dropped curb or tactile warning studs.",
+      "accessibility_hazard": "raised_curb",
+      "ground_truth_bbox": [
+        0.55,
+        0.1,
+        0.9,
+        0.9
+      ],
+      "ground_truth_polygon": [
+        [
+          0.1,
+          0.55
+        ],
+        [
+          0.9,
+          0.55
+        ],
+        [
+          0.88,
+          0.9
+        ],
+        [
+          0.12,
+          0.9
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "chest_height_wheelchair",
+        "urban_setting": "urban_arterial"
+      },
+      "audit_compliance_notes": "Curb height exceeds 150mm threshold; impassable by manual or motorized wheelchair without ramp gradient <= 1:12.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_05_damaged_paver_blocks",
+      "image_file": "images/in_scene_05_damaged_paver_blocks.jpg",
+      "title": "Uneven Settled Paver Blocks",
+      "description": "Differential settlement of interlocking concrete pavers causing tripping steps of 30-50mm and loose sand.",
+      "accessibility_hazard": "surface_damage",
+      "ground_truth_bbox": [
+        0.5,
+        0.15,
+        0.9,
+        0.85
+      ],
+      "ground_truth_polygon": [
+        [
+          0.15,
+          0.5
+        ],
+        [
+          0.85,
+          0.5
+        ],
+        [
+          0.8,
+          0.9
+        ],
+        [
+          0.2,
+          0.9
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "harsh_shadows",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "residential_lane"
+      },
+      "audit_compliance_notes": "Excessive vibration causes pain and instability for wheelchair users; causes front caster wheels to jam.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_06_open_drainage_ditch",
+      "image_file": "images/in_scene_06_open_drainage_ditch.jpg",
+      "title": "Open Stormwater Drain Channel",
+      "description": "Missing precast concrete drain cover slab alongside pedestrian path with 400mm drop into open stormwater drain.",
+      "accessibility_hazard": "construction_obstacle",
+      "ground_truth_bbox": [
+        0.4,
+        0.5,
+        0.85,
+        0.95
+      ],
+      "ground_truth_polygon": [
+        [
+          0.5,
+          0.4
+        ],
+        [
+          0.95,
+          0.4
+        ],
+        [
+          0.92,
+          0.85
+        ],
+        [
+          0.48,
+          0.85
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "monsoon_wet_puddle",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "urban_arterial"
+      },
+      "audit_compliance_notes": "Critical life-safety hazard for blind pedestrians and wheelchair users alike.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_07_footbridge_steep_stairs",
+      "image_file": "images/in_scene_07_footbridge_steep_stairs.jpg",
+      "title": "Pedestrian Overbridge with Steep Stairs Only",
+      "description": "Pedestrian road-crossing facility consisting solely of 34 steep steps with no elevator or ramp provision.",
+      "accessibility_hazard": "stairs",
+      "ground_truth_bbox": [
+        0.2,
+        0.3,
+        0.85,
+        0.7
+      ],
+      "ground_truth_polygon": [
+        [
+          0.3,
+          0.2
+        ],
+        [
+          0.7,
+          0.2
+        ],
+        [
+          0.65,
+          0.85
+        ],
+        [
+          0.35,
+          0.85
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "transit_station_plaza"
+      },
+      "audit_compliance_notes": "Total severance of accessible crossing route; 100% barrier for non-ambulatory pedestrians.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_08_tactile_path_utility_pole",
+      "image_file": "images/in_scene_08_tactile_path_utility_pole.jpg",
+      "title": "Utility Pole Erected in Tactile Paving",
+      "description": "Concrete electricity distribution pole installed directly in the middle of yellow directional tactile pavers.",
+      "accessibility_hazard": "pole_or_bollard",
+      "ground_truth_bbox": [
+        0.15,
+        0.4,
+        0.8,
+        0.6
+      ],
+      "ground_truth_polygon": [
+        [
+          0.4,
+          0.15
+        ],
+        [
+          0.6,
+          0.15
+        ],
+        [
+          0.6,
+          0.8
+        ],
+        [
+          0.4,
+          0.8
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "urban_arterial"
+      },
+      "audit_compliance_notes": "Severe design defect leading visually impaired and wheelchair pedestrians directly into a physical collision.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_09_irregular_curb_height",
+      "image_file": "images/in_scene_09_irregular_curb_height.jpg",
+      "title": "Irregular Stepped Curb Transition",
+      "description": "Arbitrary concrete curb variations ranging from 120mm to 280mm along commercial shopfront frontage.",
+      "accessibility_hazard": "raised_curb",
+      "ground_truth_bbox": [
+        0.5,
+        0.2,
+        0.85,
+        0.8
+      ],
+      "ground_truth_polygon": [
+        [
+          0.2,
+          0.5
+        ],
+        [
+          0.8,
+          0.5
+        ],
+        [
+          0.78,
+          0.85
+        ],
+        [
+          0.22,
+          0.85
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "harsh_shadows",
+        "weather": "dry_pavement",
+        "camera_angle": "chest_height_wheelchair",
+        "urban_setting": "dense_market_bazaar"
+      },
+      "audit_compliance_notes": "Non-standard step-offs prevent smooth access to civic amenities.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_10_zebra_crossing_pot_holes",
+      "image_file": "images/in_scene_10_zebra_crossing_pot_holes.jpg",
+      "title": "Damaged Pedestrian Crossing with Water Logging",
+      "description": "Zebra road-crossing lines obscured by deep asphalt potholes and accumulated muddy puddle.",
+      "accessibility_hazard": "surface_damage",
+      "ground_truth_bbox": [
+        0.45,
+        0.1,
+        0.9,
+        0.9
+      ],
+      "ground_truth_polygon": [
+        [
+          0.1,
+          0.45
+        ],
+        [
+          0.9,
+          0.45
+        ],
+        [
+          0.85,
+          0.9
+        ],
+        [
+          0.15,
+          0.9
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "dusk_low_light",
+        "weather": "monsoon_wet_puddle",
+        "camera_angle": "chest_height_wheelchair",
+        "urban_setting": "urban_arterial"
+      },
+      "audit_compliance_notes": "Crossing is unnavigable for low-clearance motorized wheelchairs during monsoon conditions.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_11_metro_station_unramped_steps",
+      "image_file": "images/in_scene_11_metro_station_unramped_steps.jpg",
+      "title": "Metro Station Entry with Triple Flight Steps",
+      "description": "Elevated metro entrance plaza with 8 consecutive risers lacking an adjacent access ramp.",
+      "accessibility_hazard": "stairs",
+      "ground_truth_bbox": [
+        0.35,
+        0.15,
+        0.8,
+        0.85
+      ],
+      "ground_truth_polygon": [
+        [
+          0.15,
+          0.35
+        ],
+        [
+          0.85,
+          0.35
+        ],
+        [
+          0.8,
+          0.8
+        ],
+        [
+          0.2,
+          0.8
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "transit_station_plaza"
+      },
+      "audit_compliance_notes": "Transit connectivity completely broken for non-ambulatory passengers.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_12_hanging_telecom_cables",
+      "image_file": "images/in_scene_12_hanging_telecom_cables.jpg",
+      "title": "Low-Hanging Overhead Cable Bundles",
+      "description": "Overhead telecom cables drooping across the walkway down to 1.4m height, presenting head-entanglement hazard.",
+      "accessibility_hazard": "construction_obstacle",
+      "ground_truth_bbox": [
+        0.1,
+        0.2,
+        0.6,
+        0.8
+      ],
+      "ground_truth_polygon": [
+        [
+          0.2,
+          0.1
+        ],
+        [
+          0.8,
+          0.1
+        ],
+        [
+          0.75,
+          0.6
+        ],
+        [
+          0.25,
+          0.6
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "dusk_low_light",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "residential_lane"
+      },
+      "audit_compliance_notes": "Violates minimum 2100mm clear headroom requirement under CPWD standards.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_13_monsoon_puddle_submerged_curb",
+      "image_file": "images/in_scene_13_monsoon_puddle_submerged_curb.jpg",
+      "title": "Submerged Sidewalk with Monsoon Flood Puddle",
+      "description": "Complete submersion of curb edge under 150mm stagnant monsoon runoff, hiding drop-off depth.",
+      "accessibility_hazard": "surface_damage",
+      "ground_truth_bbox": [
+        0.5,
+        0.1,
+        0.95,
+        0.9
+      ],
+      "ground_truth_polygon": [
+        [
+          0.1,
+          0.5
+        ],
+        [
+          0.9,
+          0.5
+        ],
+        [
+          0.85,
+          0.95
+        ],
+        [
+          0.15,
+          0.95
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "dusk_low_light",
+        "weather": "monsoon_wet_puddle",
+        "camera_angle": "chest_height_wheelchair",
+        "urban_setting": "urban_arterial"
+      },
+      "audit_compliance_notes": "Invisible curb edge creates rollover hazard for wheelchairs.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_14_garbage_dump_on_walkway",
+      "image_file": "images/in_scene_14_garbage_dump_on_walkway.jpg",
+      "title": "Municipal Solid Waste Encroaching Sidewalk",
+      "description": "Accumulation of unsegregated municipal refuse blocking 75% of sidewalk corridor width.",
+      "accessibility_hazard": "construction_obstacle",
+      "ground_truth_bbox": [
+        0.4,
+        0.2,
+        0.85,
+        0.75
+      ],
+      "ground_truth_polygon": [
+        [
+          0.2,
+          0.4
+        ],
+        [
+          0.75,
+          0.4
+        ],
+        [
+          0.7,
+          0.85
+        ],
+        [
+          0.25,
+          0.85
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "dense_market_bazaar"
+      },
+      "audit_compliance_notes": "Biological and physical obstruction preventing wheelchair passage.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_15_narrow_residential_alleyway",
+      "image_file": "images/in_scene_15_narrow_residential_alleyway.jpg",
+      "title": "Sub-Meter Constricted Footpath Alley",
+      "description": "Footpath pinch-point constricted by building columns to 550mm width, impassable by standard 650mm wheelchairs.",
+      "accessibility_hazard": "construction_obstacle",
+      "ground_truth_bbox": [
+        0.2,
+        0.35,
+        0.8,
+        0.65
+      ],
+      "ground_truth_polygon": [
+        [
+          0.35,
+          0.2
+        ],
+        [
+          0.65,
+          0.2
+        ],
+        [
+          0.65,
+          0.8
+        ],
+        [
+          0.35,
+          0.8
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "harsh_shadows",
+        "weather": "dry_pavement",
+        "camera_angle": "chest_height_wheelchair",
+        "urban_setting": "residential_lane"
+      },
+      "audit_compliance_notes": "Fails minimum clear walkway width criteria.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_16_tree_root_heave_cracking",
+      "image_file": "images/in_scene_16_tree_root_heave_cracking.jpg",
+      "title": "Banyan Tree Root Heave Rupturing Slab",
+      "description": "Severe surface buckling caused by mature ficus root expansion lifting paving by 180mm.",
+      "accessibility_hazard": "surface_damage",
+      "ground_truth_bbox": [
+        0.45,
+        0.25,
+        0.85,
+        0.8
+      ],
+      "ground_truth_polygon": [
+        [
+          0.25,
+          0.45
+        ],
+        [
+          0.8,
+          0.45
+        ],
+        [
+          0.75,
+          0.85
+        ],
+        [
+          0.3,
+          0.85
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "harsh_shadows",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "residential_lane"
+      },
+      "audit_compliance_notes": "Abrupt slope and jagged fractures create severe tipping hazard.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_17_advertising_billboard_pole",
+      "image_file": "images/in_scene_17_advertising_billboard_pole.jpg",
+      "title": "Advertisement Board Base in Sidewalk Center",
+      "description": "Steel A-frame promotional billboard bolted across walkway, leaving only 350mm clearance on either side.",
+      "accessibility_hazard": "pole_or_bollard",
+      "ground_truth_bbox": [
+        0.25,
+        0.35,
+        0.8,
+        0.65
+      ],
+      "ground_truth_polygon": [
+        [
+          0.35,
+          0.25
+        ],
+        [
+          0.65,
+          0.25
+        ],
+        [
+          0.65,
+          0.8
+        ],
+        [
+          0.35,
+          0.8
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "dense_market_bazaar"
+      },
+      "audit_compliance_notes": "Illegal commercial obstruction of the pedestrian right-of-way.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_18_unfinished_trench_excavation",
+      "image_file": "images/in_scene_18_unfinished_trench_excavation.jpg",
+      "title": "Unbarricaded Utility Trench Excavation",
+      "description": "600mm deep trench dug for fiber optic cables without barricades, toe-boards, or warning lights.",
+      "accessibility_hazard": "construction_obstacle",
+      "ground_truth_bbox": [
+        0.35,
+        0.2,
+        0.85,
+        0.8
+      ],
+      "ground_truth_polygon": [
+        [
+          0.2,
+          0.35
+        ],
+        [
+          0.8,
+          0.35
+        ],
+        [
+          0.75,
+          0.85
+        ],
+        [
+          0.25,
+          0.85
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "dusk_low_light",
+        "weather": "dry_pavement",
+        "camera_angle": "chest_height_wheelchair",
+        "urban_setting": "urban_arterial"
+      },
+      "audit_compliance_notes": "Extreme fall and rollover hazard requiring immediate containment.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_19_bank_atm_steep_threshold",
+      "image_file": "images/in_scene_19_bank_atm_steep_threshold.jpg",
+      "title": "Commercial Bank ATM Entry Steps",
+      "description": "ATM access kiosk raised 350mm above street level with two 175mm steps and zero ramp provision.",
+      "accessibility_hazard": "stairs",
+      "ground_truth_bbox": [
+        0.4,
+        0.3,
+        0.85,
+        0.7
+      ],
+      "ground_truth_polygon": [
+        [
+          0.3,
+          0.4
+        ],
+        [
+          0.7,
+          0.4
+        ],
+        [
+          0.68,
+          0.85
+        ],
+        [
+          0.32,
+          0.85
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "dense_market_bazaar"
+      },
+      "audit_compliance_notes": "Financial service exclusion for wheelchair users and elderly citizens.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_20_steep_ramp_exceeding_ratio",
+      "image_file": "images/in_scene_20_steep_ramp_exceeding_ratio.jpg",
+      "title": "Non-Compliant Steep Concrete Wedge Ramp",
+      "description": "Makeshift cement wedge with 1:4 slope (25% gradient), far exceeding the 1:12 (8.33%) maximum safe wheelchair limit.",
+      "accessibility_hazard": "raised_curb",
+      "ground_truth_bbox": [
+        0.5,
+        0.25,
+        0.85,
+        0.75
+      ],
+      "ground_truth_polygon": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ],
+        [
+          0.7,
+          0.85
+        ],
+        [
+          0.3,
+          0.85
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "chest_height_wheelchair",
+        "urban_setting": "residential_lane"
+      },
+      "audit_compliance_notes": "High risk of backward tip and fall for manual wheelchair users.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_21_auto_rickshaw_stand_encroachment",
+      "image_file": "images/in_scene_21_auto_rickshaw_stand_encroachment.jpg",
+      "title": "Auto-Rickshaws Queued on Pedestrian Island",
+      "description": "Three-wheeled autorickshaws parked across painted pedestrian crossing island.",
+      "accessibility_hazard": "construction_obstacle",
+      "ground_truth_bbox": [
+        0.3,
+        0.2,
+        0.75,
+        0.8
+      ],
+      "ground_truth_polygon": [
+        [
+          0.2,
+          0.3
+        ],
+        [
+          0.8,
+          0.3
+        ],
+        [
+          0.78,
+          0.75
+        ],
+        [
+          0.22,
+          0.75
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "high_angle_cctv",
+        "urban_setting": "transit_station_plaza"
+      },
+      "audit_compliance_notes": "Obstruction of pedestrian refuge island.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_22_broken_cast_iron_manhole",
+      "image_file": "images/in_scene_22_broken_cast_iron_manhole.jpg",
+      "title": "Fractured Cast Iron Sewer Manhole Lid",
+      "description": "Cracked and displaced sewer manhole lid with 70mm sharp depression in walking corridor.",
+      "accessibility_hazard": "surface_damage",
+      "ground_truth_bbox": [
+        0.45,
+        0.35,
+        0.8,
+        0.65
+      ],
+      "ground_truth_polygon": [
+        [
+          0.35,
+          0.45
+        ],
+        [
+          0.65,
+          0.45
+        ],
+        [
+          0.65,
+          0.8
+        ],
+        [
+          0.35,
+          0.8
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "dusk_low_light",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "urban_arterial"
+      },
+      "audit_compliance_notes": "Caster entrapment causing instant forward chair ejection.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_23_traffic_signal_junction_box",
+      "image_file": "images/in_scene_23_traffic_signal_junction_box.jpg",
+      "title": "Traffic Controller Cabinet on Narrow Walkway",
+      "description": "Large steel junction cabinet placed on 1.2m sidewalk leaving only 400mm clear space.",
+      "accessibility_hazard": "pole_or_bollard",
+      "ground_truth_bbox": [
+        0.25,
+        0.3,
+        0.8,
+        0.7
+      ],
+      "ground_truth_polygon": [
+        [
+          0.3,
+          0.25
+        ],
+        [
+          0.7,
+          0.25
+        ],
+        [
+          0.7,
+          0.8
+        ],
+        [
+          0.3,
+          0.8
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "urban_arterial"
+      },
+      "audit_compliance_notes": "Municipal equipment placed in direct violation of universal accessibility codes.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_24_missing_footpath_direct_roadway",
+      "image_file": "images/in_scene_24_missing_footpath_direct_roadway.jpg",
+      "title": "Missing Sidewalk Terminus into Mixed Traffic",
+      "description": "Footpath abruptly ends with no warning into an 80km/h arterial highway without shoulder.",
+      "accessibility_hazard": "raised_curb",
+      "ground_truth_bbox": [
+        0.5,
+        0.1,
+        0.9,
+        0.9
+      ],
+      "ground_truth_polygon": [
+        [
+          0.1,
+          0.5
+        ],
+        [
+          0.9,
+          0.5
+        ],
+        [
+          0.85,
+          0.9
+        ],
+        [
+          0.15,
+          0.9
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "harsh_shadows",
+        "weather": "dry_pavement",
+        "camera_angle": "chest_height_wheelchair",
+        "urban_setting": "urban_arterial"
+      },
+      "audit_compliance_notes": "Discontinuous network forcing vulnerable pedestrians directly into mixed vehicular traffic.",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    },
+    {
+      "sample_id": "in_scene_25_post_office_monumental_stairs",
+      "image_file": "images/in_scene_25_post_office_monumental_stairs.jpg",
+      "title": "Historic Post Office Monumental Flight Steps",
+      "description": "Grand public civic building access consisting of 18 granite steps without ramp or mechanical lift.",
+      "accessibility_hazard": "stairs",
+      "ground_truth_bbox": [
+        0.25,
+        0.2,
+        0.85,
+        0.8
+      ],
+      "ground_truth_polygon": [
+        [
+          0.2,
+          0.25
+        ],
+        [
+          0.8,
+          0.25
+        ],
+        [
+          0.75,
+          0.85
+        ],
+        [
+          0.25,
+          0.85
+        ]
+      ],
+      "environmental_context": {
+        "illumination": "bright_daylight",
+        "weather": "dry_pavement",
+        "camera_angle": "eye_level_pedestrian",
+        "urban_setting": "urban_arterial"
+      },
+      "audit_compliance_notes": "Public civic facility inaccessible to persons with disabilities (violates RPwD Act 2016).",
+      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
+      "consensus_verified": true,
+      "region": "Urban South Asia / Indian Municipal Infrastructure"
+    }
+  ]
+}

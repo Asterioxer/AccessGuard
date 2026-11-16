@@ -38,7 +38,13 @@ frontend/dist/
 frontend/node_modules/
 
 # Uploads & Media
-data/
+data/*
+!data/benchmarks/
+!data/benchmarks/**
+!data/models/
+!data/models/**
+data/uploads/*
+data/uploads/videos/*
 backend/data/uploads/*
 backend/data/processed/*
 !backend/data/uploads/.gitkeep

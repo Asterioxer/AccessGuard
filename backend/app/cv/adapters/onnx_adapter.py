@@ -28,7 +28,8 @@ class ONNXAdapter(ModelAdapter):
         iou_threshold: float = 0.45
     ):
         super().__init__(name="onnx_adapter")
-        self.model_path = model_path
+        default_model = "data/models/yolov8n.onnx"
+        self.model_path = model_path or (default_model if os.path.exists(default_model) else None)
         self.input_size = input_size
         self.confidence_threshold = confidence_threshold
         self.iou_threshold = iou_threshold
@@ -97,9 +98,8 @@ class ONNXAdapter(ModelAdapter):
         h_orig, w_orig = image_bgr.shape[:2]
 
         if self.session is None or self.model_path is None or not os.path.exists(self.model_path):
-            # Fallback to heuristic adapter predictions formatted cleanly
-            from app.cv.adapters.heuristic_adapter import HeuristicCVAdapter
-            return HeuristicCVAdapter().predict(image_bgr)
+            logger.info("ONNXAdapter: no active model session; returning empty detections.")
+            return []
 
         # Preprocess
         tensor, scale, (dx, dy) = self.preprocess(image_bgr)

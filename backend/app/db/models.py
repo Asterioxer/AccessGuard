@@ -119,3 +119,76 @@ class VerificationReview(Base):
 
     observation = relationship("Observation", back_populates="reviews")
     reviewer = relationship("User", back_populates="reviews")
+
+class IngestionJob(Base):
+    __tablename__ = "ingestion_jobs"
+
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    provider = Column(String, nullable=False, index=True) # mapillary, kartaview, copernicus, live_stream, pexels
+    status = Column(String, default="pending", index=True) # pending, running, completed, failed, cancelled
+    priority = Column(String, default="normal") # high, normal, low
+
+    bbox_min_lon = Column(Float, nullable=False)
+    bbox_min_lat = Column(Float, nullable=False)
+    bbox_max_lon = Column(Float, nullable=False)
+    bbox_max_lat = Column(Float, nullable=False)
+
+    interval_minutes = Column(Integer, default=60)
+    items_fetched = Column(Integer, default=0)
+    items_processed = Column(Integer, default=0)
+    items_failed = Column(Integer, default=0)
+    error_message = Column(Text, nullable=True)
+
+    last_run_at = Column(DateTime, nullable=True)
+    next_run_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    config_json = Column(Text, default="{}")
+
+class ImageProvenance(Base):
+    __tablename__ = "image_provenance"
+
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    observation_id = Column(String, ForeignKey("observations.id"), nullable=True, index=True)
+    provider = Column(String, nullable=False, index=True)
+    external_image_id = Column(String, nullable=True, index=True)
+    sequence_id = Column(String, nullable=True)
+
+    capture_timestamp = Column(String, nullable=True)
+    ingestion_timestamp = Column(String, nullable=False)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    heading = Column(Float, nullable=True)
+
+    source_attribution = Column(String, default="")
+    license_metadata = Column(String, default="")
+    model_version = Column(String, default="v1.2.0")
+    raw_metadata_json = Column(Text, default="{}")
+
+class SegmentedObservation(Base):
+    __tablename__ = "segmented_observations"
+
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    observation_id = Column(String, ForeignKey("observations.id"), nullable=False, index=True)
+
+    class_id = Column(Integer, nullable=False)
+    class_name = Column(String, nullable=False, index=True)
+    confidence = Column(Float, nullable=False)
+
+    polygon_json = Column(Text, nullable=False) # JSON array of [[x, y], ...]
+    rle_json = Column(Text, nullable=True)      # RLE mask representation if dense
+    area_ratio = Column(Float, default=0.0)
+
+    model_identifier = Column(String, nullable=False)
+    model_version = Column(String, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+class RealityTestRun(Base):
+    __tablename__ = "reality_test_runs"
+
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    test_suite_name = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    scorecard_json = Column(Text, nullable=False)
+    passed = Column(Boolean, default=False)
+    summary_markdown = Column(Text, default="")
+

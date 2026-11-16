@@ -150,3 +150,136 @@ export interface LiveFrameResponse {
   active_tracks_count: number;
 }
 
+export interface IngestionProviderInfo {
+  provider: string;
+  is_available: boolean;
+  is_authenticated: boolean;
+  circuit_state: string;
+  rate_limit_per_min: number;
+  requests_last_minute: number;
+  attribution: string;
+  license: string;
+}
+
+export interface IngestionJob {
+  id: string;
+  provider: string;
+  status: string;
+  priority: string;
+  bbox: [number, number, number, number];
+  interval_minutes: number;
+  items_fetched: number;
+  items_processed: number;
+  items_failed: number;
+  error_message?: string;
+  last_run_at?: string;
+  next_run_at?: string;
+  created_at: string;
+}
+
+export interface SegmentedRegion {
+  class_id: number;
+  class_name: string;
+  polygon: [number, number][]; // [[x, y], ...] normalized 0-1
+  confidence: number;
+  bbox: [number, number, number, number];
+  area_pixels: number;
+  area_ratio: number;
+  color_hex: string;
+  color_rgb: [number, number, number];
+  model_identifier: string;
+  model_version: string;
+}
+
+export interface SegmentationResponse {
+  image_width: number;
+  image_height: number;
+  region_count: number;
+  regions: SegmentedRegion[];
+  model_identifier: string;
+  model_version: string;
+}
+
+export interface VideoJobProgress {
+  job_id: string;
+  status: string;
+  progress_percent: number;
+  total_frames: number;
+  sampled_frames: number;
+  duration_seconds: number;
+  native_fps: number;
+  unique_obstacles_count: number;
+  confirmed_tracks: Array<{
+    track_id: string;
+    barrier_type: string;
+    first_seen_sec: number;
+    last_seen_sec: number;
+    duration_sec: number;
+    frame_count: number;
+    max_confidence: number;
+    bbox: [number, number, number, number];
+    is_physical_obstacle: boolean;
+  }>;
+  error_message?: string;
+}
+
+export interface RealityScorecard {
+  scorecard_id: string;
+  evaluation_timestamp: string;
+  dataset_manifest: string;
+  model_version: string;
+  total_scenes_evaluated: number;
+  pipeline_execution_rate: number;
+  consensus_grade: string;
+  detection_metrics: {
+    macro_precision: number;
+    macro_recall: number;
+    macro_f1: number;
+    map_50: number;
+    map_50_95: number;
+    expected_calibration_error: number;
+    total_ground_truth: number;
+    total_predictions: number;
+    per_class: Record<string, any>;
+  };
+  segmentation_metrics: {
+    mean_iou: number;
+    per_class_miou: Record<string, number>;
+  };
+  geospatial_accuracy: {
+    mean_association_error_meters: number;
+    percent_correctly_snapped: number;
+  };
+  temporal_deduplication: {
+    suppression_efficiency_percent: number;
+    frame_to_obstacle_reduction_ratio: string;
+  };
+  environmental_robustness: Record<string, Record<string, number>>;
+  failed_predictions_count: number;
+  failed_predictions_sample: Array<{
+    sample_id: string;
+    title: string;
+    expected_hazard: string;
+    expected_bbox: [number, number, number, number];
+    environmental_context: Record<string, any>;
+    diagnostic_reason: string;
+  }>;
+}
+
+export interface ProvenanceRecord {
+  id: string;
+  observation_id?: string;
+  provider: string;
+  external_image_id?: string;
+  sequence_id?: string;
+  capture_timestamp?: string;
+  ingestion_timestamp: string;
+  latitude?: number;
+  longitude?: number;
+  heading?: number;
+  source_attribution: string;
+  license_metadata: string;
+  model_version: string;
+  raw_metadata: Record<string, any>;
+}
+

@@ -37,3 +37,6 @@ class RouteResponse(BaseModel):
     geojson: Dict[str, Any]
     algorithm_used: str = "dijkstra"
     direct_route_comparison: Optional[Dict[str, Any]] = None
+    has_unassessed_segments: bool = False
+    unassessed_segments_count: int = 0
+    stale_segments_count: int = 0

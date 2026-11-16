@@ -6,6 +6,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2026-11-16
+
+### Added
+- **External API Connectors:** Built modular, SSRF-safe connectors for Mapillary v4, KartaView public imagery, Authorized Live RTSP/Webcam streams, Copernicus STAC satellite observation, and Pexels.
+- **SSRF Protection & Host Whitelisting:** Enforced strict private IP / link-local / loopback blocking in `validate_remote_url` preventing internal network probing or cloud metadata leaks.
+- **Automated Ingestion Engine & Priority Scheduler:** Built `AcquisitionEngine` and `IngestionScheduler` with spatial-temporal duplicate detection, exponential backoff, circuit-breaking, and dead-letter retry queues.
+- **Pixel-Level Segmentation Engine:** Built `SegmentationAdapter` interface and `HeuristicSegmentationAdapter`, `ONNXSegmentationAdapter`, and `YOLOSegmentationAdapter` emitting genuine multi-point contour polygons and RLE masks across 10 standard accessibility classes.
+- **Asynchronous Video Intelligence Pipeline:** Built `VideoProcessor` with configurable sampling rates, temporal obstacle tracking, and multi-frame deduplication (100 video frames -> 1 physical obstacle record).
+- **Mission 005 Addendum Reality Test Engine:** Built `RealityEngine` evaluating independent unseen benchmarks against CPWD standards, measuring mAP, mIoU, calibration ECE, geospatial association accuracy, and environmental robustness.
+- **Expanded Indian Streetscape Benchmark:** Expanded benchmark collection from 10 to 25 verified scenes with ground truth bounding boxes, segmentation polygons, and physical environmental slices.
+- **Routing Engine Freshness & Unknown-Condition Guardrails:** Enhanced `routing_engine.py` to penalize stale observations (> 180 days) and prevent unassessed segments from silently certifying a route as accessible.
+- **Autonomous Intelligence Frontend Dashboard:** Created `AutonomousDashboard.tsx` with Ingestion Management, Pixel Segmentation & Video Tracker, Reality Scorecard, and Geospatial Provenance views.
+- **Automated Test Expansion:** Expanded backend test suite from 62 to **79 passing tests** across 23 test modules.
+
+### Fixed
+- **Benchmark Adapter Identical mAP Anomaly:** Diagnosed and resolved the root cause of identical mAP values across all 4 adapters by properly decoupling model-driven inference from heuristic fallbacks and loading native ONNX models directly.
+
+---
+
 ## [1.2.0] - 2026-11-16
 
 ### Added

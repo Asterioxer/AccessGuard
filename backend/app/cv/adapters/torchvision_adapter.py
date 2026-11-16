@@ -48,17 +48,18 @@ class TorchvisionAdapter(ModelAdapter):
             self.is_initialized = True
             return True
         except Exception as e:
-            logger.warning(f"Failed to load PyTorch model: {e}. Falling back to CPU heuristic mode.")
-            self.is_initialized = False
+            logger.warning(f"Failed to load PyTorch model: {e}. Model will run in uninitialized/empty mode.")
+            self.is_initialized = True
             return False
 
     def predict(self, image_bgr: np.ndarray) -> List[DetectedBarrier]:
         if not self.is_initialized:
             success = self.load()
             if not success or self.model is None:
-                # Fallback to OpenCV heuristic detector
-                from app.cv.adapters.heuristic_adapter import HeuristicCVAdapter
-                return HeuristicCVAdapter().predict(image_bgr)
+                logger.info("TorchvisionAdapter: no active PyTorch weights loaded; returning empty detections.")
+                return []
+        if self.model is None:
+            return []
                 
         try:
             import torch
@@ -107,5 +108,4 @@ class TorchvisionAdapter(ModelAdapter):
             return results
         except Exception as e:
             logger.error(f"Inference error in TorchvisionAdapter: {e}")
-            from app.cv.adapters.heuristic_adapter import HeuristicCVAdapter
-            return HeuristicCVAdapter().predict(image_bgr)
+            return []
