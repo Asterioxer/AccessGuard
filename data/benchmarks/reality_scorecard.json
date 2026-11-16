@@ -1,6 +1,6 @@
 {
-  "scorecard_id": "reality_8d7fddc2",
-  "evaluation_timestamp": "2026-11-16T02:49:39Z",
+  "scorecard_id": "reality_96f02812",
+  "evaluation_timestamp": "2026-11-16T03:06:45Z",
   "dataset_manifest": "AccessGuard-Indian-Streetscapes-Benchmark-v1.2",
   "model_version": "v1.2.0",
   "total_scenes_evaluated": 25,
