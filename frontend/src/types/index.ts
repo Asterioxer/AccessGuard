@@ -6,11 +6,17 @@ export interface BoundingBox {
 }
 
 export interface BarrierEvidence {
-  feature_type: string;
-  measured_metric: number;
-  threshold_applied: number;
-  explanation: string;
+  feature_type?: string;
+  measured_metric?: number;
+  threshold_applied?: number;
+  explanation?: string;
+  is_keypoint?: boolean;
+  consensus_status?: string;
+  verification_state?: string;
+  roughness_score?: number;
+  contributing_adapters?: string[];
   metadata?: Record<string, any>;
+  [key: string]: any;
 }
 
 export interface BarrierDetection {

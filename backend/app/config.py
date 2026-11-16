@@ -43,10 +43,16 @@ class Settings(BaseSettings):
     MEDIA_RETENTION_HOURS: int = 72
     
     # CV Pipeline Settings
-    CV_ADAPTER: str = "heuristic"  # "heuristic", "torchvision", "yolo", "dummy"
+    CV_ADAPTER: str = "heuristic"  # "heuristic", "torchvision", "yolo", "dummy", "hybrid"
     CONFIDENCE_TENTATIVE_THRESHOLD: float = 0.50
     CONFIDENCE_CONFIRMED_THRESHOLD: float = 0.85
     UNCERTAINTY_FLAG_THRESHOLD: float = 0.35
+    
+    # Hybrid Vision Intelligence (Mission 006)
+    HYBRID_MODE: str = os.getenv("HYBRID_MODE", "RESOURCE_CONSTRAINED") # "RESOURCE_CONSTRAINED" vs "FULL_HYBRID"
+    ENABLE_VALIDATOR_FILTERING: bool = True
+    ENABLE_SEAM_SUPPRESSION: bool = True
+    GPU_MEMORY_LIMIT_MB: int = 3500
     
     # Verification & Consensus
     MIN_VERIFICATIONS_TO_CONFIRM: int = 3

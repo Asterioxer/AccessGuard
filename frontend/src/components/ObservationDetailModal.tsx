@@ -113,21 +113,45 @@ export const ObservationDetailModal: React.FC<ObservationDetailModalProps> = ({
                   const y = det.bbox.ymin * 100;
                   const width = (det.bbox.xmax - det.bbox.xmin) * 100;
                   const height = (det.bbox.ymax - det.bbox.ymin) * 100;
-                  const strokeColor = det.barrier_type === 'stairs' ? '#ef4444' : det.barrier_type === 'curb_ramp_present' ? '#10b981' : '#f59e0b';
+                  const isKeypoint = !!det.evidence?.is_keypoint;
+                  const isDisagreement = det.evidence?.consensus_status === 'DISAGREEMENT';
+                  const strokeColor = isDisagreement ? '#f43f5e' : det.barrier_type === 'stairs' ? '#ef4444' : det.barrier_type === 'curb_ramp_present' ? '#10b981' : '#f59e0b';
 
                   return (
                     <g key={det.id}>
-                      <rect
-                        x={x}
-                        y={y}
-                        width={width}
-                        height={height}
-                        fill={strokeColor}
-                        fillOpacity="0.15"
-                        stroke={strokeColor}
-                        strokeWidth="1.5"
-                        strokeDasharray={det.is_uncertain ? '3, 2' : undefined}
-                      />
+                      {isKeypoint ? (
+                        <g>
+                          <circle
+                            cx={x + width / 2}
+                            cy={y + height / 2}
+                            r="3"
+                            fill="#10b981"
+                            stroke="#ffffff"
+                            strokeWidth="1"
+                          />
+                          <circle
+                            cx={x + width / 2}
+                            cy={y + height / 2}
+                            r="6"
+                            fill="none"
+                            stroke="#10b981"
+                            strokeWidth="1"
+                            strokeDasharray="2, 2"
+                          />
+                        </g>
+                      ) : (
+                        <rect
+                          x={x}
+                          y={y}
+                          width={width}
+                          height={height}
+                          fill={strokeColor}
+                          fillOpacity="0.15"
+                          stroke={strokeColor}
+                          strokeWidth={isDisagreement ? "2.5" : "1.5"}
+                          strokeDasharray={det.is_uncertain ? '3, 2' : undefined}
+                        />
+                      )}
                     </g>
                   );
                 })}
@@ -185,15 +209,53 @@ export const ObservationDetailModal: React.FC<ObservationDetailModalProps> = ({
               </div>
 
               {det.evidence && (
-                <div className="bg-slate-900/90 rounded-lg p-3 text-xs border border-slate-800 space-y-1.5">
-                  <div className="flex items-start space-x-2 text-slate-300">
-                    <FileText className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
-                    <span><b>Evidence:</b> {det.evidence.explanation}</span>
+                <div className="bg-slate-900/90 rounded-lg p-3 text-xs border border-slate-800 space-y-2">
+                  {/* Multi-Model Consensus & Adapter Provenance Badges */}
+                  <div className="flex flex-wrap items-center gap-1.5 pb-1 border-b border-slate-800">
+                    {det.evidence.consensus_status === 'DISAGREEMENT' ? (
+                      <span className="text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-700 px-2 py-0.5 rounded-full flex items-center space-x-1">
+                        <AlertTriangle className="w-3 h-3 text-rose-400" />
+                        <span>Multi-Model Disagreement</span>
+                      </span>
+                    ) : det.evidence.consensus_status === 'CONSENSUS' ? (
+                      <span className="text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-700 px-2 py-0.5 rounded-full flex items-center space-x-1">
+                        <CheckCircle className="w-3 h-3 text-emerald-400" />
+                        <span>Multi-Model Consensus</span>
+                      </span>
+                    ) : null}
+
+                    {det.evidence.verification_state === 'VERIFIED' && (
+                      <span className="text-[10px] font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800 px-1.5 py-0.5 rounded">
+                        Validator Verified
+                      </span>
+                    )}
+
+                    {det.evidence.roughness_score !== undefined && (
+                      <span className="text-[10px] font-medium bg-amber-950 text-amber-300 border border-amber-800 px-1.5 py-0.5 rounded">
+                        Roughness: {Number(det.evidence.roughness_score).toFixed(2)}
+                      </span>
+                    )}
+
+                    {Array.isArray(det.evidence.contributing_adapters) && det.evidence.contributing_adapters.map((ad: string) => (
+                      <span key={ad} className="text-[10px] font-mono bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded border border-slate-700">
+                        {ad.replace('_adapter', '')}
+                      </span>
+                    ))}
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-400 pt-1 border-t border-slate-800/80">
-                    <div>Feature: <span className="text-slate-300">{det.evidence.feature_type}</span></div>
-                    <div>Measured Value: <span className="text-slate-300">{det.evidence.measured_metric} (Threshold: {det.evidence.threshold_applied})</span></div>
-                  </div>
+
+                  {det.evidence.explanation && (
+                    <div className="flex items-start space-x-2 text-slate-300">
+                      <FileText className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
+                      <span><b>Evidence:</b> {det.evidence.explanation}</span>
+                    </div>
+                  )}
+
+                  {det.evidence.feature_type && (
+                    <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-400 pt-1 border-t border-slate-800/80">
+                      <div>Feature: <span className="text-slate-300">{det.evidence.feature_type}</span></div>
+                      <div>Measured Value: <span className="text-slate-300">{det.evidence.measured_metric} (Threshold: {det.evidence.threshold_applied})</span></div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -133,3 +133,20 @@ class YOLOAdapter(ModelAdapter):
         except Exception as e:
             logger.warning(f"Error during YOLO prediction ({e}); returning empty detections.")
             return []
+
+    def predict_v2(self, image_bgr: np.ndarray, **kwargs):
+        """Unified AdapterInferenceResult return for Evidence Fusion."""
+        from app.cv.adapters.base_v2 import AdapterInferenceResult, AdapterStatus
+        import time
+
+        start_time = time.perf_counter()
+        detections = self.predict(image_bgr)
+        latency = (time.perf_counter() - start_time) * 1000.0
+
+        return AdapterInferenceResult(
+            status=AdapterStatus.READY,
+            adapter_name=self.name,
+            detections=detections,
+            execution_time_ms=round(latency, 2),
+            device_used="cpu"
+        )

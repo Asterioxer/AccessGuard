@@ -7,6 +7,7 @@ from app.cv.adapters.dummy_adapter import DummyAdapter
 from app.cv.adapters.heuristic_adapter import HeuristicCVAdapter
 from app.cv.adapters.torchvision_adapter import TorchvisionAdapter
 from app.cv.adapters.yolo_adapter import YOLOAdapter
+from app.cv.adapters.hybrid_adapter import HybridVisionAdapter
 from app.config import settings
 from app.core.logging import logger
 
@@ -28,6 +29,8 @@ class CVPipeline:
             return TorchvisionAdapter()
         elif name == "yolo":
             return YOLOAdapter()
+        elif name == "hybrid":
+            return HybridVisionAdapter()
         else: # default to heuristic
             return HeuristicCVAdapter()
 

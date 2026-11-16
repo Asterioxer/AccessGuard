@@ -1,0 +1,32 @@
+{
+  "Ablation 1: Ensemble Synergy": {
+    "description": "Full Hybrid Architecture vs Single Best Individual Model (GuideCane)",
+    "single_best_f1": 0.5778,
+    "full_hybrid_f1": 0.3103,
+    "f1_improvement": -0.2675,
+    "recall_improvement": -0.16
+  },
+  "Ablation 2: Validator Impact": {
+    "description": "Fused Hybrid with Sidewalk Validator vs Fused Hybrid without Validator",
+    "without_validator_precision": 0.1711,
+    "with_validator_precision": 0.2727,
+    "false_positive_reduction": 39,
+    "precision_gain": 0.1016
+  },
+  "Ablation 3: Seam Suppression": {
+    "description": "RampNet with Seam Suppression vs Unsuppressed RampNet (360-degree boundary duplicates)",
+    "unsuppressed_false_positives": 25,
+    "suppressed_false_positives": 25,
+    "duplicate_peaks_removed": 0,
+    "precision_improvement": 0.0
+  },
+  "Ablation 4: Hardware Profiles (RTX 3050 4GB)": {
+    "description": "Concurrent Execution (FULL_HYBRID) vs Sequential Memory Offloading (RESOURCE_CONSTRAINED)",
+    "full_hybrid_vram_peak_mb": 3450,
+    "resource_constrained_vram_peak_mb": 1820,
+    "vram_savings_percent": 47.2,
+    "full_hybrid_mean_latency_ms": 112.4,
+    "resource_constrained_mean_latency_ms": 184.6,
+    "latency_tradeoff_factor": 1.64
+  }
+}
