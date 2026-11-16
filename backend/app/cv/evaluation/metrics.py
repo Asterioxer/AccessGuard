@@ -1,5 +1,10 @@
+"""
+Comprehensive evaluation metrics for computer vision object detection and calibration.
+Includes IoU calculation, mAP@0.5, mAP@0.5:0.95, confusion matrices, and Expected Calibration Error (ECE).
+"""
+
 import numpy as np
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Optional
 
 def compute_box_iou(box1: Tuple[float, float, float, float], box2: Tuple[float, float, float, float]) -> float:
     """Computes IoU between two (ymin, xmin, ymax, xmax) boxes."""
@@ -28,24 +33,26 @@ def evaluate_detections(
     Computes per-class True Positives (TP), False Positives (FP), False Negatives (FN),
     Precision, Recall, F1-Score, and AP.
     """
-    classes = list(set([item["class"] for item in ground_truth] + [item["class"] for item in predictions]))
+    classes = sorted(list(set([item["class"] for item in ground_truth] + [item["class"] for item in predictions])))
     results = {}
+
+    all_confidences = []
+    all_correctness = []
 
     for cls in classes:
         cls_gt = [gt for gt in ground_truth if gt["class"] == cls]
         cls_preds = [p for p in predictions if p["class"] == cls]
-        
-        # Sort predictions by confidence descending
+
         cls_preds.sort(key=lambda x: x["confidence"], reverse=True)
-        
+
         tp = np.zeros(len(cls_preds))
         fp = np.zeros(len(cls_preds))
         gt_matched = [False] * len(cls_gt)
-        
+
         for i, pred in enumerate(cls_preds):
             best_iou = 0.0
             best_gt_idx = -1
-            
+
             for j, gt in enumerate(cls_gt):
                 if gt_matched[j]:
                     continue
@@ -53,16 +60,20 @@ def evaluate_detections(
                 if iou > best_iou:
                     best_iou = iou
                     best_gt_idx = j
-                    
+
             if best_iou >= iou_threshold and best_gt_idx != -1:
                 tp[i] = 1
                 gt_matched[best_gt_idx] = True
+                all_confidences.append(pred["confidence"])
+                all_correctness.append(True)
             else:
                 fp[i] = 1
-                
+                all_confidences.append(pred["confidence"])
+                all_correctness.append(False)
+
         cum_tp = np.cumsum(tp)
         cum_fp = np.cumsum(fp)
-        
+
         total_gt = len(cls_gt)
         if total_gt == 0:
             recall = np.zeros_like(cum_tp)
@@ -71,7 +82,7 @@ def evaluate_detections(
         else:
             recall = cum_tp / total_gt
             precision = cum_tp / (cum_tp + cum_fp + 1e-10)
-            
+
             # 11-point interpolation for Average Precision
             ap = 0.0
             for t in np.arange(0.0, 1.1, 0.1):
@@ -81,11 +92,11 @@ def evaluate_detections(
         final_tp = int(np.sum(tp))
         final_fp = int(np.sum(fp))
         final_fn = total_gt - final_tp
-        
+
         final_prec = final_tp / (final_tp + final_fp) if (final_tp + final_fp) > 0 else 0.0
         final_rec = final_tp / total_gt if total_gt > 0 else 0.0
         f1 = (2 * final_prec * final_rec) / (final_prec + final_rec) if (final_prec + final_rec) > 0 else 0.0
-        
+
         results[cls] = {
             "ground_truth_count": total_gt,
             "prediction_count": len(cls_preds),
@@ -95,16 +106,86 @@ def evaluate_detections(
             "precision": round(final_prec, 4),
             "recall": round(final_rec, 4),
             "f1_score": round(f1, 4),
-            "average_precision_at_0.5": round(ap, 4)
+            "average_precision": round(ap, 4)
         }
 
     # Mean Average Precision (mAP)
-    ap_values = [v["average_precision_at_0.5"] for v in results.values() if v["ground_truth_count"] > 0]
+    ap_values = [v["average_precision"] for v in results.values() if v["ground_truth_count"] > 0]
     map_score = float(np.mean(ap_values)) if ap_values else 0.0
 
     return {
         "classes": results,
-        "mean_average_precision_0.5": round(map_score, 4)
+        "mean_average_precision": round(map_score, 4),
+        "mean_average_precision_0.5": round(map_score, 4),
+        "confidences": all_confidences,
+        "correctness": all_correctness
+    }
+
+def compute_map_50_95(
+    ground_truth: List[Dict[str, Any]],
+    predictions: List[Dict[str, Any]]
+) -> float:
+    """
+    Computes standard COCO mAP across 10 IoU thresholds from 0.50 to 0.95 in steps of 0.05.
+    """
+    thresholds = np.arange(0.50, 1.00, 0.05)
+    map_values = []
+    for thresh in thresholds:
+        eval_res = evaluate_detections(ground_truth, predictions, iou_threshold=float(thresh))
+        map_values.append(eval_res["mean_average_precision"])
+    return round(float(np.mean(map_values)), 4)
+
+def compute_confusion_matrix(
+    ground_truth: List[Dict[str, Any]],
+    predictions: List[Dict[str, Any]],
+    class_list: List[str],
+    iou_threshold: float = 0.50
+) -> Dict[str, Any]:
+    """
+    Constructs an explicit confusion matrix including background class.
+    Columns: Predicted, Rows: True class.
+    """
+    labels = list(class_list) + ["background"]
+    idx_map = {l: i for i, l in enumerate(labels)}
+    n = len(labels)
+    matrix = np.zeros((n, n), dtype=int)
+
+    gt_matched = [False] * len(ground_truth)
+
+    for pred in predictions:
+        p_cls = pred["class"] if pred["class"] in idx_map else "background"
+        best_iou = 0.0
+        best_gt_idx = -1
+
+        for j, gt in enumerate(ground_truth):
+            if gt_matched[j]:
+                continue
+            iou = compute_box_iou(pred["bbox"], gt["bbox"])
+            if iou > best_iou:
+                best_iou = iou
+                best_gt_idx = j
+
+        if best_iou >= iou_threshold and best_gt_idx != -1:
+            true_cls = ground_truth[best_gt_idx]["class"]
+            t_idx = idx_map.get(true_cls, idx_map["background"])
+            p_idx = idx_map[p_cls]
+            matrix[t_idx, p_idx] += 1
+            gt_matched[best_gt_idx] = True
+        else:
+            # False positive: predicted something when there was background
+            p_idx = idx_map[p_cls]
+            matrix[idx_map["background"], p_idx] += 1
+
+    # Any unmatched GT is a false negative (predicted as background)
+    for j, matched in enumerate(gt_matched):
+        if not matched:
+            true_cls = ground_truth[j]["class"]
+            t_idx = idx_map.get(true_cls, idx_map["background"])
+            matrix[t_idx, idx_map["background"]] += 1
+
+    return {
+        "classes": labels,
+        "matrix": matrix.tolist()
     }
 
 def compute_expected_calibration_error(
@@ -126,16 +207,16 @@ def compute_expected_calibration_error(
     for i in range(num_bins):
         bin_lower = bins[i]
         bin_upper = bins[i + 1]
-        
+
         in_bin = [
             (c, corr) for c, corr in zip(confidences, correctness)
             if (bin_lower <= c < bin_upper if i < num_bins - 1 else bin_lower <= c <= bin_upper)
         ]
-        
+
         if len(in_bin) > 0:
             bin_conf = np.mean([x[0] for x in in_bin])
             bin_acc = np.mean([1.0 if x[1] else 0.0 for x in in_bin])
             bin_weight = len(in_bin) / total_samples
             ece += bin_weight * abs(bin_acc - bin_conf)
-            
+
     return round(float(ece), 4)

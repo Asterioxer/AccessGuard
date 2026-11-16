@@ -152,4 +152,47 @@ export const api = {
   },
 
   getProfile: () => request<User>('/auth/me'),
+
+  // Live CV & Adapters
+  listAdapters: () =>
+    request<{
+      available_adapters: string[];
+      active_adapter: string;
+      onnx_available: boolean;
+    }>('/cv/adapters'),
+
+  setActiveAdapter: (adapter_name: string) =>
+    request<{ status: string; active_adapter: string }>('/cv/active-adapter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adapter_name }),
+    }),
+
+  postLiveFrame: async (data: {
+    base64_image?: string;
+    stream_id?: string;
+    timestamp?: number;
+  }) => {
+    const formData = new FormData();
+    if (data.base64_image) formData.append('base64_image', data.base64_image);
+    if (data.stream_id) formData.append('stream_id', data.stream_id);
+    if (data.timestamp) formData.append('timestamp', data.timestamp.toString());
+
+    const token = getAuthToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE}/cv/live-frame`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Live inference failed: ${response.status}`);
+    }
+    return response.json();
+  },
 };

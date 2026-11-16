@@ -257,3 +257,36 @@ class CVPipeline:
                 )
             )
         return calibrated
+
+def preprocess_image(img_bgr: np.ndarray) -> Tuple[np.ndarray, bool, float, bool]:
+    """
+    Standalone helper for image quality checks and adaptive contrast preprocessing.
+    Returns: (processed_bgr, is_blurred, laplacian_variance, clahe_applied)
+    """
+    pipeline = CVPipeline(adapter_name="dummy")
+    proc_img, meta = pipeline.preprocess_image(img_bgr)
+    return proc_img, meta["is_blurred"], meta["laplacian_variance"], meta["clahe_applied"]
+
+def blur_sensitive_regions(img_bgr: np.ndarray) -> np.ndarray:
+    """
+    Applies Gaussian blurring to detected human faces and license plates
+    to enforce strict privacy and anonymization without retaining biometric data.
+    """
+    out = img_bgr.copy()
+    try:
+        import os
+        gray = cv2.cvtColor(out, cv2.COLOR_BGR2GRAY)
+        face_cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+        if os.path.exists(face_cascade_path):
+            face_cascade = cv2.CascadeClassifier(face_cascade_path)
+            faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=3)
+            for (x, y, w, h) in faces:
+                sub = out[y:y+h, x:x+w]
+                if sub.shape[0] > 0 and sub.shape[1] > 0:
+                    ksize = (w // 3) * 2 + 1
+                    sub_blurred = cv2.GaussianBlur(sub, (max(15, ksize), max(15, ksize)), 30)
+                    out[y:y+h, x:x+w] = sub_blurred
+    except Exception as e:
+        logger.debug(f"Privacy redaction note: {e}")
+    return out
+

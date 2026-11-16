@@ -123,3 +123,30 @@ export interface AnalyticsSummary {
   barrier_distribution: Record<string, number>;
   segment_grade_distribution: Record<string, number>;
 }
+
+export interface LiveDetectionDTO {
+  barrier_type: string;
+  confidence: number;
+  uncertainty_score: number;
+  bbox: [number, number, number, number]; // [ymin, xmin, ymax, xmax]
+  is_uncertain: boolean;
+  is_confirmed: boolean;
+  track_id?: string;
+  evidence?: Record<string, any>;
+}
+
+export interface LiveFrameResponse {
+  detections: LiveDetectionDTO[];
+  latency_ms: number;
+  fps_estimate: number;
+  adapter_used: string;
+  image_quality: {
+    is_blurry: boolean;
+    blur_variance: number;
+    clahe_applied: boolean;
+    resolution?: string;
+  };
+  privacy_redacted: boolean;
+  active_tracks_count: number;
+}
+

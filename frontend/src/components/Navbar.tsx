@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Shield, Navigation, CheckCircle2, BarChart3, Upload, User as UserIcon, LogOut, Key } from 'lucide-react';
+import { Shield, Navigation, CheckCircle2, BarChart3, Upload, User as UserIcon, LogOut, Key, Camera, Activity } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface NavbarProps {
-  activeTab: 'map' | 'route' | 'verification' | 'analytics';
-  setActiveTab: (tab: 'map' | 'route' | 'verification' | 'analytics') => void;
+  activeTab: 'map' | 'route' | 'verification' | 'analytics' | 'live_camera' | 'evaluation';
+  setActiveTab: (tab: 'map' | 'route' | 'verification' | 'analytics' | 'live_camera' | 'evaluation') => void;
   onOpenUpload: () => void;
 }
 
@@ -109,6 +109,30 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onOpenU
               >
                 <BarChart3 className="w-4 h-4" />
                 <span>Analytics</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('live_camera')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
+                  activeTab === 'live_camera'
+                    ? 'bg-slate-800 text-emerald-400 border border-slate-700'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Camera className="w-4 h-4" />
+                <span>Live Camera</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('evaluation')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
+                  activeTab === 'evaluation'
+                    ? 'bg-slate-800 text-emerald-400 border border-slate-700'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Activity className="w-4 h-4" />
+                <span>Evaluation & Datasets</span>
               </button>
             </nav>
 

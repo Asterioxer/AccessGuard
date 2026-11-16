@@ -7,11 +7,13 @@ import { RoutePlanner } from './components/RoutePlanner';
 import { VerificationQueue } from './components/VerificationQueue';
 import { SegmentScoringPanel } from './components/SegmentScoringPanel';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import { LiveCamera } from './components/LiveCamera';
+import { EvaluationDashboard } from './components/EvaluationDashboard';
 import { api } from './api/client';
 import { Observation, PedestrianSegment, RouteResponse } from './types';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'map' | 'route' | 'verification' | 'analytics'>('map');
+  const [activeTab, setActiveTab] = useState<'map' | 'route' | 'verification' | 'analytics' | 'live_camera' | 'evaluation'>('map');
   const [observations, setObservations] = useState<Observation[]>([]);
   const [segments, setSegments] = useState<PedestrianSegment[]>([]);
   const [selectedSegment, setSelectedSegment] = useState<PedestrianSegment | null>(null);
@@ -127,6 +129,24 @@ export const App: React.FC = () => {
         {activeTab === 'analytics' && (
           <div className="h-full overflow-y-auto p-6 bg-slate-950">
             <AnalyticsDashboard />
+          </div>
+        )}
+
+        {/* Tab 5: Live Camera Testing & Real-Time Inference */}
+        {activeTab === 'live_camera' && (
+          <div className="h-full overflow-y-auto p-6 bg-slate-950 flex justify-center">
+            <div className="w-full max-w-4xl">
+              <LiveCamera />
+            </div>
+          </div>
+        )}
+
+        {/* Tab 6: Model Evaluation & Datasets Intelligence */}
+        {activeTab === 'evaluation' && (
+          <div className="h-full overflow-y-auto p-6 bg-slate-950">
+            <div className="max-w-7xl mx-auto">
+              <EvaluationDashboard />
+            </div>
           </div>
         )}
       </main>

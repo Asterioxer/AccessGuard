@@ -16,16 +16,18 @@ AccessGuard empowers wheelchair users, pedestrians with mobility aids, and munic
 
 ### Key Capabilities
 
-1. 📷 **Image & Short Video Ingestion**: Processes photos and videos with temporal keyframe clustering.
+1. 📷 **Image, Video & Live Camera Ingestion**: Processes photos, videos, and real-time browser webcam feeds with temporal deduplication.
 2. 🔍 **Accessibility Barrier Detection**: Identifies stairs, missing curb ramps, damaged footpaths, bollards, and construction obstacles.
-3. 🔌 **Interchangeable Model Adapters**: Modular architecture supporting OpenCV heuristic vision, PyTorch Mask R-CNN, YOLO/ONNX, and benchmark adapters.
+3. 🔌 **Interchangeable Model Adapters**: Modular architecture supporting OpenCV heuristic vision, PyTorch Faster R-CNN, Ultralytics YOLOv8, and high-performance ONNX Runtime.
 4. 📊 **Evidence & Uncertainty Calibration**: Explicit confidence metrics, uncertainty scores, and concrete physical evidence for every prediction.
 5. 🗺️ **Geospatial Association**: Snaps visual observations onto pedestrian sidewalk networks with coordinate projection.
-6. 🗄️ **PostGIS Geospatial Database**: Robust spatial storage and GeoJSON generation.
+6. 🗄️ **PostGIS Geospatial Database**: Robust spatial storage and GeoJSON generation with versioned Alembic migrations.
 7. ⚖️ **Transparent Scoring Criteria**: Deterministic formulas evaluating sidewalk segment safety from 0 to 100 with itemized penalties and bonuses.
 8. 🧭 **Interactive Map Dashboard**: High-contrast Leaflet map displaying colored segments, barrier badges, and inspection overlays.
 9. 🤝 **Human-in-the-Loop Verification**: Peer consensus mechanism allowing community volunteers to verify or dispute AI flags.
-10. ♿ **Wheelchair Route Recommendations**: Dijkstra/A* graph traversal navigating around stairs, steep slopes, and severe obstacles.
+10. ♿ **Wheelchair Route Recommendations**: Dijkstra and A* graph traversal with Haversine admissible heuristic, calculating accessible detours and avoided staircases.
+11. 🇮🇳 **Indian Infrastructure Validation**: Dedicated benchmark collection evaluating unique urban pedestrian hazards (vendor carts, open drains, two-wheelers on footpaths).
+12. ☁️ **Reproducible Colab Training**: 5 end-to-end Jupyter notebooks for exploration, normalization, training, evaluation, and ONNX packaging.
 
 ---
 
@@ -72,7 +74,7 @@ flowchart TD
 - **Computer Vision**: OpenCV (`cv2`), PyTorch, Torchvision, ONNX interface.
 - **Database**: PostgreSQL 16 with PostGIS (with SQLite in-memory test compatibility).
 - **Containerization**: Docker, Docker Compose, Multi-stage builds, Alpine Nginx.
-- **Testing**: Pytest (39 automated unit, integration, and security tests covering all modules), Playwright E2E.
+- **Testing**: Pytest (62 automated unit, integration, and security tests covering all CV, dataset, GIS, and live inference modules), Playwright E2E.
 - **Database Migrations**: Alembic versioned schema tracking.
 - **Observability**: Prometheus `/metrics` endpoint with request and inference telemetry.
 - **CI/CD**: GitHub Actions CI workflow.
@@ -153,11 +155,17 @@ npm run build
 - [Database Schema & PostGIS Models](docs/database_schema.md)
 - [REST API Documentation](docs/api_documentation.md)
 - [GIS and Routing Intelligence Guide](docs/gis_and_routing.md)
+- [Live Camera Intelligence & Benchmarking Guide](docs/live_camera_and_benchmarking.md)
+- [Google Colab Training & Packaging Guide](docs/colab_training_guide.md)
 - [Model Evaluation Framework & Benchmark Results](docs/model_evaluation.md)
 - [Model Cards](docs/model_cards/)
+  - [Heuristic CV Adapter](docs/model_cards/heuristic_cv_adapter.md)
+  - [PyTorch Torchvision Adapter](docs/model_cards/torchvision_adapter.md)
+  - [ONNX YOLOv8n Adapter](docs/model_cards/onnx_yolo_adapter.md)
 - [Public Datasets & Research Expansion](docs/dataset_documentation.md)
 - [Security Assessment & Threat Model (STRIDE)](docs/security_assessment.md)
 - [Deployment & Operational Recovery Instructions](docs/deployment.md)
-- [Demonstration Walkthrough](docs/demonstration.md)
+- [Demonstration Walkthrough (M001-M003)](docs/demonstration.md)
+- [Demonstration Walkthrough (Mission 004)](docs/demonstration_m004.md)
 - [Senior Technical Interview & Portfolio Guide](docs/interview_preparation.md)
 - [Independent Engineering Audit Reports](docs/audit/)

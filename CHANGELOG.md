@@ -6,6 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2026-11-16
+
+### Added
+- **Hugging Face Dataset Ingestion:** Built streaming and selective sample loader for `Abtinzandi/Obstacle-Detection-Dataset-YOLO`, `ProjectSidewalk`, `ProjectSidewalk/RampNet`, and `ShuoZheLi/SVRDD_YOLO`.
+- **Storage Safety Enforcer:** Added disk usage verification (`check_storage_safety()`) preventing unbounded dataset downloads from filling disk.
+- **Dataset Manifest Generation:** Formalized provenance, license attribution, and split distributions in JSON manifests.
+- **Unified Annotation Normalizer:** Standardized class mapping into 6 core categories (`curb_ramp`, `stairs`, `surface_damage`, `obstacle`, `crosswalk`, `unknown_infrastructure`) while strictly separating roadway asphalt cracks from pedestrian sidewalk defects.
+- **ONNX Runtime Acceleration:** Built `ONNXAdapter` with dynamic batching, letterbox preprocessing, and hardware acceleration on CPU/CUDA.
+- **Ultralytics YOLO Integration:** Updated `YOLOAdapter` with native YOLOv8n inference and seamless ONNX fallback.
+- **Reproducible Google Colab Notebooks:** Authored 5 end-to-end notebooks in `notebooks/` covering exploration, normalization, training, validation, and ONNX packaging.
+- **Live Camera Testing Interface:** Created `LiveCamera.tsx` in frontend and `POST /api/v1/cv/live-frame` in backend supporting webcam access, configurable FPS (snapshot, 1, 2, 5 FPS), bounding box canvas overlays, latency HUD, and camera flip.
+- **Temporal Video Tracking & Deduplication:** Built `TemporalObstacleTracker` preventing duplicate reports across 30 FPS video streams via spatial IoU clustering ($\text{IoU} \ge 0.35$).
+- **Evaluation & Benchmarks Dashboard:** Built `EvaluationDashboard.tsx` with ground-truth benchmark comparison, interactive confusion matrices, false positive/negative analysis, and live telemetry view.
+- **Indian Street-Scene Benchmark:** Curated 10 verified evaluation scenes reflecting real Indian pedestrian hazards (open drains, vendor pushcarts, two-wheelers on footpaths) adhering to CPWD 2021 accessibility guidelines.
+- **Model Card:** Added `docs/model_cards/onnx_yolo_adapter.md`.
+
+---
+
 ## [1.1.0] - 2026-11-15
 
 ### Added
