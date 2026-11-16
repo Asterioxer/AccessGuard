@@ -45,8 +45,12 @@ def test_ingestion_engine_duplicate_detection(db_session):
 def test_ingestion_engine_job_execution(db_session, monkeypatch):
     """Verify execution of an automated acquisition job produces observations and updates scores."""
     import cv2
+    import numpy as np
     engine = AcquisitionEngine()
     test_img = cv2.imread("data/processed/demo_stairs.jpg")
+    if test_img is None:
+        # Fallback synthetic frame when running on clean CI environments without local media
+        test_img = np.full((300, 300, 3), 128, dtype=np.uint8)
     monkeypatch.setattr(engine, "_acquire_image_array", lambda conn, it: test_img)
 
     # Create dummy pedestrian segment
