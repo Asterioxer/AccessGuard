@@ -22,7 +22,13 @@ from app.ingestion.connectors.base import (
 from app.core.logging import logger
 
 MAPILLARY_GRAPH_URL = "https://graph.mapillary.com"
-MAPILLARY_ALLOWED_DOMAINS = ["graph.mapillary.com", "images.mapillary.com", "mapillary.com"]
+MAPILLARY_ALLOWED_DOMAINS = [
+    "graph.mapillary.com",
+    "images.mapillary.com",
+    "mapillary.com",
+    "fbcdn.net",
+    "fbsbx.com",
+]
 MAPILLARY_ATTRIBUTION = "Imagery © Mapillary, Open Database License / CC BY-SA 4.0"
 MAPILLARY_LICENSE = "CC-BY-SA-4.0"
 

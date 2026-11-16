@@ -114,11 +114,22 @@ export const VerificationQueue: React.FC<VerificationQueueProps> = ({
                 className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-slate-600 transition-colors"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 rounded-lg bg-slate-950 overflow-hidden border border-slate-700 flex-shrink-0">
+                  <div className="w-16 h-16 rounded-lg bg-slate-950 overflow-hidden border border-slate-700 flex-shrink-0 flex items-center justify-center">
                     <img
                       src={obs.media_url}
                       alt="Thumbnail"
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const parent = e.currentTarget.parentElement;
+                        if (parent) {
+                          parent.classList.add('bg-rose-950/40');
+                          const span = document.createElement('span');
+                          span.className = 'text-[10px] text-rose-400 font-mono text-center px-1';
+                          span.innerText = 'IMG ERR';
+                          parent.appendChild(span);
+                        }
+                      }}
                     />
                   </div>
                   <div>

@@ -316,25 +316,29 @@ class AcquisitionEngine:
         connector: BaseImageryConnector,
         item: ImageryItem
     ) -> Optional[np.ndarray]:
-        """Fetches raw image bytes and decodes into a BGR numpy array."""
+        """
+        Fetches raw image bytes and decodes into a BGR numpy array.
+        Strict rule: Never silently fabricate fake imagery if unauthenticated.
+        """
         try:
-            if item.url and item.url.startswith("http"):
-                # If remote image URL exists and we are not in offline mode, fetch
-                if os.environ.get("ACCESSGUARD_OFFLINE_DATASETS") != "1" and not item.raw_metadata.get("mode") == "fixture_unauthenticated":
-                    raw_bytes = connector.fetch_image_bytes(item.url)
-                    arr = np.frombuffer(raw_bytes, np.uint8)
-                    return cv2.imdecode(arr, cv2.IMREAD_COLOR)
+            if item.raw_metadata and item.raw_metadata.get("mode") == "fixture_unauthenticated":
+                logger.warning(
+                    f"Acquisition skipped for item {item.item_id}: Provider '{item.provider}' is in unauthenticated "
+                    "fixture mode. Live street-level imagery cannot be fetched without API credentials."
+                )
+                return None
 
-            # Synthetic / fixture test street scene if offline or unauthenticated
-            h, w = 480, 640
-            canvas = np.full((h, w, 3), (180, 180, 180), dtype=np.uint8)
-            # Draw sidewalk
-            cv2.rectangle(canvas, (50, 200), (590, 470), (210, 210, 210), -1)
-            # Draw curb step
-            cv2.line(canvas, (50, 350), (590, 350), (100, 100, 100), 3)
-            # Add annotation text
-            cv2.putText(canvas, f"AccessGuard Test Source: {item.provider}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (40, 40, 40), 2)
-            return canvas
+            if item.url and item.url.startswith("http"):
+                raw_bytes = connector.fetch_image_bytes(item.url)
+                arr = np.frombuffer(raw_bytes, np.uint8)
+                decoded = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+                if decoded is None:
+                    logger.warning(f"Downloaded bytes could not be decoded as valid image for {item.item_id}")
+                    return None
+                return decoded
+
+            logger.warning(f"No valid remote image URL available for item {item.item_id}")
+            return None
 
         except Exception as e:
             logger.warning(f"Could not acquire image array for {item.item_id}: {e}")

@@ -20,6 +20,7 @@ export const ObservationDetailModal: React.FC<ObservationDetailModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [voteSubmitted, setVoteSubmitted] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
 
   if (!observation) return null;
 
@@ -89,13 +90,24 @@ export const ObservationDetailModal: React.FC<ObservationDetailModalProps> = ({
         <div className="relative rounded-xl overflow-hidden border border-slate-700 bg-slate-950 mb-6 flex justify-center items-center max-h-[380px]">
           {observation.media_type === 'image' ? (
             <div className="relative inline-block w-full text-center">
-              <img
-                src={observation.media_url}
-                alt="Sidewalk obstacle detection"
-                className="max-h-[360px] mx-auto object-contain rounded-lg"
-              />
+              {imageError ? (
+                <div className="p-8 text-center bg-slate-900 border border-rose-500/30 rounded-xl my-4">
+                  <div className="text-rose-400 font-semibold text-sm">Failed to Load Street-Level Image</div>
+                  <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                    Image media could not be retrieved. External API credentials (such as MAPILLARY_CLIENT_TOKEN) may be missing or the remote image URL is unreachable.
+                  </p>
+                </div>
+              ) : (
+                <img
+                  src={observation.media_url}
+                  alt="Sidewalk obstacle detection"
+                  className="max-h-[360px] mx-auto object-contain rounded-lg"
+                  onError={() => setImageError(true)}
+                />
+              )}
               {/* Overlaid Normalized Bounding Boxes */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+              {!imageError && (
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
                 {observation.detections.map((det) => {
                   const x = det.bbox.xmin * 100;
                   const y = det.bbox.ymin * 100;
@@ -120,6 +132,7 @@ export const ObservationDetailModal: React.FC<ObservationDetailModalProps> = ({
                   );
                 })}
               </svg>
+              )}
             </div>
           ) : (
             <video controls className="max-h-[360px] w-full object-contain">

@@ -42,9 +42,12 @@ def test_ingestion_engine_duplicate_detection(db_session):
     ) is False
 
 
-def test_ingestion_engine_job_execution(db_session):
+def test_ingestion_engine_job_execution(db_session, monkeypatch):
     """Verify execution of an automated acquisition job produces observations and updates scores."""
+    import cv2
     engine = AcquisitionEngine()
+    test_img = cv2.imread("data/processed/demo_stairs.jpg")
+    monkeypatch.setattr(engine, "_acquire_image_array", lambda conn, it: test_img)
 
     # Create dummy pedestrian segment
     seg = PedestrianSegment(
