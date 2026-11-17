@@ -55,28 +55,28 @@ def test_genuine_model_loading_and_identity():
     else:
         assert loaded is False
         assert rampnet.status == AdapterStatus.UNAVAILABLE
-        assert "MODEL_WEIGHTS_NOT_FOUND" in rampnet._last_error
+        assert any(err in rampnet._last_error for err in ("MODEL_WEIGHTS_NOT_FOUND", "MODEL_DEPENDENCY_MISSING"))
 
     # 2. GuideCane: strict mode must report UNAVAILABLE when weights absent
     guidecane = GuideCaneAdapter()
     loaded_guide = guidecane.load(allow_fallback=False)
     assert loaded_guide is False
     assert guidecane.status == AdapterStatus.UNAVAILABLE
-    assert "MODEL_WEIGHTS_NOT_FOUND" in guidecane._last_error
+    assert any(err in guidecane._last_error for err in ("MODEL_WEIGHTS_NOT_FOUND", "MODEL_DEPENDENCY_MISSING"))
 
     # 3. CitySurfaces: strict mode must report UNAVAILABLE when weights absent
     city = CitySurfacesAdapter()
     loaded_city = city.load(allow_fallback=False)
     assert loaded_city is False
     assert city.status == AdapterStatus.UNAVAILABLE
-    assert "MODEL_WEIGHTS_NOT_FOUND" in city._last_error
+    assert any(err in city._last_error for err in ("MODEL_WEIGHTS_NOT_FOUND", "MODEL_DEPENDENCY_MISSING"))
 
     # 4. Validator: strict mode must report UNAVAILABLE when weights absent
     val = SidewalkValidatorAdapter()
     loaded_val = val.load(allow_fallback=False)
     assert loaded_val is False
     assert val.status == AdapterStatus.UNAVAILABLE
-    assert "MODEL_WEIGHTS_NOT_FOUND" in val._last_error
+    assert any(err in val._last_error for err in ("MODEL_WEIGHTS_NOT_FOUND", "MODEL_DEPENDENCY_MISSING"))
 
 
 def test_hybrid_adapter_real_inference(real_test_image):

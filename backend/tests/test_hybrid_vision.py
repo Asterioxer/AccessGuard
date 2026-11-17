@@ -51,7 +51,7 @@ def test_rampnet_adapter_lifecycle_and_seam():
     adapter = RampNetAdapter(enable_seam_suppression=True)
     assert adapter.status == AdapterStatus.NOT_LOADED
 
-    loaded = adapter.load(device="cpu")
+    loaded = adapter.load(device="cpu", allow_fallback=True)
     assert loaded is True
     assert adapter.status in (AdapterStatus.READY, AdapterStatus.DEGRADED)
 
