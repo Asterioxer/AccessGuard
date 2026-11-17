@@ -71,7 +71,7 @@ class KartaViewConnector(BaseImageryConnector):
 
         # Check offline / test environment override
         if not self.is_authenticated:
-            if allow_fixtures or os.environ.get("ACCESSGUARD_OFFLINE_DATASETS") == "1":
+            if allow_fixtures:
                 logger.info("KartaView unauthenticated or offline: generating explicit fixture items.")
                 return self._generate_fixture_results(bbox, limit)
             logger.warning("KartaView API key not configured; returning unauthenticated search result.")

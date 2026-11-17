@@ -43,6 +43,9 @@ data/*
 !data/benchmarks/**
 !data/models/
 !data/models/**
+!data/processed/
+data/processed/*
+!data/processed/demo_*.jpg
 !data/reports/
 !data/reports/**
 !data/runs/
