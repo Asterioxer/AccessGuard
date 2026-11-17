@@ -21,6 +21,8 @@ from app.core.sanitize import (
     validate_upload, extract_exif_gps, strip_exif_and_reencode, apply_privacy_redaction
 )
 from app.cv.pipeline import CVPipeline
+from app.cv.orchestration.image_processing_service import ImageProcessingService, ImageProcessingRequest
+from app.cv.adapters.base_v2 import ExecutionPolicy
 from app.gis.spatial_index import snap_point_to_segments
 from app.gis.scoring import calculate_segment_accessibility_score
 from app.core.logging import logger
@@ -120,7 +122,7 @@ async def upload_observation(
             detail=f"Upload validation failed: {mime_type}"
         )
 
-    # 2. Coordinate resolution
+    # 2. Coordinate resolution (Strict: never default missing coordinates to fake locations)
     final_lat = latitude
     final_lon = longitude
     
@@ -130,40 +132,54 @@ async def upload_observation(
             final_lat = exif_lat
             final_lon = exif_lon
 
-    # Default to downtown demo coordinates if no GPS provided
-    if final_lat is None or final_lon is None:
-        final_lat = 37.7765
-        final_lon = -122.4194
-
     obs_id = str(uuid.uuid4())
     ext = file.filename.split(".")[-1].lower() if "." in file.filename else "jpg"
     filename = f"{obs_id}.{ext}"
     saved_path = settings.PROCESSED_DIR / filename
+    contributor_id = user_payload.get("sub") if user_payload else None
 
-    pipeline = CVPipeline(adapter_name=adapter or settings.CV_ADAPTER)
-    detected_barriers = []
+    # Determine execution policy
+    policy = ExecutionPolicy.DEVELOPMENT_FALLBACK if (
+        adapter in ("heuristic", "fallback") or settings.CV_ADAPTER == "heuristic"
+    ) else ExecutionPolicy.STRICT_GENUINE
 
     if media_category == "image":
-        # Privacy redaction: strip EXIF and re-encode
-        clean_bytes = strip_exif_and_reencode(file_bytes, output_format=ext)
-        
-        # Run CV Pipeline
-        detections, img_bgr = pipeline.process_image(clean_bytes)
-        detected_barriers = detections
-        
-        # Blur faces/plates if privacy enabled
-        if settings.ENABLE_PRIVACY_BLURRING and img_bgr is not None:
-            img_bgr = apply_privacy_redaction(img_bgr)
-            cv2.imwrite(str(saved_path), img_bgr)
-        else:
-            with open(saved_path, "wb") as f:
-                f.write(clean_bytes)
+        # Execute unified 15-stage ImageProcessingService
+        proc_service = ImageProcessingService()
+        proc_req = ImageProcessingRequest(
+            image_bytes=file_bytes,
+            filename=file.filename or filename,
+            source="user_upload",
+            source_metadata={
+                "contributor_id": contributor_id,
+                "filename": file.filename,
+                "mime_type": mime_type,
+                "requested_adapter": adapter
+            },
+            latitude=final_lat,
+            longitude=final_lon,
+            execution_policy=policy,
+            enable_privacy_redaction=settings.ENABLE_PRIVACY_BLURRING,
+            contributor_id=contributor_id,
+            save_media=True
+        )
+        proc_res = proc_service.process_image(proc_req, db=db)
+
+        if proc_res.overall_status == "FAILED" and not proc_res.detections:
+            if any("validation" in e.lower() or "decode" in e.lower() for e in proc_res.errors):
+                raise HTTPException(status_code=400, detail=proc_res.errors[0])
+
+        observation = db.query(Observation).filter(Observation.id == proc_res.image_id).first()
+        if not observation:
+            raise HTTPException(status_code=500, detail="Failed to retrieve persisted observation")
+        return format_observation_response(observation)
     else:
         # Video pipeline
         temp_video_path = settings.UPLOAD_DIR / f"temp_{filename}"
         with open(temp_video_path, "wb") as f:
             f.write(file_bytes)
             
+        pipeline = CVPipeline(adapter_name=adapter or settings.CV_ADAPTER)
         try:
             detected_barriers = pipeline.process_video(
                 str(temp_video_path),
@@ -178,92 +194,91 @@ async def upload_observation(
                 os.remove(temp_video_path)
             raise HTTPException(status_code=400, detail=f"Video processing failed: {str(e)}")
 
-    # 3. Create Observation record
-    contributor_id = user_payload.get("sub") if user_payload else None
-    observation = Observation(
-        id=obs_id,
-        contributor_id=contributor_id,
-        media_path=str(saved_path),
-        media_type=media_category,
-        latitude=final_lat,
-        longitude=final_lon,
-        status="tentative",
-        verification_score=0,
-        captured_at=datetime.now(timezone.utc)
-    )
-    db.add(observation)
-
-    # 4. Attach Barrier Detections
-    for det in detected_barriers:
-        poly_str = json.dumps(det.polygon) if det.polygon else None
-        evidence_str = json.dumps(det.evidence) if det.evidence else "{}"
-        
-        db_det = BarrierDetection(
-            id=str(uuid.uuid4()),
-            observation_id=obs_id,
-            barrier_type=det.barrier_type,
-            confidence=det.confidence,
-            uncertainty_score=det.uncertainty_score,
-            is_confirmed=det.is_confirmed,
-            bbox_ymin=det.bbox[0],
-            bbox_xmin=det.bbox[1],
-            bbox_ymax=det.bbox[2],
-            bbox_xmax=det.bbox[3],
-            polygon_json=poly_str,
-            evidence_json=evidence_str
+        # Create Observation record
+        observation = Observation(
+            id=obs_id,
+            contributor_id=contributor_id,
+            media_path=str(saved_path),
+            media_type=media_category,
+            latitude=final_lat,
+            longitude=final_lon,
+            status="tentative",
+            verification_score=0,
+            captured_at=datetime.now(timezone.utc)
         )
-        db.add(db_det)
+        db.add(observation)
 
-    # 4b. Record Image Provenance & cryptographic SHA-256
-    import hashlib
-    import time
-    from app.db.models import ImageProvenance
-    img_sha256 = hashlib.sha256(clean_bytes if media_category == "image" else file_bytes).hexdigest()
+        # Attach Barrier Detections
+        for det in detected_barriers:
+            poly_str = json.dumps(det.polygon) if det.polygon else None
+            evidence_str = json.dumps(det.evidence) if det.evidence else "{}"
+            
+            db_det = BarrierDetection(
+                id=str(uuid.uuid4()),
+                observation_id=obs_id,
+                barrier_type=det.barrier_type,
+                confidence=det.confidence,
+                uncertainty_score=det.uncertainty_score,
+                is_confirmed=det.is_confirmed,
+                bbox_ymin=det.bbox[0],
+                bbox_xmin=det.bbox[1],
+                bbox_ymax=det.bbox[2],
+                bbox_xmax=det.bbox[3],
+                polygon_json=poly_str,
+                evidence_json=evidence_str
+            )
+            db.add(db_det)
 
-    prov = ImageProvenance(
-        observation_id=obs_id,
-        provider="user_upload",
-        external_image_id=file.filename or obs_id,
-        capture_timestamp=datetime.now(timezone.utc).isoformat(),
-        ingestion_timestamp=str(int(time.time())),
-        latitude=final_lat,
-        longitude=final_lon,
-        source_attribution="User Contributor Upload",
-        license_metadata="User Contributed / Platform Terms",
-        model_version=f"{pipeline.adapter_name}-v1",
-        raw_metadata_json=json.dumps({
-            "image_sha256": img_sha256,
-            "filename": file.filename,
-            "mime_type": mime_type,
-            "size_bytes": len(file_bytes),
-            "cv_adapter": pipeline.adapter_name
-        })
-    )
-    db.add(prov)
+        # Record Image Provenance & cryptographic SHA-256
+        import hashlib
+        import time
+        from app.db.models import ImageProvenance
+        vid_sha256 = hashlib.sha256(file_bytes).hexdigest()
 
-    db.commit()
-
-    # 5. Snap to nearest pedestrian segment & update score
-    all_segments = db.query(PedestrianSegment).all()
-    snap_result = snap_point_to_segments(final_lat, final_lon, all_segments, max_distance_meters=settings.SNAP_TOLERANCE_METERS)
-    
-    if snap_result:
-        matched_seg, _ = snap_result
-        observation.segment_id = matched_seg.id
+        prov = ImageProvenance(
+            observation_id=obs_id,
+            provider="user_upload",
+            external_image_id=file.filename or obs_id,
+            capture_timestamp=datetime.now(timezone.utc).isoformat(),
+            ingestion_timestamp=str(int(time.time())),
+            latitude=final_lat,
+            longitude=final_lon,
+            source_attribution="User Contributor Upload",
+            license_metadata="User Contributed / Platform Terms",
+            model_version=f"{pipeline.adapter_name}-v1",
+            raw_metadata_json=json.dumps({
+                "video_sha256": vid_sha256,
+                "filename": file.filename,
+                "mime_type": mime_type,
+                "size_bytes": len(file_bytes),
+                "cv_adapter": pipeline.adapter_name
+            })
+        )
+        db.add(prov)
         db.commit()
-        
-        # Recalculate segment score
-        seg_obs = db.query(Observation).filter(Observation.segment_id == matched_seg.id).all()
-        net_score, grade, breakdown = calculate_segment_accessibility_score(seg_obs)
-        matched_seg.accessibility_score = net_score
-        matched_seg.score_grade = grade
-        matched_seg.score_criteria_breakdown = json.dumps(breakdown.model_dump())
-        matched_seg.barrier_count = sum(len(o.detections) for o in seg_obs)
-        matched_seg.last_evaluated_at = datetime.now(timezone.utc)
-        db.commit()
 
-    db.refresh(observation)
-    return format_observation_response(observation)
+        # Snap to nearest pedestrian segment if coordinates are genuinely present
+        if final_lat is not None and final_lon is not None:
+            all_segments = db.query(PedestrianSegment).all()
+            snap_result = snap_point_to_segments(final_lat, final_lon, all_segments, max_distance_meters=settings.SNAP_TOLERANCE_METERS)
+            
+            if snap_result:
+                matched_seg, _ = snap_result
+                observation.segment_id = matched_seg.id
+                db.commit()
+                
+                # Recalculate segment score
+                seg_obs = db.query(Observation).filter(Observation.segment_id == matched_seg.id).all()
+                net_score, grade, breakdown = calculate_segment_accessibility_score(seg_obs)
+                matched_seg.accessibility_score = net_score
+                matched_seg.score_grade = grade
+                matched_seg.score_criteria_breakdown = json.dumps(breakdown.model_dump())
+                matched_seg.barrier_count = sum(len(o.detections) for o in seg_obs)
+                matched_seg.last_evaluated_at = datetime.now(timezone.utc)
+                db.commit()
+
+        db.refresh(observation)
+        return format_observation_response(observation)
 
 @router.get("", response_model=List[ObservationResponse])
 def list_observations(

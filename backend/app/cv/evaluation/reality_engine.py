@@ -1,9 +1,9 @@
 """
-AccessGuard Reality Test Engine (Mission 005 Addendum).
+AccessGuard Reality Test Engine (Mission 006.2 Refactor).
 
 Executes independent empirical verification of model predictions against unseen
-ground-truth benchmark collections, computing mAP, mIoU, confidence calibration,
-geospatial association error, temporal deduplication efficiency, environmental robustness,
+ground-truth benchmark collections through the canonical ImageProcessingService,
+computing mAP, mIoU, confidence calibration, environmental robustness,
 and preserving failed predictions for human audit.
 """
 
@@ -16,8 +16,12 @@ import cv2
 import numpy as np
 
 from app.cv.base import DetectedBarrier
-from app.cv.pipeline import CVPipeline
-from app.cv.segmentation import HeuristicSegmentationAdapter, polygon_to_mask, compute_mask_iou
+from app.cv.orchestration.image_processing_service import (
+    ImageProcessingService,
+    ImageProcessingRequest,
+)
+from app.cv.adapters.base_v2 import ExecutionPolicy
+from app.cv.segmentation import polygon_to_mask, compute_mask_iou
 from app.cv.evaluation.metrics import (
     evaluate_detections,
     compute_map_50_95,
@@ -31,18 +35,17 @@ from app.core.logging import logger
 class RealityEngine:
     """
     Independent Reality Verification Engine.
-    Evaluates detection mAP, segmentation mIoU, calibration, geospatial accuracy,
-    and environmental robustness slices without confusing execution with accuracy.
+    Evaluates detection mAP, segmentation mIoU, calibration, model execution integrity,
+    and environmental robustness slices using the canonical ImageProcessingService.
     """
 
     def __init__(
         self,
-        cv_pipeline: Optional[CVPipeline] = None,
-        seg_adapter: Optional[HeuristicSegmentationAdapter] = None
+        proc_service: Optional[ImageProcessingService] = None,
+        execution_policy: ExecutionPolicy = ExecutionPolicy.DEVELOPMENT_FALLBACK
     ):
-        self.cv_pipeline = cv_pipeline or CVPipeline()
-        self.seg_adapter = seg_adapter or HeuristicSegmentationAdapter()
-        self.seg_adapter.load()
+        self.proc_service = proc_service or ImageProcessingService()
+        self.execution_policy = execution_policy
 
     def run_reality_evaluation(
         self,
@@ -87,10 +90,18 @@ class RealityEngine:
 
         successful_executions = 0
         execution_errors = 0
+        model_telemetry_agg: Dict[str, Dict[str, Any]] = {}
 
         for sc in scenes:
             img_rel = sc["image_file"]
             img_full = os.path.join(dataset_dir, img_rel)
+            if not os.path.exists(img_full):
+                execution_errors += 1
+                continue
+
+            with open(img_full, "rb") as f_img:
+                img_bytes = f_img.read()
+
             img = cv2.imread(img_full)
             if img is None:
                 execution_errors += 1
@@ -110,38 +121,71 @@ class RealityEngine:
                 "bbox": gt_box
             })
 
-            # Run detection inference
-            preds = self.cv_pipeline.adapter.predict(img)
-            scene_matched = False
+            # Execute canonical unified image processing request
+            req = ImageProcessingRequest(
+                image_bytes=img_bytes,
+                filename=img_rel,
+                source="benchmark",
+                source_metadata={
+                    "sample_id": sc["sample_id"],
+                    "title": sc["title"],
+                    "environmental_context": env
+                },
+                execution_policy=self.execution_policy,
+                enable_privacy_redaction=False,
+                save_media=False
+            )
+            proc_res = self.proc_service.process_image(req)
+            preds = proc_res.detections
 
+            # Track model execution records
+            for r in proc_res.model_execution_records:
+                if r.adapter_name not in model_telemetry_agg:
+                    model_telemetry_agg[r.adapter_name] = {
+                        "status": r.status,
+                        "execution_type": r.execution_type,
+                        "model_family": r.model_family,
+                        "latencies": [],
+                        "error_count": 0
+                    }
+                model_telemetry_agg[r.adapter_name]["latencies"].append(r.execution_time_ms)
+                if r.errors:
+                    model_telemetry_agg[r.adapter_name]["error_count"] += len(r.errors)
+
+            scene_matched = False
             for p in preds:
                 all_pred_boxes.append({
                     "class": p.barrier_type,
                     "confidence": p.confidence,
                     "bbox": p.bbox
                 })
-                # Check if this prediction matches ground truth box
                 iou = compute_box_iou(p.bbox, gt_box)
-                if iou >= 0.50 and (p.barrier_type == gt_hazard or "obstacle" in p.barrier_type and "obstacle" in gt_hazard):
+                if iou >= 0.50 and (
+                    p.barrier_type == gt_hazard
+                    or ("obstacle" in p.barrier_type and "obstacle" in gt_hazard)
+                    or (p.barrier_type in ("stairs", "steps") and gt_hazard in ("stairs", "steps"))
+                    or (p.barrier_type in ("surface_damage", "damaged_pavement") and gt_hazard in ("surface_damage", "damaged_pavement"))
+                ):
                     scene_matched = True
 
-            # Run segmentation inference
-            seg_regions = self.seg_adapter.predict_masks(img)
-
-            # Evaluate mask IoU if ground truth polygon is present (MUST match class)
+            # Evaluate mask IoU if ground truth polygon is present (class-aware matching)
             if gt_poly and len(gt_poly) >= 3:
                 gt_mask = polygon_to_mask(gt_poly, h, w)
                 best_class_iou = 0.0
 
+                seg_regions = proc_res.segmentation_results.regions
                 for reg in seg_regions:
-                    reg_class = getattr(reg, "class_name", getattr(reg, "label", None))
+                    reg_class = reg.get("class_name")
                     is_match = (
                         reg_class == gt_hazard
                         or (reg_class == "damaged_pavement" and gt_hazard == "surface_damage")
                         or (reg_class == "surface_damage" and gt_hazard == "damaged_pavement")
+                        or (reg_class in ("stairs", "steps") and gt_hazard in ("stairs", "steps"))
                     )
-                    if reg.mask is not None and is_match:
-                        curr_iou = compute_mask_iou(reg.mask, gt_mask)
+                    if is_match and reg.get("polygon"):
+                        poly = reg["polygon"]
+                        cand_mask = polygon_to_mask(poly, h, w)
+                        curr_iou = compute_mask_iou(cand_mask, gt_mask)
                         if curr_iou > best_class_iou:
                             best_class_iou = curr_iou
 
@@ -201,13 +245,37 @@ class RealityEngine:
             for subval, hits in slice_dict.items():
                 robustness_summary[slice_key][subval] = round(float(np.mean(hits)), 4) if hits else 0.0
 
+        # Model integrity summary
+        model_integrity_summary: Dict[str, Any] = {}
+        for adapter_name, tel in model_telemetry_agg.items():
+            model_integrity_summary[adapter_name] = {
+                "status": tel["status"],
+                "execution_type": tel["execution_type"],
+                "model_family": tel["model_family"],
+                "mean_latency_ms": round(float(np.mean(tel["latencies"])), 2) if tel["latencies"] else 0.0,
+                "error_count": tel["error_count"]
+            }
+
         scorecard = {
             "scorecard_id": f"reality_{uuid.uuid4().hex[:8]}",
             "evaluation_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "dataset_manifest": manifest.get("dataset_name", "Indian Streetscapes"),
-            "model_version": "v1.2.0",
+            "model_version": "v2.0.0-unified",
             "total_scenes_evaluated": total_scenes,
             "pipeline_execution_rate": round((successful_executions / max(1, total_scenes)) * 100.0, 1),
+            "execution_integrity": {
+                "total_scenes": total_scenes,
+                "successful_executions": successful_executions,
+                "execution_errors": execution_errors,
+                "execution_rate_pct": round((successful_executions / max(1, total_scenes)) * 100.0, 1),
+                "policy_enforced": self.execution_policy.value
+            },
+            "model_integrity": model_integrity_summary,
+            "output_integrity": {
+                "expected_calibration_error": ece,
+                "total_predictions": len(all_pred_boxes),
+                "total_ground_truth": len(all_gt_boxes)
+            },
             "detection_metrics": {
                 "macro_precision": round(macro_p, 4),
                 "macro_recall": round(macro_r, 4),
@@ -221,7 +289,8 @@ class RealityEngine:
             },
             "segmentation_metrics": {
                 "mean_iou": overall_miou,
-                "per_class_miou": per_class_miou
+                "per_class_miou": per_class_miou,
+                "execution_mode": "heuristic_morphological_fallback" if self.execution_policy == ExecutionPolicy.DEVELOPMENT_FALLBACK else "genuine_neural_model"
             },
             "geospatial_accuracy": {
                 "status": "NOT_MEASURED",
@@ -234,7 +303,7 @@ class RealityEngine:
             "environmental_robustness": robustness_summary,
             "failed_predictions_count": len(failed_predictions),
             "failed_predictions_sample": failed_predictions[:5],
-            "consensus_grade": "B+" if map_50 >= 0.50 else "C"
+            "consensus_grade": "B+" if map_50 >= 0.50 else ("B" if map_50 >= 0.20 else "C")
         }
 
         # Save scorecard

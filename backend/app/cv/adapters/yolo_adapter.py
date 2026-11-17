@@ -25,36 +25,55 @@ class YOLOAdapter(ModelAdapter):
         iou_threshold: float = 0.45
     ):
         super().__init__(name="yolo_adapter")
+        self.version = "1.2.0"
         self.model_path = model_path
         self.confidence_threshold = confidence_threshold
         self.iou_threshold = iou_threshold
         self.model = None
+        self._device = "cpu"
+        self._weight_sha256: Optional[str] = None
 
     def load(self) -> bool:
         """Loads Ultralytics YOLO model from weights file or pretrained baseline."""
+        import hashlib
         try:
             # Check if ONNX model exists first for pure C++ hardware acceleration without torchvision::nms issues
             onnx_default = "data/models/yolov8n.onnx"
+            chosen_path = None
             if self.model_path and self.model_path.endswith(".onnx") and os.path.exists(self.model_path):
-                from app.cv.adapters.onnx_adapter import ONNXAdapter
-                self.onnx_subadapter = ONNXAdapter(self.model_path)
-                self.onnx_subadapter.load()
-                self.is_initialized = True
-                return True
+                chosen_path = self.model_path
             elif os.path.exists(onnx_default):
+                chosen_path = onnx_default
+
+            if chosen_path:
                 from app.cv.adapters.onnx_adapter import ONNXAdapter
-                self.onnx_subadapter = ONNXAdapter(onnx_default)
+                self.onnx_subadapter = ONNXAdapter(chosen_path)
                 self.onnx_subadapter.load()
+                self.model_path = chosen_path
                 self.is_initialized = True
+                try:
+                    with open(chosen_path, "rb") as f_w:
+                        self._weight_sha256 = hashlib.sha256(f_w.read()).hexdigest()
+                except Exception:
+                    pass
                 return True
 
             from ultralytics import YOLO
             if self.model_path and os.path.exists(self.model_path):
                 self.model = YOLO(self.model_path)
+                chosen_path = self.model_path
                 logger.info(f"Loaded custom YOLO model from {self.model_path}")
             else:
                 logger.info("YOLOAdapter initialized with lightweight YOLOv8n baseline.")
-                self.model = YOLO("data/models/yolov8n.pt" if os.path.exists("data/models/yolov8n.pt") else "yolov8n.pt")
+                chosen_path = "data/models/yolov8n.pt" if os.path.exists("data/models/yolov8n.pt") else "yolov8n.pt"
+                self.model = YOLO(chosen_path)
+
+            if chosen_path and os.path.exists(chosen_path):
+                try:
+                    with open(chosen_path, "rb") as f_w:
+                        self._weight_sha256 = hashlib.sha256(f_w.read()).hexdigest()
+                except Exception:
+                    pass
 
             self.is_initialized = True
             return True

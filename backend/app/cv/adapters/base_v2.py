@@ -22,7 +22,14 @@ class AdapterStatus(str, Enum):
     DEGRADED = "DEGRADED"               # Operational under fallback (e.g. CPU or stub)
     INFERENCE_FAILED = "INFERENCE_FAILED" # Inference error (e.g. CUDA OOM, corrupt tensor)
     UNAVAILABLE = "UNAVAILABLE"         # Required weights, libraries, or licenses missing
+    RESOURCE_EXHAUSTED = "RESOURCE_EXHAUSTED" # CUDA/VRAM out-of-memory or system resource failure
     FAILED = "FAILED"                   # Fatal initialization or runtime failure
+
+
+class ExecutionPolicy(str, Enum):
+    """Execution policy governing specialist adapter behavior."""
+    STRICT_GENUINE = "STRICT_GENUINE"                # Missing weights = UNAVAILABLE, no heuristic substitution
+    DEVELOPMENT_FALLBACK = "DEVELOPMENT_FALLBACK"    # Fallback heuristic allowed when explicitly permitted
 
 
 class OutputModality(str, Enum):

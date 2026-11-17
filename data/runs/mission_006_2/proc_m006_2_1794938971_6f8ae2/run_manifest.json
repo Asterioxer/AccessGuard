@@ -1,0 +1,70 @@
+{
+  "mission_id": "MISSION_006_2_UNIFIED_INFERENCE",
+  "title": "Unified Inference Architecture & Evidence Integrity Audit",
+  "run_id": "proc_m006_2_1794938971_6f8ae2",
+  "timestamp": "2026-11-17T18:09:56Z",
+  "git": {
+    "commit": "ac518a590dc3cf8f91f2b43c804f2a7a05b3bea4",
+    "branch": "feature/unified-inference-evidence-integrity",
+    "dirty": true
+  },
+  "hardware": {
+    "platform": "Windows-11-10.0.26340-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "system_ram_gb": 23.7,
+    "python_version": "3.12.1",
+    "cuda_available": true,
+    "cuda_version": "12.1",
+    "gpu_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+    "gpu_vram_mb": 4096,
+    "torch_version": "2.5.1+cu121"
+  },
+  "model_inventory": [
+    {
+      "name": "rampnet_convnextv2",
+      "path": "data/models/rampnet.safetensors",
+      "size_bytes": 360247780,
+      "sha256": "f2119e3becb0b551fa1470f7b7ba85b82122a3f73a6ed2a85609dd57617866b5",
+      "status": "VERIFIED_PRESENT"
+    },
+    {
+      "name": "yolo_v8n_onnx",
+      "path": "data/models/yolov8n.onnx",
+      "size_bytes": 12851105,
+      "sha256": "fbb11393b8823050ff79f2ed837eeeab4c51e9d9220da80fd773d94ed7531d76",
+      "status": "VERIFIED_PRESENT"
+    },
+    {
+      "name": "yolo_v8n_pt",
+      "path": "data/models/yolov8n.pt",
+      "size_bytes": 6549796,
+      "sha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+      "status": "VERIFIED_PRESENT"
+    }
+  ],
+  "execution_policy_default": "STRICT_GENUINE",
+  "processed_real_images_count": 3,
+  "verification_suite": {
+    "total_backend_tests": 98,
+    "passed_tests": 98,
+    "failed_tests": 0,
+    "test_coverage_areas": [
+      "unified_image_processing_service",
+      "strict_vs_fallback_policy",
+      "segmentation_honest_unavailability",
+      "class_aware_clustering",
+      "surface_damage_box_synthesis_elimination",
+      "ingress_route_unification",
+      "coordinate_integrity",
+      "reality_engine_scorecard"
+    ],
+    "frontend_build_status": "CLEAN_0_ERRORS",
+    "frontend_build_duration_sec": 2.97
+  },
+  "scorecard_summary": {
+    "scorecard_path": "data/benchmarks/reality_scorecard.json",
+    "scenes_evaluated": 25,
+    "pipeline_execution_rate": 100.0,
+    "evaluation_architecture": "ImageProcessingService (Unified V2)"
+  }
+}

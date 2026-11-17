@@ -81,7 +81,7 @@ export const ObservationDetailModal: React.FC<ObservationDetailModalProps> = ({
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              Coordinates: {observation.latitude?.toFixed(5)}, {observation.longitude?.toFixed(5)} • Recorded {new Date(observation.created_at).toLocaleDateString()}
+              Coordinates: {observation.latitude != null && observation.longitude != null ? `${observation.latitude.toFixed(5)}, ${observation.longitude.toFixed(5)}` : 'Unanchored (No GPS provided)'} • Recorded {new Date(observation.created_at).toLocaleDateString()}
             </p>
           </div>
         </div>

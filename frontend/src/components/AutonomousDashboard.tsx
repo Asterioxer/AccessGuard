@@ -616,13 +616,29 @@ export const AutonomousDashboard: React.FC = () => {
                 </div>
                 <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
                   <div className="text-xs text-slate-400">Geospatial Error</div>
-                  <div className="text-2xl font-bold text-amber-400 mt-1">{scorecard.geospatial_accuracy.mean_association_error_meters}m</div>
-                  <div className="text-[10px] text-slate-500 mt-1">{scorecard.geospatial_accuracy.percent_correctly_snapped}% Snapped</div>
+                  <div className="text-2xl font-bold text-amber-400 mt-1">
+                    {scorecard.geospatial_accuracy?.mean_association_error_meters != null
+                      ? `${scorecard.geospatial_accuracy.mean_association_error_meters}m`
+                      : 'N/A'}
+                  </div>
+                  <div className="text-[10px] text-slate-500 mt-1">
+                    {scorecard.geospatial_accuracy?.percent_correctly_snapped != null
+                      ? `${scorecard.geospatial_accuracy.percent_correctly_snapped}% Snapped`
+                      : (scorecard.geospatial_accuracy?.status || 'Unmeasured')}
+                  </div>
                 </div>
                 <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
                   <div className="text-xs text-slate-400">Temporal Dedup</div>
-                  <div className="text-2xl font-bold text-cyan-400 mt-1">{scorecard.temporal_deduplication.suppression_efficiency_percent}%</div>
-                  <div className="text-[10px] text-slate-500 mt-1">{scorecard.temporal_deduplication.frame_to_obstacle_reduction_ratio} Reduction</div>
+                  <div className="text-2xl font-bold text-cyan-400 mt-1">
+                    {scorecard.temporal_deduplication?.suppression_efficiency_percent != null
+                      ? `${scorecard.temporal_deduplication.suppression_efficiency_percent}%`
+                      : 'N/A'}
+                  </div>
+                  <div className="text-[10px] text-slate-500 mt-1">
+                    {scorecard.temporal_deduplication?.frame_to_obstacle_reduction_ratio != null
+                      ? `${scorecard.temporal_deduplication.frame_to_obstacle_reduction_ratio} Reduction`
+                      : (scorecard.temporal_deduplication?.status || 'Unmeasured')}
+                  </div>
                 </div>
               </div>
 
