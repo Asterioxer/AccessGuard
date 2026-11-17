@@ -52,6 +52,17 @@ MATERIAL_SMOOTHNESS_INDEX = {
 }
 
 
+def _compute_sha256(path: Optional[str]) -> Optional[str]:
+    import hashlib
+    if not path or not os.path.exists(path):
+        return None
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(65536):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 class CitySurfacesAdapter(ModelAdapterV2):
     """
     CitySurfaces Sidewalk Paving Material & Roughness Segmentation Adapter.
@@ -70,35 +81,58 @@ class CitySurfacesAdapter(ModelAdapterV2):
         self.preferred_device = device or "cpu"
         self.model = None
         self._is_mock = False
+        self._weight_sha256: Optional[str] = None
 
-    def load(self, device: Optional[str] = None) -> bool:
-        """Loads HRNet / OCRNet weights or activates calibrated baseline."""
+    def load(self, device: Optional[str] = None, allow_fallback: bool = False) -> bool:
+        """Loads HRNet / OCRNet weights or records unavailable."""
         self._status = AdapterStatus.LOADING
         target_device = device or self.preferred_device
         self._device = target_device
 
         try:
-            if self.model_path and os.path.exists(self.model_path):
-                import torch
-                self.model = torch.load(self.model_path, map_location=self._device, weights_only=True)
-                self.model.eval()
-                self._status = AdapterStatus.READY
-                logger.info(f"Loaded CitySurfaces model from {self.model_path} on {self._device}")
-            else:
-                logger.info("CitySurfaces weights not found locally; running in calibrated baseline mode.")
-                self._is_mock = True
-                self._status = AdapterStatus.DEGRADED
+            candidate_paths = [
+                self.model_path,
+                "data/models/block_c_10classes.pth"
+            ]
+            valid_path = next((p for p in candidate_paths if p and os.path.exists(p)), None)
 
-            self.is_initialized = True
-            return True
+            if valid_path:
+                import torch
+                self.model = torch.load(valid_path, map_location=self._device, weights_only=True)
+                self.model.eval()
+                self._weight_sha256 = _compute_sha256(valid_path)
+                self.model_path = valid_path
+                self._status = AdapterStatus.READY
+                self.is_initialized = True
+                self._is_mock = False
+                logger.info(f"Loaded authentic CitySurfaces model from {valid_path} on {self._device}")
+                return True
+            else:
+                self._last_error = "UNAVAILABLE: MODEL_WEIGHTS_NOT_FOUND (block_c_10classes.pth)"
+                if allow_fallback:
+                    logger.info("CitySurfaces weights not found locally; running in calibrated baseline mode.")
+                    self._is_mock = True
+                    self._status = AdapterStatus.DEGRADED
+                    self.is_initialized = True
+                    return True
+                else:
+                    self._status = AdapterStatus.UNAVAILABLE
+                    self.is_initialized = False
+                    logger.warning("CitySurfaces weights not found locally (block_c_10classes.pth); model marked UNAVAILABLE.")
+                    return False
 
         except Exception as e:
-            self._status = AdapterStatus.DEGRADED
-            self._is_mock = True
-            self.is_initialized = True
-            self._last_error = str(e)
-            logger.warning(f"Could not load native CitySurfaces network ({e}); activated baseline.")
-            return True
+            self._last_error = f"UNAVAILABLE: MODEL_DEPENDENCY_MISSING ({e})"
+            if allow_fallback:
+                self._status = AdapterStatus.DEGRADED
+                self._is_mock = True
+                self.is_initialized = True
+                logger.warning(f"Could not load native CitySurfaces network ({e}); activated baseline.")
+                return True
+            else:
+                self._status = AdapterStatus.UNAVAILABLE
+                self.is_initialized = False
+                return False
 
     def unload(self) -> bool:
         """Deallocates model and clears memory."""
@@ -152,15 +186,16 @@ class CitySurfacesAdapter(ModelAdapterV2):
 
         return round(overall_roughness, 4), distribution
 
-    def predict_v2(self, image: Union[np.ndarray, str], **kwargs) -> AdapterInferenceResult:
+    def predict_v2(self, image: Union[np.ndarray, str], allow_fallback: bool = False, **kwargs) -> AdapterInferenceResult:
         """Executes surface material segmentation and roughness calculation."""
         start_time = time.perf_counter()
 
         if self._status not in (AdapterStatus.READY, AdapterStatus.DEGRADED):
-            if not self.load():
+            if not self.load(allow_fallback=allow_fallback):
                 return AdapterInferenceResult(
-                    status=AdapterStatus.INFERENCE_FAILED,
+                    status=self._status,
                     adapter_name=self.name,
+                    execution_type="heuristic_fallback" if self._is_mock else "model_inference",
                     error_message=f"Model not initialized ({self._last_error or 'load failed'})"
                 )
 
@@ -189,7 +224,7 @@ class CitySurfacesAdapter(ModelAdapterV2):
                     logits = self.model(tensor)
                     preds = torch.argmax(logits, dim=1).squeeze().cpu().numpy().astype(np.uint8)
                 mask_2d = preds
-            else:
+            elif self._is_mock:
                 # Calibrated baseline: identify lower-third walkway region
                 mask_2d = np.full((th, tw), 6, dtype=np.uint8) # background
                 walkway_h_start = int(th * 0.50)
@@ -204,6 +239,8 @@ class CitySurfacesAdapter(ModelAdapterV2):
                     # Patch of cobblestone / mixed rough / damaged surface detected
                     mask_2d[walkway_h_start + 40:, tw//6: 5*tw//6] = 9 # cobblestone
                     mask_2d[walkway_h_start + 80:, tw//4: 3*tw//4] = 4 # mixed
+            else:
+                mask_2d = np.full((th, tw), 6, dtype=np.uint8)
 
             roughness_score, material_dist = self._compute_roughness_and_distribution(mask_2d)
 
@@ -214,7 +251,8 @@ class CitySurfacesAdapter(ModelAdapterV2):
                 roughness_score=roughness_score,
                 evidence={
                     "material_distribution": material_dist,
-                    "dominant_material": max(material_dist, key=material_dist.get) if material_dist else "unknown"
+                    "dominant_material": max(material_dist, key=material_dist.get) if material_dist else "unknown",
+                    "source": "CitySurfaces_model" if not self._is_mock else "CitySurfaces_calibrated_baseline"
                 }
             )
 
@@ -238,6 +276,8 @@ class CitySurfacesAdapter(ModelAdapterV2):
             self._inference_count += 1
             self._last_latency_ms = latency
 
+            exec_type = "heuristic_fallback" if self._is_mock else "model_inference"
+
             return AdapterInferenceResult(
                 status=self._status,
                 adapter_name=self.name,
@@ -245,9 +285,15 @@ class CitySurfacesAdapter(ModelAdapterV2):
                 mask=semantic_mask,
                 execution_time_ms=round(latency, 2),
                 device_used=self._device,
+                execution_type=exec_type,
+                weight_path=self.model_path if not self._is_mock else None,
+                weight_sha256=self._weight_sha256 if not self._is_mock else None,
+                upstream_repo="https://github.com/VIDA-NYU/city-surfaces",
+                input_dimensions=(w, h),
                 metadata={
                     "roughness_score": roughness_score,
-                    "dominant_material": semantic_mask.evidence["dominant_material"]
+                    "dominant_material": semantic_mask.evidence["dominant_material"],
+                    "is_fallback": self._is_mock
                 }
             )
 

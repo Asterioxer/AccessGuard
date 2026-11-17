@@ -214,6 +214,33 @@ async def upload_observation(
         )
         db.add(db_det)
 
+    # 4b. Record Image Provenance & cryptographic SHA-256
+    import hashlib
+    import time
+    from app.db.models import ImageProvenance
+    img_sha256 = hashlib.sha256(clean_bytes if media_category == "image" else file_bytes).hexdigest()
+
+    prov = ImageProvenance(
+        observation_id=obs_id,
+        provider="user_upload",
+        external_image_id=file.filename or obs_id,
+        capture_timestamp=datetime.now(timezone.utc).isoformat(),
+        ingestion_timestamp=str(int(time.time())),
+        latitude=final_lat,
+        longitude=final_lon,
+        source_attribution="User Contributor Upload",
+        license_metadata="User Contributed / Platform Terms",
+        model_version=f"{pipeline.adapter_name}-v1",
+        raw_metadata_json=json.dumps({
+            "image_sha256": img_sha256,
+            "filename": file.filename,
+            "mime_type": mime_type,
+            "size_bytes": len(file_bytes),
+            "cv_adapter": pipeline.adapter_name
+        })
+    )
+    db.add(prov)
+
     db.commit()
 
     # 5. Snap to nearest pedestrian segment & update score

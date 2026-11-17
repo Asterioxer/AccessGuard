@@ -56,7 +56,8 @@ class KartaViewConnector(BaseImageryConnector):
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         limit: int = 50,
-        page_token: Optional[str] = None
+        page_token: Optional[str] = None,
+        allow_fixtures: bool = False
     ) -> ImagerySearchResult:
         """
         Searches KartaView photos in bbox.
@@ -69,10 +70,19 @@ class KartaViewConnector(BaseImageryConnector):
         min_lon, min_lat, max_lon, max_lat = bbox
 
         # Check offline / test environment override
-        if os.environ.get("ACCESSGUARD_OFFLINE_DATASETS") == "1" or not self.is_authenticated:
-            # When offline or unauthenticated, provide clean fixture response
-            logger.info("KartaView unauthenticated or offline: generating fixture items.")
-            return self._generate_fixture_results(bbox, limit)
+        if not self.is_authenticated:
+            if allow_fixtures or os.environ.get("ACCESSGUARD_OFFLINE_DATASETS") == "1":
+                logger.info("KartaView unauthenticated or offline: generating explicit fixture items.")
+                return self._generate_fixture_results(bbox, limit)
+            logger.warning("KartaView API key not configured; returning unauthenticated search result.")
+            return ImagerySearchResult(
+                items=[],
+                total_count=0,
+                provider="kartaview",
+                query_bbox=bbox,
+                status="unauthenticated",
+                error_message="CREDENTIALS_MISSING: KARTAVIEW_API_KEY environment variable not set. Real imagery acquisition requires an authorized key."
+            )
 
         page = int(page_token) if page_token and page_token.isdigit() else 1
         url = f"{KARTAVIEW_API_URL}/1.0/list/photos/"

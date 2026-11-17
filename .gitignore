@@ -43,6 +43,14 @@ data/*
 !data/benchmarks/**
 !data/models/
 !data/models/**
+!data/reports/
+!data/reports/**
+!data/runs/
+!data/runs/**
+data/models/*.safetensors
+data/models/**/*.safetensors
+data/models/**/.cache/
+data/models/**/__pycache__/
 data/uploads/*
 data/uploads/videos/*
 backend/data/uploads/*

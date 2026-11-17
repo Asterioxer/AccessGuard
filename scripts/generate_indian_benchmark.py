@@ -325,17 +325,19 @@ def generate_indian_benchmark_dataset(output_dir: str = "data/benchmarks/indian_
             "ground_truth_polygon": item["polygon"],
             "environmental_context": env,
             "audit_compliance_notes": item["audit_notes"],
-            "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-            "consensus_verified": True,
-            "region": "Urban South Asia / Indian Municipal Infrastructure"
+            "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+            "data_origin": "synthetic_procedural_generation",
+            "consensus_verified": False,
+            "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
         })
 
     manifest = {
-        "dataset_name": "AccessGuard-Indian-Streetscapes-Benchmark-v1.2",
-        "description": "Standardized 25-scene evaluation collection for Indian pedestrian infrastructure barriers.",
+        "dataset_name": "AccessGuard-Indian-Streetscapes-Synthetic-Validation-Suite-v1.2",
+        "description": "Standardized 25-scene procedural synthetic test harness for pipeline sanity and algorithmic unit validation. NOTE: This is a synthetic test suite generated via OpenCV procedural drawing routines, NOT an empirical real-world field capture dataset.",
         "license": "CC-BY-4.0",
         "attribution": "AccessGuard Open Source Accessibility Intelligence Initiative",
-        "standards_alignment": "CPWD Harmonised Guidelines and Standards for Universal Accessibility in India (2021)",
+        "data_origin": "synthetic_procedural_generation",
+        "standards_alignment": "CPWD Harmonised Guidelines and Standards for Universal Accessibility in India (2021) Taxonomy Reference",
         "total_scenes": len(annotations),
         "scenes": annotations
     }

@@ -22,6 +22,7 @@ class AdapterStatus(str, Enum):
     DEGRADED = "DEGRADED"               # Operational under fallback (e.g. CPU or stub)
     INFERENCE_FAILED = "INFERENCE_FAILED" # Inference error (e.g. CUDA OOM, corrupt tensor)
     UNAVAILABLE = "UNAVAILABLE"         # Required weights, libraries, or licenses missing
+    FAILED = "FAILED"                   # Fatal initialization or runtime failure
 
 
 class OutputModality(str, Enum):
@@ -93,6 +94,11 @@ class AdapterInferenceResult:
     verification: Optional[VerificationVerdict] = None
     execution_time_ms: float = 0.0
     device_used: str = "cpu"
+    execution_type: str = "model_inference" # "model_inference" or "heuristic_fallback"
+    weight_path: Optional[str] = None
+    weight_sha256: Optional[str] = None
+    upstream_repo: Optional[str] = None
+    input_dimensions: Optional[Tuple[int, int]] = None
     error_message: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -111,6 +117,9 @@ class AdapterMetadata:
     modalities: List[OutputModality]
     supported_classes: List[str]
     license: str
+    upstream_repo: Optional[str] = None
+    weight_sha256: Optional[str] = None
+    precision: str = "fp32"
     vram_budget_mb: int = 1000
     default_device: str = "cpu"
     citation: Optional[str] = None

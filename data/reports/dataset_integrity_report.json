@@ -1,0 +1,1228 @@
+{
+  "report_id": "integrity_84361927",
+  "audit_timestamp": "2026-11-16T06:14:16Z",
+  "status": "DEFECTS_DETECTED",
+  "duration_seconds": 0.53,
+  "metrics": {
+    "total_images_checked": 179,
+    "total_images_passed": 116,
+    "image_integrity_rate_percent": 64.8,
+    "total_annotations_checked": 25,
+    "total_annotations_passed": 25,
+    "annotation_integrity_rate_percent": 100.0,
+    "duplicate_image_count": 85,
+    "total_defects_found": 63
+  },
+  "duplicate_images": [
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\09881425-777e-4fa5-81fc-6ebfc86daf75.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\09ae929a-ec1a-489a-8fa3-412e73c44106.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\0a59fce7-3b34-4c36-b2c2-40cc9413531c.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\0f0dc91f-0d0c-415b-a9d1-21fa86b692f3.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\16c16d65-5b16-4fbe-85ee-9d6183cc3c33.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\1765fdc1-bf79-4628-a14f-8cb146d3d0e8.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\18eed136-4932-4b98-aa05-b70a7fae7e57.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\1928b688-656a-4b1a-b21d-70ea6f65bb7c.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\1d5b2291-13d1-4476-a050-ff684b8da74c.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\1fdc768a-f1ed-485e-8416-51295ced31fc.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\227e5ccd-08ce-4041-802c-fa029c334442.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\316c1246-afc3-45f1-80a8-39a897b859fb.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\3246d1fb-b9c3-49b3-beca-a6b55171a265.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\32f4e174-6a29-4d6e-bdfc-8298e55d8e96.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\358f1288-60c0-4e6b-9bd4-1d985e941882.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\387bb5ae-aed2-4f84-a508-3e84ee16889d.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\3c8c9795-8e60-4679-af25-cee44937d648.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\40782f5b-d49f-44d1-8302-5e5117252e33.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\428f70ca-63a4-41b5-922e-d9d9ac575942.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\4834eb40-b408-4937-9cc0-494c067a3773.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\4893003e-a5b5-4908-ad68-90eda0995fd5.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\497f7bda-4d46-4e41-90b5-a5d8a3f89262.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\4ad3a970-06a8-4aa5-895a-0a91d25483f5.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\4d4a3d64-9d39-4230-8e41-c16a630cdb56.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\4eaccee8-65d2-41b5-9e86-1cd359040c24.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\525a59c2-23c5-4539-82d9-7ecdfe178460.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\5a039cca-2946-4173-bb23-6eff115e300c.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\5f023850-0843-4737-8ba4-972bf925cab9.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\60e36f9a-f0ee-4352-8d2a-3b4dc51c40eb.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\651307ec-3bee-4850-b1f6-23bf1e914e89.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\665bc733-5e66-4227-b840-77ae24ae57e6.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\6bce2f7d-f30c-4984-9ce4-015523279d62.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\6c797ab9-8752-4d01-aa77-33c616f77bf6.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\6fe26c30-a118-4bb8-99d3-851340190504.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\7064c1ae-05c8-419d-9d7e-8a288b82718f.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\7b6fe38e-727b-469f-aac4-fec58702795d.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\856999e8-dd0f-4c12-b8dd-8e6a798c6c67.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\85dfda92-7adc-47f6-9681-79e693f7b679.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\86243df7-726a-4b00-adb2-9b47bce79712.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\877460c6-5ca1-45b0-a39d-3bcd2e2fac8d.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\8fb3de57-d879-4db0-a948-9e5cccd69f1c.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\96e1e3af-b1f8-4397-902c-86a0bb72c1b8.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\9d4a33ed-7cbe-4401-b118-d5a35da9bd04.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\9e1e9012-a621-41e5-b716-510a318765c8.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\9f7e425f-4f8d-49fc-81aa-d18ecd3c76c3.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\a17f7f40-da78-49cb-b377-ef79f6261e1a.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\a2d08a31-4dfa-4f92-ab04-ae5a43d51937.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\a3fb31cf-d0ba-4dfd-8c16-b98f8e2591ac.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\a620c99f-c8fa-42ec-9529-ed8b7f9bb95d.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\a686d054-c24d-4074-8a02-d09d7e688d6b.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\ac8954e8-d502-4836-992b-c9076630ddfb.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\adb86629-0510-4fcb-9544-a9a5b0a00d7f.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\b005453d-bf8e-4464-b1bc-f574f5bb8d32.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\b0067d9b-17cc-4c97-b94f-bdd783a54e07.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\b0cd13da-f92b-4550-bf9c-38395e49389f.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\b4cadaca-7266-4229-af09-99cb3a2af7b4.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\b6ec4c1a-37b7-44d3-87b8-263fa55943fc.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\c61d19c0-fb98-4c78-8c9f-3b1db238dbc7.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\c8fae24f-b9fc-434f-a6b9-da1f306f3bfb.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\ce28d54d-9574-4137-ba0b-868653fdfa7c.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\cf9b9f54-88b7-42dc-926c-8411910954cd.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\d3187b83-ef43-4ded-a216-b2c0eec824f7.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\d51f3518-4c44-4c4a-ae60-9979523d18fa.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\d6dc4306-0d60-483b-be32-d2451ffc6bf7.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\d7939664-3844-40ed-909d-2e94638311a9.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\d8d61c42-5529-4087-ad19-7402cbff03ea.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\e055f0cd-13bd-46a3-9bbf-55529f71e8c8.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\e809a438-4c16-46c5-9dbe-84426c67468a.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\eb52bf0b-4b39-4283-8058-9c2998cfc90a.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\ed378290-c2b1-4fa6-b937-dbd7433131ae.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\f14d284c-06a7-432d-bb6e-ddf002288063.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\f1b388e3-eae8-4a3b-8182-6c138f320fe1.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\f4218af5-8dc8-4332-af29-43045bac9379.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\f9728a42-637f-4557-bd60-6945b776338a.jpg"
+    },
+    {
+      "hash": "3fe3422dc6762817a8ffae4f1d9580f5f3d4870514779ae65245252fbfacafa0",
+      "file_a": "data/processed\\05b07c34-d826-44d9-9472-e7fc67a40810.jpg",
+      "file_b": "data/processed\\f985e40c-1105-4887-ad9e-aa23ba98714c.jpg"
+    },
+    {
+      "hash": "739c19c60795f59b08a6f2d02443c374d8760c793cbd71e0c0f8760143c4ea51",
+      "file_a": "data/processed\\078c3253-6548-4410-a9af-7dd63c2619cd.jpg",
+      "file_b": "data/processed\\fafd7916-5686-4c2f-ab50-2d3ba919547f.jpg"
+    },
+    {
+      "hash": "442974b5fe832c8e71f793bbb19e4b45df065c8ccbcef4340059f780456c7177",
+      "file_a": "data/uploads\\acquired_mapillary_09de54e988.jpg",
+      "file_b": "data/uploads\\acquired_mapillary_25fc8d90c4.jpg"
+    },
+    {
+      "hash": "442974b5fe832c8e71f793bbb19e4b45df065c8ccbcef4340059f780456c7177",
+      "file_a": "data/uploads\\acquired_mapillary_09de54e988.jpg",
+      "file_b": "data/uploads\\acquired_mapillary_80e93eeff8.jpg"
+    },
+    {
+      "hash": "442974b5fe832c8e71f793bbb19e4b45df065c8ccbcef4340059f780456c7177",
+      "file_a": "data/uploads\\acquired_mapillary_09de54e988.jpg",
+      "file_b": "data/uploads\\acquired_mapillary_90b2a552d0.jpg"
+    },
+    {
+      "hash": "442974b5fe832c8e71f793bbb19e4b45df065c8ccbcef4340059f780456c7177",
+      "file_a": "data/uploads\\acquired_mapillary_09de54e988.jpg",
+      "file_b": "data/uploads\\acquired_mapillary_9ce5d4f0c1.jpg"
+    },
+    {
+      "hash": "442974b5fe832c8e71f793bbb19e4b45df065c8ccbcef4340059f780456c7177",
+      "file_a": "data/uploads\\acquired_mapillary_09de54e988.jpg",
+      "file_b": "data/uploads\\acquired_mapillary_d053912ed3.jpg"
+    },
+    {
+      "hash": "442974b5fe832c8e71f793bbb19e4b45df065c8ccbcef4340059f780456c7177",
+      "file_a": "data/uploads\\acquired_mapillary_09de54e988.jpg",
+      "file_b": "data/uploads\\acquired_mapillary_e5fbf9e41c.jpg"
+    },
+    {
+      "hash": "442974b5fe832c8e71f793bbb19e4b45df065c8ccbcef4340059f780456c7177",
+      "file_a": "data/uploads\\acquired_mapillary_09de54e988.jpg",
+      "file_b": "data/uploads\\acquired_mapillary_ea19e28c87.jpg"
+    },
+    {
+      "hash": "442974b5fe832c8e71f793bbb19e4b45df065c8ccbcef4340059f780456c7177",
+      "file_a": "data/uploads\\acquired_mapillary_09de54e988.jpg",
+      "file_b": "data/uploads\\acquired_mapillary_f03a7f6b23.jpg"
+    },
+    {
+      "hash": "442974b5fe832c8e71f793bbb19e4b45df065c8ccbcef4340059f780456c7177",
+      "file_a": "data/uploads\\acquired_mapillary_09de54e988.jpg",
+      "file_b": "data/uploads\\acquired_mapillary_ff04aa8be4.jpg"
+    }
+  ],
+  "dataset_summaries": {
+    "indian_streetscapes": {
+      "directory": "data/benchmarks/indian_streetscapes",
+      "images_found": 25,
+      "images_valid": 25,
+      "annotations_checked": 25,
+      "annotations_valid": 25,
+      "defects": []
+    },
+    "processed": {
+      "directory": "data/processed",
+      "images_found": 144,
+      "images_valid": 81,
+      "annotations_checked": 0,
+      "annotations_valid": 0,
+      "defects": [
+        {
+          "dataset": "processed",
+          "file": "data/processed\\06f36350-dcf4-4214-acbc-1e0cd6b1e49c.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\078ba407-a768-4959-a9d0-bb736c26bca6.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\0b5217de-c060-4829-bab3-dbaebc0bf978.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\184a66a8-0ae2-4330-9fdc-a364dbabcd67.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\1bad9202-599d-45ff-9e9a-8153df373663.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\1bf77218-6049-488b-9b72-6934a798ae3b.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\20d92363-7911-4f79-bfc6-6252e8355215.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\2164b696-6c5c-4316-9abc-2cb3378c4f3b.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\25ce7511-6293-4857-9cc2-750f001ecc3e.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\261f09c4-76dd-4731-a28b-7999ce3d710b.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\27b055fe-3393-455d-abd8-da9a89c65654.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\28ab0d9a-d5f2-4a0c-8e55-f9122332bc59.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\2c2bac1f-c593-4796-9b4d-861b771f9e9c.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\30449ffc-45b8-4d8c-8325-ba442a3d8f39.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\32a1921e-4fee-4d25-bb76-bf44dcf9b666.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\345028a0-9caf-4346-9c80-7a386eec000c.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\396738b3-5b72-4fb7-87dd-6eb42ac986a2.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\45548895-e518-41cc-adf8-5c3ebe727c66.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\462dabad-ea7a-4565-b5d8-68eda44fb38b.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\46dab1fa-3f39-48bc-a655-d2b17ba63c2c.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\46f60196-34e1-4f89-94ed-a9369d2f212e.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\47e19135-ae12-4e44-8bcb-cf3df5e3203c.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\4da5dad9-055b-4974-822d-1ac6c9026b64.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\5121140c-4268-4c9d-ae80-75e534013670.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\662e2edc-09f4-4e77-8137-448be0ed0e08.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\6a2a4243-5b62-4428-9b98-35ef92c13868.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\6a9902c1-42ea-4d04-9388-2a270a90f13c.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\6f1347ca-4a0f-4d6a-b469-3c841da63cf3.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\6fcc2db0-6292-4028-8d31-65d15f724d7a.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\74269062-aabd-4f6f-a15b-166b3ea6e074.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\79034801-85d2-4182-b81e-83f9afd9728a.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\7a59d206-5aa9-40d6-b92d-b9ab0f2c13c4.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\80e8dc54-4204-411d-8830-13c84e211642.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\8f199bd4-714f-42bd-9d63-cae199bc3d6c.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\90879596-8b38-401b-9332-84ad88df6bc4.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\9326f607-cd36-4173-bcc3-cdf0d9d663d2.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\96d8141c-75ca-4f51-84a3-b6e95420766c.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\99717094-6b3b-49a3-b994-4f85651bb4ae.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\9cd5d117-f37d-47aa-9386-8ee3d089b4e1.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\a74821c0-e47c-4153-a4ba-1095a89ae8c4.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\a9c563d9-3f8a-4d5b-8fb4-d780b230c09e.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\ace3068f-56e5-4b7b-a2d1-5ed0d4dc6cda.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\b12336b1-0541-4234-9452-30a743c64cfb.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\b8a1a4f4-51d2-4160-803c-ca4dd6b8adf3.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\bb7ae81e-b362-4340-9ea7-aa157030aeb8.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\bc6fc951-72ee-462c-92bf-c5acf495978b.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\c103d240-c3f2-421b-a85d-e5281c7447e3.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\c25fd758-2884-4fad-a8b3-580909228098.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\c3dbeb20-6dbe-4cc5-98e3-8bee563bfeea.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\c404f05f-d2ca-4337-9254-33965d59a62a.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\c9f21515-a050-4bdc-886c-f7ebcbaf7fe8.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\cedbfb13-4cbc-4d5d-836e-e1e5daed4f76.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\d284b052-53ae-41a7-af52-f6a38031f10c.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\d888ec96-9244-4323-8cde-7b4f0dcbe7cf.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\d9279b05-cb29-4cd2-abc3-37d78900cef8.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\e2886f7a-bb36-4733-bd77-6c5fa70535a5.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\e73a0308-3c8b-4e30-9490-6cc00f6c6119.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\e748609b-2b04-4fad-b137-5e9c034240b0.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\ec289bf9-c55c-42fe-b2ce-88462cca7f3f.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\ed2a833e-3610-474b-a99b-330c6442ce3c.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\ee783978-86fc-4583-a453-42939ecccf43.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\f810d998-7f34-450a-a6fe-ca821cfe8fd0.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        },
+        {
+          "dataset": "processed",
+          "file": "data/processed\\f8a5bf41-f7c2-42a9-8fbc-6bb434c572d4.jpg",
+          "type": "IMAGE_INTEGRITY_FAILURE",
+          "details": "Blank or uniform placeholder (std=0.00)"
+        }
+      ]
+    },
+    "uploads": {
+      "directory": "data/uploads",
+      "images_found": 10,
+      "images_valid": 10,
+      "annotations_checked": 0,
+      "annotations_valid": 0,
+      "defects": []
+    }
+  },
+  "defects": [
+    {
+      "dataset": "processed",
+      "file": "data/processed\\06f36350-dcf4-4214-acbc-1e0cd6b1e49c.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\078ba407-a768-4959-a9d0-bb736c26bca6.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\0b5217de-c060-4829-bab3-dbaebc0bf978.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\184a66a8-0ae2-4330-9fdc-a364dbabcd67.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\1bad9202-599d-45ff-9e9a-8153df373663.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\1bf77218-6049-488b-9b72-6934a798ae3b.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\20d92363-7911-4f79-bfc6-6252e8355215.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\2164b696-6c5c-4316-9abc-2cb3378c4f3b.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\25ce7511-6293-4857-9cc2-750f001ecc3e.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\261f09c4-76dd-4731-a28b-7999ce3d710b.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\27b055fe-3393-455d-abd8-da9a89c65654.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\28ab0d9a-d5f2-4a0c-8e55-f9122332bc59.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\2c2bac1f-c593-4796-9b4d-861b771f9e9c.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\30449ffc-45b8-4d8c-8325-ba442a3d8f39.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\32a1921e-4fee-4d25-bb76-bf44dcf9b666.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\345028a0-9caf-4346-9c80-7a386eec000c.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\396738b3-5b72-4fb7-87dd-6eb42ac986a2.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\45548895-e518-41cc-adf8-5c3ebe727c66.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\462dabad-ea7a-4565-b5d8-68eda44fb38b.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\46dab1fa-3f39-48bc-a655-d2b17ba63c2c.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\46f60196-34e1-4f89-94ed-a9369d2f212e.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\47e19135-ae12-4e44-8bcb-cf3df5e3203c.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\4da5dad9-055b-4974-822d-1ac6c9026b64.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\5121140c-4268-4c9d-ae80-75e534013670.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\662e2edc-09f4-4e77-8137-448be0ed0e08.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\6a2a4243-5b62-4428-9b98-35ef92c13868.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\6a9902c1-42ea-4d04-9388-2a270a90f13c.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\6f1347ca-4a0f-4d6a-b469-3c841da63cf3.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\6fcc2db0-6292-4028-8d31-65d15f724d7a.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\74269062-aabd-4f6f-a15b-166b3ea6e074.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\79034801-85d2-4182-b81e-83f9afd9728a.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\7a59d206-5aa9-40d6-b92d-b9ab0f2c13c4.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\80e8dc54-4204-411d-8830-13c84e211642.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\8f199bd4-714f-42bd-9d63-cae199bc3d6c.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\90879596-8b38-401b-9332-84ad88df6bc4.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\9326f607-cd36-4173-bcc3-cdf0d9d663d2.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\96d8141c-75ca-4f51-84a3-b6e95420766c.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\99717094-6b3b-49a3-b994-4f85651bb4ae.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\9cd5d117-f37d-47aa-9386-8ee3d089b4e1.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\a74821c0-e47c-4153-a4ba-1095a89ae8c4.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\a9c563d9-3f8a-4d5b-8fb4-d780b230c09e.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\ace3068f-56e5-4b7b-a2d1-5ed0d4dc6cda.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\b12336b1-0541-4234-9452-30a743c64cfb.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\b8a1a4f4-51d2-4160-803c-ca4dd6b8adf3.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\bb7ae81e-b362-4340-9ea7-aa157030aeb8.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\bc6fc951-72ee-462c-92bf-c5acf495978b.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\c103d240-c3f2-421b-a85d-e5281c7447e3.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\c25fd758-2884-4fad-a8b3-580909228098.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\c3dbeb20-6dbe-4cc5-98e3-8bee563bfeea.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\c404f05f-d2ca-4337-9254-33965d59a62a.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\c9f21515-a050-4bdc-886c-f7ebcbaf7fe8.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\cedbfb13-4cbc-4d5d-836e-e1e5daed4f76.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\d284b052-53ae-41a7-af52-f6a38031f10c.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\d888ec96-9244-4323-8cde-7b4f0dcbe7cf.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\d9279b05-cb29-4cd2-abc3-37d78900cef8.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\e2886f7a-bb36-4733-bd77-6c5fa70535a5.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\e73a0308-3c8b-4e30-9490-6cc00f6c6119.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\e748609b-2b04-4fad-b137-5e9c034240b0.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\ec289bf9-c55c-42fe-b2ce-88462cca7f3f.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\ed2a833e-3610-474b-a99b-330c6442ce3c.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\ee783978-86fc-4583-a453-42939ecccf43.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\f810d998-7f34-450a-a6fe-ca821cfe8fd0.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    },
+    {
+      "dataset": "processed",
+      "file": "data/processed\\f8a5bf41-f7c2-42a9-8fbc-6bb434c572d4.jpg",
+      "type": "IMAGE_INTEGRITY_FAILURE",
+      "details": "Blank or uniform placeholder (std=0.00)"
+    }
+  ]
+}

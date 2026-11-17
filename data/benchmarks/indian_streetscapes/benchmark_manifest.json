@@ -1,9 +1,10 @@
 {
-  "dataset_name": "AccessGuard-Indian-Streetscapes-Benchmark-v1.2",
-  "description": "Standardized 25-scene evaluation collection for Indian pedestrian infrastructure barriers.",
+  "dataset_name": "AccessGuard-Indian-Streetscapes-Synthetic-Validation-Suite-v1.2",
+  "description": "Standardized 25-scene procedural synthetic test harness for pipeline sanity and algorithmic unit validation. NOTE: This is a synthetic test suite generated via OpenCV procedural drawing routines, NOT an empirical real-world field capture dataset.",
   "license": "CC-BY-4.0",
   "attribution": "AccessGuard Open Source Accessibility Intelligence Initiative",
-  "standards_alignment": "CPWD Harmonised Guidelines and Standards for Universal Accessibility in India (2021)",
+  "data_origin": "synthetic_procedural_generation",
+  "standards_alignment": "CPWD Harmonised Guidelines and Standards for Universal Accessibility in India (2021) Taxonomy Reference",
   "total_scenes": 25,
   "scenes": [
     {
@@ -51,9 +52,10 @@
         "urban_setting": "urban_arterial"
       },
       "audit_compliance_notes": "Violates CPWD 2021 Section 3.2.1: Walking surfaces must be stable, firm, and slip resistant without abrupt vertical gaps > 6mm.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_02_vendor_cart_encroachment",
@@ -92,9 +94,10 @@
         "urban_setting": "dense_market_bazaar"
       },
       "audit_compliance_notes": "Encroachment causes complete physical blockage, forcing wheelchair users onto vehicular carriageway.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_03_two_wheeler_blocking_walkway",
@@ -133,9 +136,10 @@
         "urban_setting": "dense_market_bazaar"
       },
       "audit_compliance_notes": "Common urban barrier requiring enforcement and active mobility corridor clearance.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_04_missing_curb_ramp_junction",
@@ -174,9 +178,10 @@
         "urban_setting": "urban_arterial"
       },
       "audit_compliance_notes": "Curb height exceeds 150mm threshold; impassable by manual or motorized wheelchair without ramp gradient <= 1:12.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_05_damaged_paver_blocks",
@@ -215,9 +220,10 @@
         "urban_setting": "residential_lane"
       },
       "audit_compliance_notes": "Excessive vibration causes pain and instability for wheelchair users; causes front caster wheels to jam.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_06_open_drainage_ditch",
@@ -256,9 +262,10 @@
         "urban_setting": "urban_arterial"
       },
       "audit_compliance_notes": "Critical life-safety hazard for blind pedestrians and wheelchair users alike.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_07_footbridge_steep_stairs",
@@ -297,9 +304,10 @@
         "urban_setting": "transit_station_plaza"
       },
       "audit_compliance_notes": "Total severance of accessible crossing route; 100% barrier for non-ambulatory pedestrians.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_08_tactile_path_utility_pole",
@@ -338,9 +346,10 @@
         "urban_setting": "urban_arterial"
       },
       "audit_compliance_notes": "Severe design defect leading visually impaired and wheelchair pedestrians directly into a physical collision.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_09_irregular_curb_height",
@@ -379,9 +388,10 @@
         "urban_setting": "dense_market_bazaar"
       },
       "audit_compliance_notes": "Non-standard step-offs prevent smooth access to civic amenities.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_10_zebra_crossing_pot_holes",
@@ -420,9 +430,10 @@
         "urban_setting": "urban_arterial"
       },
       "audit_compliance_notes": "Crossing is unnavigable for low-clearance motorized wheelchairs during monsoon conditions.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_11_metro_station_unramped_steps",
@@ -461,9 +472,10 @@
         "urban_setting": "transit_station_plaza"
       },
       "audit_compliance_notes": "Transit connectivity completely broken for non-ambulatory passengers.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_12_hanging_telecom_cables",
@@ -502,9 +514,10 @@
         "urban_setting": "residential_lane"
       },
       "audit_compliance_notes": "Violates minimum 2100mm clear headroom requirement under CPWD standards.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_13_monsoon_puddle_submerged_curb",
@@ -543,9 +556,10 @@
         "urban_setting": "urban_arterial"
       },
       "audit_compliance_notes": "Invisible curb edge creates rollover hazard for wheelchairs.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_14_garbage_dump_on_walkway",
@@ -584,9 +598,10 @@
         "urban_setting": "dense_market_bazaar"
       },
       "audit_compliance_notes": "Biological and physical obstruction preventing wheelchair passage.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_15_narrow_residential_alleyway",
@@ -625,9 +640,10 @@
         "urban_setting": "residential_lane"
       },
       "audit_compliance_notes": "Fails minimum clear walkway width criteria.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_16_tree_root_heave_cracking",
@@ -666,9 +682,10 @@
         "urban_setting": "residential_lane"
       },
       "audit_compliance_notes": "Abrupt slope and jagged fractures create severe tipping hazard.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_17_advertising_billboard_pole",
@@ -707,9 +724,10 @@
         "urban_setting": "dense_market_bazaar"
       },
       "audit_compliance_notes": "Illegal commercial obstruction of the pedestrian right-of-way.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_18_unfinished_trench_excavation",
@@ -748,9 +766,10 @@
         "urban_setting": "urban_arterial"
       },
       "audit_compliance_notes": "Extreme fall and rollover hazard requiring immediate containment.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_19_bank_atm_steep_threshold",
@@ -789,9 +808,10 @@
         "urban_setting": "dense_market_bazaar"
       },
       "audit_compliance_notes": "Financial service exclusion for wheelchair users and elderly citizens.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_20_steep_ramp_exceeding_ratio",
@@ -830,9 +850,10 @@
         "urban_setting": "residential_lane"
       },
       "audit_compliance_notes": "High risk of backward tip and fall for manual wheelchair users.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_21_auto_rickshaw_stand_encroachment",
@@ -871,9 +892,10 @@
         "urban_setting": "transit_station_plaza"
       },
       "audit_compliance_notes": "Obstruction of pedestrian refuge island.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_22_broken_cast_iron_manhole",
@@ -912,9 +934,10 @@
         "urban_setting": "urban_arterial"
       },
       "audit_compliance_notes": "Caster entrapment causing instant forward chair ejection.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_23_traffic_signal_junction_box",
@@ -953,9 +976,10 @@
         "urban_setting": "urban_arterial"
       },
       "audit_compliance_notes": "Municipal equipment placed in direct violation of universal accessibility codes.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_24_missing_footpath_direct_roadway",
@@ -994,9 +1018,10 @@
         "urban_setting": "urban_arterial"
       },
       "audit_compliance_notes": "Discontinuous network forcing vulnerable pedestrians directly into mixed vehicular traffic.",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     },
     {
       "sample_id": "in_scene_25_post_office_monumental_stairs",
@@ -1035,9 +1060,10 @@
         "urban_setting": "urban_arterial"
       },
       "audit_compliance_notes": "Public civic facility inaccessible to persons with disabilities (violates RPwD Act 2016).",
-      "reviewer": "Certified Universal Accessibility Auditor (CPWD Standards)",
-      "consensus_verified": true,
-      "region": "Urban South Asia / Indian Municipal Infrastructure"
+      "reviewer": "Algorithmic Procedural Test Harness (Synthetic Geometric Fixture)",
+      "data_origin": "synthetic_procedural_generation",
+      "consensus_verified": false,
+      "region": "Procedural Synthetic Simulation (CPWD Taxonomy Reference)"
     }
   ]
 }

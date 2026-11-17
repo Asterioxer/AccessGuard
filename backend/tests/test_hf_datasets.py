@@ -1,11 +1,12 @@
 """
 Tests for Hugging Face dataset ingestion, streaming, storage safety, and manifests.
+Verifies strict elimination of silent synthetic fallback and placeholder generation.
 """
 
 import os
 import tempfile
 import pytest
-from app.cv.datasets.hf_loader import HuggingFaceDatasetLoader
+from app.cv.datasets.hf_loader import HuggingFaceDatasetLoader, DatasetAcquisitionError
 from app.cv.datasets.storage_safety import check_storage_safety
 from app.cv.datasets.manifest import DatasetManifest, DatasetSplitInfo, ClassDistribution
 from app.cv.datasets.schema import BoundingBoxFormat
@@ -30,16 +31,33 @@ def test_inspect_dataset_schema():
     assert schema["metadata"]["license"] == "CC-BY-4.0"
     assert schema["streaming_supported"] is True
 
-def test_stream_selective_samples():
+def test_stream_offline_no_silent_synthetic_substitution():
+    """Verify that offline streaming NEVER silently substitutes synthetic samples into real data paths."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        loader = HuggingFaceDatasetLoader(cache_dir=tmp_dir)
+        samples = list(loader.stream_samples(
+            "Abtinzandi/Obstacle-Detection-Dataset-YOLO",
+            split="train",
+            max_samples=5,
+            force_offline=True,
+            allow_fixtures=False
+        ))
+        assert len(samples) == 0
+
+def test_stream_fixtures_explicit_tagging():
+    """Verify that development fixtures are explicitly marked with data_origin='synthetic_fixture'."""
     loader = HuggingFaceDatasetLoader()
     samples = list(loader.stream_samples(
         "Abtinzandi/Obstacle-Detection-Dataset-YOLO",
         split="train",
         max_samples=3,
-        force_offline=True
+        force_offline=True,
+        allow_fixtures=True
     ))
     assert len(samples) == 3
     for s in samples:
+        assert s.data_origin == "synthetic_fixture"
+        assert s.metadata.get("is_synthetic") is True
         assert s.image_width > 0
         assert s.image_height > 0
         assert len(s.annotations) > 0
@@ -74,3 +92,18 @@ def test_manifest_creation_and_loading():
         assert loaded.dataset_name == "Test-Accessibility-Dataset"
         assert loaded.splits["train"].num_samples == 10
         assert loaded.splits["train"].class_distribution.class_counts["stairs"] == 6
+
+def test_materialize_refuses_fake_placeholders():
+    """Verify that download_and_materialize fails rather than writing fake grey placeholders."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        loader = HuggingFaceDatasetLoader(cache_dir=tmp_dir)
+        # Attempting to materialize when offline without fixtures must fail, not write grey images
+        with pytest.raises(RuntimeError) as exc_info:
+            loader.download_and_materialize(
+                "Abtinzandi/Obstacle-Detection-Dataset-YOLO",
+                split="train",
+                max_samples=2,
+                force_offline=True,
+                allow_fixtures=False
+            )
+        assert "Stream yielded 0 samples" in str(exc_info.value)

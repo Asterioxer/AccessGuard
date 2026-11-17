@@ -65,6 +65,17 @@ GUIDECANE_TAXONOMY_MAP = {
 }
 
 
+def _compute_sha256(path: Optional[str]) -> Optional[str]:
+    import hashlib
+    if not path or not os.path.exists(path):
+        return None
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(65536):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 class GuideCaneAdapter(ModelAdapterV2):
     """
     GuideCane 17-class Obstacle & Micro-Barrier Detection Adapter.
@@ -85,55 +96,58 @@ class GuideCaneAdapter(ModelAdapterV2):
         self.preferred_device = device or "cpu"
         self.model = None
         self._is_mock = False
+        self._weight_sha256: Optional[str] = None
 
-    def load(self, device: Optional[str] = None) -> bool:
-        """Loads YOLO model trained on GuideCaneOD, ONNX runtime, or baseline weights."""
+    def load(self, device: Optional[str] = None, allow_fallback: bool = False) -> bool:
+        """Loads YOLO model trained on GuideCaneOD or records unavailable."""
         self._status = AdapterStatus.LOADING
         target_device = device or self.preferred_device
         self._device = target_device
 
         try:
-            # Check for hardware-accelerated ONNX model first to avoid Windows torchvision::nms DLL issues
-            onnx_path = "data/models/yolov8n.onnx"
-            if os.path.exists(onnx_path):
-                from app.cv.adapters.onnx_adapter import ONNXAdapter
-                self.onnx_subadapter = ONNXAdapter(onnx_path)
-                if self.onnx_subadapter.load():
-                    self._status = AdapterStatus.READY
-                    self.is_initialized = True
-                    logger.info(f"GuideCaneAdapter loaded with ONNX backend from {onnx_path}")
-                    return True
-
-            from ultralytics import YOLO
-            
-            # Check for designated weights file
+            # Check for authentic GuideCane weights file only (NEVER substitute generic COCO YOLO as GuideCane)
             candidate_paths = [
                 self.model_path,
-                "data/models/guidecane_yolov8.pt",
-                "data/models/yolov8n.pt",
-                "yolov8n.pt"
+                "data/models/guidecane_yolov8.pt"
             ]
             valid_path = next((p for p in candidate_paths if p and os.path.exists(p)), None)
 
             if valid_path:
+                from ultralytics import YOLO
                 self.model = YOLO(valid_path)
-                logger.info(f"Loaded GuideCane YOLO model from {valid_path} on {self._device}")
+                self._weight_sha256 = _compute_sha256(valid_path)
+                self.model_path = valid_path
                 self._status = AdapterStatus.READY
+                self.is_initialized = True
+                self._is_mock = False
+                logger.info(f"Loaded authentic GuideCane YOLO model from {valid_path} on {self._device} (SHA256: {self._weight_sha256[:16]}...)")
+                return True
             else:
-                logger.info("GuideCane weights not found locally; running in calibrated fallback mode.")
-                self._is_mock = True
-                self._status = AdapterStatus.DEGRADED
-
-            self.is_initialized = True
-            return True
+                self._last_error = "UNAVAILABLE: MODEL_WEIGHTS_NOT_FOUND (guidecane_yolov8.pt)"
+                if allow_fallback:
+                    logger.info("GuideCane weights not found locally; running in calibrated fallback mode.")
+                    self._is_mock = True
+                    self._status = AdapterStatus.DEGRADED
+                    self.is_initialized = True
+                    return True
+                else:
+                    self._status = AdapterStatus.UNAVAILABLE
+                    self.is_initialized = False
+                    logger.warning("GuideCane weights not found locally (guidecane_yolov8.pt); model marked UNAVAILABLE.")
+                    return False
 
         except Exception as e:
-            self._status = AdapterStatus.DEGRADED
-            self._is_mock = True
-            self.is_initialized = True
-            self._last_error = str(e)
-            logger.warning(f"Could not load native Ultralytics YOLO for GuideCane ({e}); using calibrated fallback.")
-            return True
+            self._last_error = f"UNAVAILABLE: MODEL_DEPENDENCY_MISSING ({e})"
+            if allow_fallback:
+                self._status = AdapterStatus.DEGRADED
+                self._is_mock = True
+                self.is_initialized = True
+                logger.warning(f"Could not load native YOLO for GuideCane ({e}); using calibrated fallback.")
+                return True
+            else:
+                self._status = AdapterStatus.UNAVAILABLE
+                self.is_initialized = False
+                return False
 
     def unload(self) -> bool:
         """Frees model from GPU/RAM memory."""
@@ -159,15 +173,16 @@ class GuideCaneAdapter(ModelAdapterV2):
             logger.error(f"Error unloading GuideCane adapter: {e}")
             return False
 
-    def predict_v2(self, image: Union[np.ndarray, str], **kwargs) -> AdapterInferenceResult:
+    def predict_v2(self, image: Union[np.ndarray, str], allow_fallback: bool = False, **kwargs) -> AdapterInferenceResult:
         """Runs 17-class obstacle inference."""
         start_time = time.perf_counter()
 
         if self._status not in (AdapterStatus.READY, AdapterStatus.DEGRADED):
-            if not self.load():
+            if not self.load(allow_fallback=allow_fallback):
                 return AdapterInferenceResult(
-                    status=AdapterStatus.INFERENCE_FAILED,
+                    status=self._status,
                     adapter_name=self.name,
+                    execution_type="heuristic_fallback" if self._is_mock else "model_inference",
                     error_message=f"Model not initialized ({self._last_error or 'load failed'})"
                 )
 
@@ -183,20 +198,7 @@ class GuideCaneAdapter(ModelAdapterV2):
             h, w = img_bgr.shape[:2]
             detections: List[DetectedBarrier] = []
 
-            if hasattr(self, "onnx_subadapter") and self.onnx_subadapter is not None:
-                raw_dets = self.onnx_subadapter.predict(img_bgr)
-                for d in raw_dets:
-                    mapped_type = GUIDECANE_TAXONOMY_MAP.get(d.barrier_type, d.barrier_type)
-                    detections.append(
-                        DetectedBarrier(
-                            barrier_type=mapped_type,
-                            confidence=d.confidence,
-                            uncertainty_score=d.uncertainty_score,
-                            bbox=d.bbox,
-                            evidence={"source": "GuideCaneAdapter_ONNX", **d.evidence}
-                        )
-                    )
-            elif self.model is not None and not self._is_mock:
+            if self.model is not None and not self._is_mock:
                 try:
                     results = self.model.predict(
                         source=img_bgr,
@@ -238,11 +240,12 @@ class GuideCaneAdapter(ModelAdapterV2):
                                 )
                             )
                 except Exception as pred_err:
-                    logger.warning(f"Native YOLO prediction failed ({pred_err}); switching to calibrated baseline.")
-                    self._is_mock = True
+                    logger.warning(f"Native YOLO prediction failed ({pred_err})")
+                    if not self._is_mock:
+                        raise pred_err
 
-            if not detections:
-                # Calibrated baseline fallback for Indian streetscape benchmark scenes
+            elif self._is_mock:
+                # Calibrated baseline fallback for development / synthetic scenes ONLY
                 import cv2
                 walkway_h = int(h * 0.40)
                 gray_walkway = cv2.cvtColor(img_bgr[walkway_h:, :], cv2.COLOR_BGR2GRAY)
@@ -252,7 +255,6 @@ class GuideCaneAdapter(ModelAdapterV2):
                 sy_std = float(np.std(sobel_y))
 
                 if sy_std > 45.0:
-                    # Rhythmic horizontal lines indicate stairs/steps
                     detections.append(
                         DetectedBarrier(
                             barrier_type="stairs",
@@ -266,7 +268,6 @@ class GuideCaneAdapter(ModelAdapterV2):
                         )
                     )
                 elif sx_std < 11.5 and sy_std < 14.0:
-                    # Isolated vertical element on walkway indicates pole or bollard
                     detections.append(
                         DetectedBarrier(
                             barrier_type="pole_or_bollard",
@@ -280,7 +281,6 @@ class GuideCaneAdapter(ModelAdapterV2):
                         )
                     )
                 elif 14.0 <= sx_std <= 22.0:
-                    # Cluttered encroaching object on walkway
                     detections.append(
                         DetectedBarrier(
                             barrier_type="construction_obstacle",
@@ -298,12 +298,19 @@ class GuideCaneAdapter(ModelAdapterV2):
             self._inference_count += 1
             self._last_latency_ms = latency
 
+            exec_type = "heuristic_fallback" if self._is_mock else "model_inference"
+
             return AdapterInferenceResult(
                 status=self._status,
                 adapter_name=self.name,
                 detections=detections,
                 execution_time_ms=round(latency, 2),
                 device_used=self._device,
+                execution_type=exec_type,
+                weight_path=self.model_path if not self._is_mock else None,
+                weight_sha256=self._weight_sha256 if not self._is_mock else None,
+                upstream_repo="https://github.com/yolo0731/GuideCaneOD",
+                input_dimensions=(w, h),
                 metadata={
                     "total_detections": len(detections),
                     "is_fallback": self._is_mock

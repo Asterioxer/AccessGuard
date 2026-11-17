@@ -41,6 +41,17 @@ ACCESSGUARD_TO_VALIDATOR_TYPE = {
 }
 
 
+def _compute_sha256(path: Optional[str]) -> Optional[str]:
+    import hashlib
+    if not path or not os.path.exists(path):
+        return None
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(65536):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 class SidewalkValidatorAdapter(ModelAdapterV2):
     """
     Sidewalk Validator AI Adapter.
@@ -61,9 +72,10 @@ class SidewalkValidatorAdapter(ModelAdapterV2):
         self.preferred_device = device or "cpu"
         self.model = None
         self._is_mock = False
+        self._weight_sha256: Optional[str] = None
         self.calibration_maps: Dict[str, Dict[str, Dict[str, float]]] = {}
 
-    def load(self, device: Optional[str] = None) -> bool:
+    def load(self, device: Optional[str] = None, allow_fallback: bool = False) -> bool:
         """Loads calibration mappings and DINOv2 weights."""
         self._status = AdapterStatus.LOADING
         target_device = device or self.preferred_device
@@ -80,27 +92,49 @@ class SidewalkValidatorAdapter(ModelAdapterV2):
                     logger.warning(f"Calibration table for {label_type} missing at {map_file}")
 
             # 2. Check for DINOv2 classifier weights
-            if self.model_path and os.path.exists(self.model_path):
-                import torch
-                self.model = torch.load(self.model_path, map_location=self._device, weights_only=True)
-                self.model.eval()
-                self._status = AdapterStatus.READY
-                logger.info(f"Loaded live DINOv2 Validator model from {self.model_path}")
-            else:
-                logger.info("Validator model weights not found locally; running in calibrated baseline mode.")
-                self._is_mock = True
-                self._status = AdapterStatus.DEGRADED
+            candidate_paths = [
+                self.model_path,
+                "data/models/dinov2_validator.pt"
+            ]
+            valid_path = next((p for p in candidate_paths if p and os.path.exists(p)), None)
 
-            self.is_initialized = True
-            return True
+            if valid_path:
+                import torch
+                self.model = torch.load(valid_path, map_location=self._device, weights_only=True)
+                self.model.eval()
+                self._weight_sha256 = _compute_sha256(valid_path)
+                self.model_path = valid_path
+                self._status = AdapterStatus.READY
+                self.is_initialized = True
+                self._is_mock = False
+                logger.info(f"Loaded live DINOv2 Validator model from {valid_path}")
+                return True
+            else:
+                self._last_error = "UNAVAILABLE: MODEL_WEIGHTS_NOT_FOUND (dinov2_validator.pt)"
+                if allow_fallback:
+                    logger.info("Validator model weights not found locally; running in calibrated baseline mode.")
+                    self._is_mock = True
+                    self._status = AdapterStatus.DEGRADED
+                    self.is_initialized = True
+                    return True
+                else:
+                    self._status = AdapterStatus.UNAVAILABLE
+                    self.is_initialized = False
+                    logger.warning("Validator weights not found locally (dinov2_validator.pt); model UNAVAILABLE.")
+                    return False
 
         except Exception as e:
-            self._status = AdapterStatus.DEGRADED
-            self._is_mock = True
-            self.is_initialized = True
-            self._last_error = str(e)
-            logger.warning(f"Validator initialization warning ({e}); operating in calibrated mode.")
-            return True
+            self._last_error = f"UNAVAILABLE: MODEL_DEPENDENCY_MISSING ({e})"
+            if allow_fallback:
+                self._status = AdapterStatus.DEGRADED
+                self._is_mock = True
+                self.is_initialized = True
+                logger.warning(f"Validator initialization warning ({e}); operating in calibrated mode.")
+                return True
+            else:
+                self._status = AdapterStatus.UNAVAILABLE
+                self.is_initialized = False
+                return False
 
     def unload(self) -> bool:
         """Frees model and clears cache."""
@@ -163,6 +197,7 @@ class SidewalkValidatorAdapter(ModelAdapterV2):
         image: Union[np.ndarray, str],
         candidate_label: Optional[Union[str, DetectedBarrier]] = None,
         crop_box: Optional[Tuple[float, float, float, float]] = None,
+        allow_fallback: bool = False,
         **kwargs
     ) -> AdapterInferenceResult:
         """
@@ -171,10 +206,11 @@ class SidewalkValidatorAdapter(ModelAdapterV2):
         start_time = time.perf_counter()
 
         if self._status not in (AdapterStatus.READY, AdapterStatus.DEGRADED):
-            if not self.load():
+            if not self.load(allow_fallback=allow_fallback):
                 return AdapterInferenceResult(
-                    status=AdapterStatus.INFERENCE_FAILED,
+                    status=self._status,
                     adapter_name=self.name,
+                    execution_type="heuristic_fallback" if self._is_mock else "model_inference",
                     error_message=f"Model not initialized ({self._last_error or 'load failed'})"
                 )
 
@@ -228,7 +264,7 @@ class SidewalkValidatorAdapter(ModelAdapterV2):
                     logits = self.model(tensor)
                     probs = torch.softmax(logits, dim=1).squeeze().cpu().numpy()
                 raw_prob = float(probs[1]) if len(probs) > 1 else float(probs[0])
-            else:
+            elif self._is_mock:
                 # Calibrated baseline: assess crop visual variance and initial confidence
                 crop_gray = np.mean(crop_img, axis=2)
                 contrast = float(np.std(crop_gray))
@@ -239,6 +275,8 @@ class SidewalkValidatorAdapter(ModelAdapterV2):
                     raw_prob = 0.35
                 else:
                     raw_prob = initial_conf
+            else:
+                raw_prob = initial_conf
 
             verdict = "correct" if raw_prob >= 0.50 else "incorrect"
             calibrated_acc = self.lookup_calibrated_accuracy(validator_type, verdict, raw_prob)
@@ -253,7 +291,8 @@ class SidewalkValidatorAdapter(ModelAdapterV2):
                 evidence={
                     "original_label": raw_type,
                     "crop_evaluated": crop_box is not None,
-                    "calibrated_via": f"accuracy_mappings/{validator_type}.json"
+                    "calibrated_via": f"accuracy_mappings/{validator_type}.json",
+                    "mode": "calibrated_baseline" if self._is_mock else "dinov2_model"
                 }
             )
 
@@ -261,16 +300,24 @@ class SidewalkValidatorAdapter(ModelAdapterV2):
             self._inference_count += 1
             self._last_latency_ms = latency
 
+            exec_type = "heuristic_fallback" if self._is_mock else "model_inference"
+
             return AdapterInferenceResult(
                 status=self._status,
                 adapter_name=self.name,
                 verification=verification_verdict,
                 execution_time_ms=round(latency, 2),
                 device_used=self._device,
+                execution_type=exec_type,
+                weight_path=self.model_path if not self._is_mock else None,
+                weight_sha256=self._weight_sha256 if not self._is_mock else None,
+                upstream_repo="https://github.com/ProjectSidewalk/sidewalk-validator-ai",
+                input_dimensions=(w, h),
                 metadata={
                     "is_valid": is_valid,
                     "verdict": verdict,
-                    "calibrated_accuracy": calibrated_acc
+                    "calibrated_accuracy": calibrated_acc,
+                    "is_fallback": self._is_mock
                 }
             )
 

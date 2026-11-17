@@ -62,7 +62,10 @@ class AcquisitionEngine:
             "pexels": PexelsConnector(),
         }
 
-        # CV Pipeline & Segmentation Adapter
+        # CV Pipeline & Hybrid Vision Adapter
+        from app.cv.adapters.hybrid_adapter import HybridVisionAdapter
+        self.hybrid_adapter = HybridVisionAdapter(mode="RESOURCE_CONSTRAINED")
+        self.hybrid_adapter.load()
         self.cv_pipeline = CVPipeline()
         self.seg_adapter = HeuristicSegmentationAdapter()
         self.seg_adapter.load()
@@ -181,8 +184,14 @@ class AcquisitionEngine:
                     filepath = self.media_storage_dir / filename
                     cv2.imwrite(str(filepath), redacted_bgr)
 
-                    # 5. Run Computer Vision Pipeline (Object Detection)
-                    detections = self.cv_pipeline.adapter.predict(redacted_bgr)
+                    # Calculate authentic image SHA-256
+                    import hashlib
+                    with open(filepath, "rb") as f_img:
+                        img_sha256 = hashlib.sha256(f_img.read()).hexdigest()
+
+                    # 5. Run Hybrid Computer Vision Pipeline (YOLO, RampNet, Multi-Expert Fusion)
+                    hybrid_res = self.hybrid_adapter.predict_v2(redacted_bgr)
+                    detections = hybrid_res.detections
 
                     # 6. Run Segmentation Pipeline (Pixel-Level Contour Masks)
                     segment_regions = self.seg_adapter.predict_masks(redacted_bgr)
@@ -254,8 +263,13 @@ class AcquisitionEngine:
                         heading=item.heading,
                         source_attribution=item.attribution,
                         license_metadata=item.license,
-                        model_version="v1.2.0",
-                        raw_metadata_json=json.dumps(item.raw_metadata) if item.raw_metadata else "{}"
+                        model_version="v2.0.0-hybrid",
+                        raw_metadata_json=json.dumps({
+                            **(item.raw_metadata or {}),
+                            "image_sha256": img_sha256,
+                            "cv_pipeline": "HybridVisionAdapter",
+                            "hybrid_telemetry": hybrid_res.metadata
+                        })
                     )
                     db.add(prov_record)
 

@@ -67,7 +67,8 @@ class MapillaryConnector(BaseImageryConnector):
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         limit: int = 50,
-        page_token: Optional[str] = None
+        page_token: Optional[str] = None,
+        allow_fixtures: bool = False
     ) -> ImagerySearchResult:
         """
         Queries Mapillary images within a bounding box.
@@ -79,9 +80,18 @@ class MapillaryConnector(BaseImageryConnector):
         min_lon, min_lat, max_lon, max_lat = bbox
 
         if not self.is_authenticated:
-            # Explicit fixture mode when no client token is provided in environment
-            logger.info("Mapillary token unset: generating deterministic fixture results for bounding box.")
-            return self._generate_fixture_results(bbox, limit)
+            if allow_fixtures:
+                logger.info("Mapillary token unset: generating explicit fixture results for bounding box.")
+                return self._generate_fixture_results(bbox, limit)
+            logger.warning("Mapillary token unset: returning unauthenticated result.")
+            return ImagerySearchResult(
+                items=[],
+                total_count=0,
+                provider="mapillary",
+                query_bbox=bbox,
+                status="unauthenticated",
+                error_message="CREDENTIALS_MISSING: MAPILLARY_CLIENT_TOKEN environment variable not set. Real imagery acquisition requires an authorized token."
+            )
 
         # Authenticated live query
         fields = "id,captured_at,geometry,thumb_1024_url,sequence,quality_score,compass_angle"

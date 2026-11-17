@@ -1,0 +1,64 @@
+{
+  "run_id": "run_1794911069_116131",
+  "mission": "MISSION 006.1 \u2014 REALITY EXECUTION",
+  "timestamp_utc": "2026-11-17T10:24:34Z",
+  "git": {
+    "commit": "d9771373296d2afb3e73b379a47a692fe22018ce",
+    "branch": "feature/reality-execution-repair",
+    "dirty": true
+  },
+  "hardware": {
+    "platform": "Windows-11-10.0.26340-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "python_version": "3.12.1 (tags/v3.12.1:2305ca5, Dec  7 2023, 22:03:25) [MSC v.1937 64 bit (AMD64)]",
+    "cuda_available": true,
+    "cuda_version": "12.1",
+    "gpu_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+    "gpu_vram_mb": 4096,
+    "torch_version": "2.5.1+cu121"
+  },
+  "models": [
+    {
+      "path": "data/models/rampnet.safetensors",
+      "size_bytes": 360247780,
+      "sha256": "f2119e3becb0b551fa1470f7b7ba85b82122a3f73a6ed2a85609dd57617866b5",
+      "status": "VERIFIED_PRESENT"
+    },
+    {
+      "path": "data/models/yolov8n.pt",
+      "size_bytes": 6549796,
+      "sha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+      "status": "VERIFIED_PRESENT"
+    },
+    {
+      "path": "data/models/yolov8n.onnx",
+      "size_bytes": 12851105,
+      "sha256": "fbb11393b8823050ff79f2ed837eeeab4c51e9d9220da80fd773d94ed7531d76",
+      "status": "VERIFIED_PRESENT"
+    }
+  ],
+  "datasets": [
+    {
+      "path": "data/processed/demo_stairs.jpg",
+      "type": "real_streetscape_image",
+      "size_bytes": 25759,
+      "sha256": "c511b3c320d03de46a5af610440bc9f871924f5c3710b66583d61005d8121070"
+    },
+    {
+      "path": "data/benchmarks/indian_streetscapes/benchmark_manifest.json",
+      "type": "synthetic_procedural_validation_suite",
+      "size_bytes": 34151,
+      "sha256": "8f257de5193ab9d2f42de605f1475ea2d9951acb79eabe6e9fd38677edf0d187"
+    }
+  ],
+  "gates": {
+    "GATE_A_DATASET_INTEGRITY": "PASSED (Zero synthetic samples counted as real data; 63 blank placeholders quarantined)",
+    "GATE_B_MODEL_IDENTITY": "PASSED (RampNet verified with genuine Safetensors & ConvNeXt-V2; GuideCane/CitySurfaces/Validator strictly report UNAVAILABLE when weights absent)",
+    "GATE_C_IMAGE_ACQUISITION": "PARTIAL (Real user image upload verified; Mapillary/KartaView report explicit unauthenticated status due to missing API keys)",
+    "GATE_D_HYBRID_INFERENCE": "PASSED (Resource-constrained sequential loading & CUDA inference operational)",
+    "GATE_E_EVIDENCE_FUSION": "PASSED (Strict Pascal VOC IoU >= 0.50 matching enforced; cross-category merging eliminated)",
+    "GATE_F_EVALUATION_INTEGRITY": "PASSED (Mask class matching enforced; hardcoded GPS/temporal metrics replaced with NOT_MEASURED)",
+    "GATE_G_TEST_EXECUTION": "PASSED (All unit and integration tests passing)",
+    "GATE_H_DOCUMENTATION": "PASSED (Forensic audit, implementation, validation, limitations, and completion reports generated)"
+  }
+}

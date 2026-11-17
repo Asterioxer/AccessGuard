@@ -82,14 +82,22 @@ def test_guidecane_adapter_taxonomy_and_lifecycle():
     adapter = GuideCaneAdapter()
     assert adapter.status == AdapterStatus.NOT_LOADED
 
-    loaded = adapter.load(device="cpu")
+    # In strict mode without weights, load() must report UNAVAILABLE
+    strict_loaded = adapter.load(device="cpu", allow_fallback=False)
+    assert strict_loaded is False
+    assert adapter.status == AdapterStatus.UNAVAILABLE
+
+    # With allow_fallback=True, load() activates fallback
+    loaded = adapter.load(device="cpu", allow_fallback=True)
     assert loaded is True
+    assert adapter.status == AdapterStatus.DEGRADED
 
     # Test inference on blank test canvas
     canvas = np.full((480, 640, 3), 128, dtype=np.uint8)
-    res = adapter.predict_v2(canvas)
+    res = adapter.predict_v2(canvas, allow_fallback=True)
     assert res.is_successful is True
     assert res.adapter_name == "guidecane_adapter"
+    assert res.execution_type == "heuristic_fallback"
 
     # Verify metadata and CC BY-NC 4.0 licensing attribution
     meta = adapter.metadata()
@@ -102,21 +110,28 @@ def test_guidecane_adapter_taxonomy_and_lifecycle():
 
 def test_citysurfaces_adapter_roughness():
     adapter = CitySurfacesAdapter()
-    adapter.load()
+    # In strict mode without weights, load() must report UNAVAILABLE
+    assert adapter.load(allow_fallback=False) is False
+    assert adapter.status == AdapterStatus.UNAVAILABLE
+
+    # In fallback mode
+    adapter.load(allow_fallback=True)
+    assert adapter.status == AdapterStatus.DEGRADED
 
     # Synthetic smooth pavement
     canvas = np.zeros((480, 640, 3), dtype=np.uint8)
-    res = adapter.predict_v2(canvas)
+    res = adapter.predict_v2(canvas, allow_fallback=True)
     assert res.is_successful is True
     assert res.mask is not None
     assert isinstance(res.mask.roughness_score, float)
+    assert res.execution_type == "heuristic_fallback"
 
     adapter.unload()
 
 
 def test_sidewalk_validator_calibration_lookup():
     validator = SidewalkValidatorAdapter()
-    validator.load()
+    validator.load(allow_fallback=True)
 
     # Test calibrated accuracy lookup
     cal_acc = validator.lookup_calibrated_accuracy(
@@ -128,7 +143,7 @@ def test_sidewalk_validator_calibration_lookup():
 
     # Test inference verification
     canvas = np.full((480, 640, 3), 128, dtype=np.uint8)
-    res = validator.predict_v2(canvas, candidate_label="curb_ramp_present")
+    res = validator.predict_v2(canvas, candidate_label="curb_ramp_present", allow_fallback=True)
     assert res.is_successful is True
     assert res.verification is not None
     assert isinstance(res.verification.is_valid, bool)
@@ -195,9 +210,9 @@ def test_strict_failure_semantics_no_empty_masking():
     # When load fails or is prevented
     adapter._status = AdapterStatus.NOT_LOADED
     # Mock failing load
-    adapter.load = lambda device=None: False
+    adapter.load = lambda *args, **kw: False
 
     res = adapter.predict_v2(canvas)
     assert res.is_successful is False
-    assert res.status == AdapterStatus.INFERENCE_FAILED
+    assert res.status in (AdapterStatus.INFERENCE_FAILED, AdapterStatus.NOT_LOADED, AdapterStatus.UNAVAILABLE)
     assert res.error_message is not None

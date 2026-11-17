@@ -128,13 +128,19 @@ class RealityEngine:
             # Run segmentation inference
             seg_regions = self.seg_adapter.predict_masks(img)
 
-            # Evaluate mask IoU if ground truth polygon is present
+            # Evaluate mask IoU if ground truth polygon is present (MUST match class)
             if gt_poly and len(gt_poly) >= 3:
                 gt_mask = polygon_to_mask(gt_poly, h, w)
                 best_class_iou = 0.0
 
                 for reg in seg_regions:
-                    if reg.mask is not None:
+                    reg_class = getattr(reg, "class_name", getattr(reg, "label", None))
+                    is_match = (
+                        reg_class == gt_hazard
+                        or (reg_class == "damaged_pavement" and gt_hazard == "surface_damage")
+                        or (reg_class == "surface_damage" and gt_hazard == "damaged_pavement")
+                    )
+                    if reg.mask is not None and is_match:
                         curr_iou = compute_mask_iou(reg.mask, gt_mask)
                         if curr_iou > best_class_iou:
                             best_class_iou = curr_iou
@@ -218,12 +224,12 @@ class RealityEngine:
                 "per_class_miou": per_class_miou
             },
             "geospatial_accuracy": {
-                "mean_association_error_meters": 1.85,
-                "percent_correctly_snapped": 94.2
+                "status": "NOT_MEASURED",
+                "reason": "Benchmark scenes lack ground-truth PostGIS segment associations"
             },
             "temporal_deduplication": {
-                "suppression_efficiency_percent": 96.8,
-                "frame_to_obstacle_reduction_ratio": "30:1"
+                "status": "NOT_MEASURED",
+                "reason": "Benchmark consists of single static images; temporal tracking requires multi-frame video sequences"
             },
             "environmental_robustness": robustness_summary,
             "failed_predictions_count": len(failed_predictions),

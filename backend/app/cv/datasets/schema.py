@@ -59,6 +59,10 @@ class NormalizedDatasetSample(BaseModel):
     split: str = "train"
     image_path: Optional[str] = None
     image_url: Optional[str] = None
+    image_sha256: Optional[str] = None
+    data_origin: str = Field(default="external_acquired", description="Origin: external_acquired, user_upload, or synthetic_fixture")
+    license: Optional[str] = None
+    attribution: Optional[str] = None
     image_width: int = Field(gt=0)
     image_height: int = Field(gt=0)
     annotations: List[NormalizedAnnotation] = Field(default_factory=list)

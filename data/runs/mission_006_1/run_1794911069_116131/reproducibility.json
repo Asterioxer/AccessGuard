@@ -1,0 +1,30 @@
+{
+  "description": "Commands to reproduce all Mission 006.1 validation results from scratch",
+  "commands": [
+    {
+      "name": "Dataset Integrity Verification",
+      "command": "python scripts/verify_dataset_integrity.py",
+      "expected_output": "Scans datasets, verifies SHA-256, outputs data/reports/dataset_integrity_report.json"
+    },
+    {
+      "name": "Adapter Verification",
+      "command": "python scripts/test_adapters_verification.py",
+      "expected_output": "Verifies RampNet loaded on CUDA/CPU, GuideCane/CitySurfaces UNAVAILABLE in strict mode"
+    },
+    {
+      "name": "Hybrid Vision Tests",
+      "command": "python -m pytest -o pythonpath=backend backend/tests/test_hybrid_vision.py -v",
+      "expected_output": "8 passed"
+    },
+    {
+      "name": "Real Image Hybrid Execution Integration Test",
+      "command": "python -m pytest -o pythonpath=backend backend/tests/test_real_image_hybrid_execution.py -v",
+      "expected_output": "3 passed"
+    },
+    {
+      "name": "Indian Streetscape Benchmark Suite",
+      "command": "python scripts/run_hybrid_benchmarks.py",
+      "expected_output": "Evaluates 25 scenes with strict Pascal VOC IoU >= 0.50"
+    }
+  ]
+}

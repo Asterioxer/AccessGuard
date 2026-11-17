@@ -38,10 +38,11 @@ from app.core.logging import logger
 def match_detections(
     predictions: List[DetectedBarrier],
     ground_truth: List[Dict[str, Any]],
-    iou_threshold: float = 0.40
+    iou_threshold: float = 0.50
 ) -> Tuple[int, int, int]:
     """
     Greedy one-to-one matching between predictions and ground-truth boxes.
+    Enforces strict class-aware matching (Pascal VOC standard IoU >= 0.50).
     Penalizes duplicate detections as false positives.
     """
     unclaimed_gt = list(range(len(ground_truth)))
@@ -56,27 +57,15 @@ def match_detections(
             gt = ground_truth[gt_idx]
             gt_bbox = tuple(gt["bbox"])
             
-            # Category match or related category
+            # Strict category match (no cross-merging)
             gt_cat = gt["barrier_type"]
             pred_cat = pred.barrier_type
-            cat_match = (
-                pred_cat == gt_cat or
-                (pred_cat in ("pole_or_bollard", "construction_obstacle") and 
-                 gt_cat in ("pole_or_bollard", "construction_obstacle")) or
-                (pred_cat in ("curb_ramp_present", "curb_ramp_missing") and
-                 gt_cat in ("curb_ramp_present", "curb_ramp_missing", "raised_curb")) or
-                (pred_cat == "surface_damage" and gt_cat in ("surface_damage", "raised_curb"))
-            )
+            cat_match = (pred_cat == gt_cat)
 
             if cat_match:
                 iou = calculate_iou(pred.bbox, gt_bbox)
-                center_y = (pred.bbox[0] + pred.bbox[2]) / 2.0
-                center_x = (pred.bbox[1] + pred.bbox[3]) / 2.0
-                center_in_gt = (gt_bbox[0] <= center_y <= gt_bbox[2] and gt_bbox[1] <= center_x <= gt_bbox[3])
-                
-                is_match = (iou >= iou_threshold) or (center_in_gt and iou >= 0.15)
-                if is_match and (iou > max_iou or max_iou == 0.0):
-                    max_iou = max(iou, 0.35)
+                if iou >= iou_threshold and iou > max_iou:
+                    max_iou = iou
                     matched_gt_idx = gt_idx
 
         if matched_gt_idx is not None:

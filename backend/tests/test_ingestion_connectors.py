@@ -48,8 +48,15 @@ def test_mapillary_connector_fixture_mode():
     """Verify Mapillary connector returns valid geocoded items with attribution in fixture mode."""
     conn = MapillaryConnector(client_token="")
     bbox = (77.20, 28.60, 77.25, 28.65)
-    res = conn.search_imagery(bbox=bbox, limit=3)
 
+    # By default without credentials, returns explicit unauthenticated status with 0 items
+    res_unauth = conn.search_imagery(bbox=bbox, limit=3)
+    assert res_unauth.provider == "mapillary"
+    assert len(res_unauth.items) == 0
+    assert res_unauth.status == "unauthenticated"
+
+    # When explicit allow_fixtures=True is passed for test harnesses, returns fixtures
+    res = conn.search_imagery(bbox=bbox, limit=3, allow_fixtures=True)
     assert res.provider == "mapillary"
     assert len(res.items) == 3
     assert res.items[0].license == "CC-BY-SA-4.0"
@@ -63,8 +70,15 @@ def test_kartaview_connector_fixture_mode():
     """Verify KartaView connector returns geocoded photos and track metadata."""
     conn = KartaViewConnector(api_key="")
     bbox = (12.48, 41.89, 12.50, 41.91)
-    res = conn.search_imagery(bbox=bbox, limit=2)
 
+    # By default without credentials, returns explicit unauthenticated status with 0 items
+    res_unauth = conn.search_imagery(bbox=bbox, limit=2)
+    assert res_unauth.provider == "kartaview"
+    assert len(res_unauth.items) == 0
+    assert res_unauth.status == "unauthenticated"
+
+    # When explicit allow_fixtures=True is passed for test harnesses, returns fixtures
+    res = conn.search_imagery(bbox=bbox, limit=2, allow_fixtures=True)
     assert res.provider == "kartaview"
     assert len(res.items) == 2
     assert "KartaView" in res.items[0].attribution

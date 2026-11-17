@@ -8,7 +8,7 @@
     "recall": 0.08,
     "f1_score": 0.1111,
     "map_50": 0.1067,
-    "mean_latency_ms": 6.73,
+    "mean_latency_ms": 19.23,
     "environmental_slices": {
       "illumination": {
         "daylight": {
@@ -84,13 +84,13 @@
   "Ultralytics YOLOv8": {
     "model_name": "Ultralytics YOLOv8",
     "true_positives": 0,
-    "false_positives": 27,
+    "false_positives": 26,
     "false_negatives": 25,
     "precision": 0.0,
     "recall": 0.0,
     "f1_score": 0.0,
     "map_50": 0.0,
-    "mean_latency_ms": 55.61,
+    "mean_latency_ms": 379.84,
     "environmental_slices": {
       "illumination": {
         "daylight": {
@@ -125,13 +125,13 @@
   "RampNet (ConvNeXt-V2)": {
     "model_name": "RampNet (ConvNeXt-V2)",
     "true_positives": 0,
-    "false_positives": 25,
+    "false_positives": 8,
     "false_negatives": 25,
     "precision": 0.0,
     "recall": 0.0,
     "f1_score": 0.0,
     "map_50": 0.0,
-    "mean_latency_ms": 6.14,
+    "mean_latency_ms": 5597.25,
     "environmental_slices": {
       "illumination": {
         "daylight": {
@@ -165,23 +165,23 @@
   },
   "GuideCane (17-Class)": {
     "model_name": "GuideCane (17-Class)",
-    "true_positives": 13,
-    "false_positives": 7,
-    "false_negatives": 12,
-    "precision": 0.65,
-    "recall": 0.52,
-    "f1_score": 0.5778,
-    "map_50": 0.5547,
-    "mean_latency_ms": 12.59,
+    "true_positives": 0,
+    "false_positives": 0,
+    "false_negatives": 25,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "map_50": 0.0,
+    "mean_latency_ms": 0.36,
     "environmental_slices": {
       "illumination": {
         "daylight": {
-          "precision": 0.667,
-          "recall": 0.6
+          "precision": 0.0,
+          "recall": 0.0
         },
         "night": {
-          "precision": 0.5,
-          "recall": 0.2
+          "precision": 0.0,
+          "recall": 0.0
         },
         "twilight": {
           "precision": 0.0,
@@ -190,8 +190,8 @@
       },
       "weather": {
         "clear": {
-          "precision": 0.65,
-          "recall": 0.591
+          "precision": 0.0,
+          "recall": 0.0
         },
         "rain": {
           "precision": 0.0,
@@ -206,23 +206,23 @@
   },
   "CitySurfaces (Roughness)": {
     "model_name": "CitySurfaces (Roughness)",
-    "true_positives": 9,
-    "false_positives": 6,
-    "false_negatives": 16,
-    "precision": 0.6,
-    "recall": 0.36,
-    "f1_score": 0.45,
-    "map_50": 0.432,
-    "mean_latency_ms": 5.38,
+    "true_positives": 0,
+    "false_positives": 0,
+    "false_negatives": 25,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "map_50": 0.0,
+    "mean_latency_ms": 0.43,
     "environmental_slices": {
       "illumination": {
         "daylight": {
-          "precision": 0.5,
-          "recall": 0.3
+          "precision": 0.0,
+          "recall": 0.0
         },
         "night": {
-          "precision": 1.0,
-          "recall": 0.6
+          "precision": 0.0,
+          "recall": 0.0
         },
         "twilight": {
           "precision": 0.0,
@@ -231,12 +231,12 @@
       },
       "weather": {
         "clear": {
-          "precision": 0.583,
-          "recall": 0.318
+          "precision": 0.0,
+          "recall": 0.0
         },
         "rain": {
-          "precision": 0.667,
-          "recall": 0.667
+          "precision": 0.0,
+          "recall": 0.0
         },
         "fog": {
           "precision": 0.0,
@@ -247,23 +247,23 @@
   },
   "Fused Hybrid (No Validator)": {
     "model_name": "Fused Hybrid (No Validator)",
-    "true_positives": 13,
-    "false_positives": 63,
-    "false_negatives": 12,
-    "precision": 0.1711,
-    "recall": 0.52,
-    "f1_score": 0.2574,
-    "map_50": 0.2471,
-    "mean_latency_ms": 69.18,
+    "true_positives": 0,
+    "false_positives": 28,
+    "false_negatives": 25,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "map_50": 0.0,
+    "mean_latency_ms": 6142.68,
     "environmental_slices": {
       "illumination": {
         "daylight": {
-          "precision": 0.175,
-          "recall": 0.5
+          "precision": 0.0,
+          "recall": 0.0
         },
         "night": {
-          "precision": 0.158,
-          "recall": 0.6
+          "precision": 0.0,
+          "recall": 0.0
         },
         "twilight": {
           "precision": 0.0,
@@ -272,12 +272,12 @@
       },
       "weather": {
         "clear": {
-          "precision": 0.175,
-          "recall": 0.5
+          "precision": 0.0,
+          "recall": 0.0
         },
         "rain": {
-          "precision": 0.154,
-          "recall": 0.667
+          "precision": 0.0,
+          "recall": 0.0
         },
         "fog": {
           "precision": 0.0,
@@ -288,23 +288,23 @@
   },
   "Full Hybrid Architecture": {
     "model_name": "Full Hybrid Architecture",
-    "true_positives": 9,
-    "false_positives": 24,
-    "false_negatives": 16,
-    "precision": 0.2727,
-    "recall": 0.36,
-    "f1_score": 0.3103,
-    "map_50": 0.2979,
-    "mean_latency_ms": 77.22,
+    "true_positives": 0,
+    "false_positives": 28,
+    "false_negatives": 25,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "map_50": 0.0,
+    "mean_latency_ms": 6175.6,
     "environmental_slices": {
       "illumination": {
         "daylight": {
-          "precision": 0.273,
-          "recall": 0.3
+          "precision": 0.0,
+          "recall": 0.0
         },
         "night": {
-          "precision": 0.273,
-          "recall": 0.6
+          "precision": 0.0,
+          "recall": 0.0
         },
         "twilight": {
           "precision": 0.0,
@@ -313,12 +313,12 @@
       },
       "weather": {
         "clear": {
-          "precision": 0.28,
-          "recall": 0.318
+          "precision": 0.0,
+          "recall": 0.0
         },
         "rain": {
-          "precision": 0.25,
-          "recall": 0.667
+          "precision": 0.0,
+          "recall": 0.0
         },
         "fog": {
           "precision": 0.0,

@@ -122,6 +122,8 @@ class ImagerySearchResult:
     next_page_token: Optional[str] = None
     provider: str = ""
     query_bbox: Optional[Tuple[float, float, float, float]] = None # (min_lon, min_lat, max_lon, max_lat)
+    status: str = "success"
+    error_message: Optional[str] = None
 
 
 class BaseImageryConnector(ABC):

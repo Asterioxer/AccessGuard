@@ -23,6 +23,17 @@ from app.cv.adapters.base_v2 import (
 from app.core.logging import logger
 
 
+def _compute_sha256(path: Optional[str]) -> Optional[str]:
+    import hashlib
+    if not path or not os.path.exists(path):
+        return None
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(65536):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 class RampNetAdapter(ModelAdapterV2):
     """
     RampNet ConvNeXt-V2 Curb Ramp Detector Adapter.
@@ -31,7 +42,7 @@ class RampNetAdapter(ModelAdapterV2):
 
     def __init__(
         self,
-        model_id_or_path: str = "projectsidewalk/rampnet-model",
+        model_id_or_path: str = "data/models/rampnet.safetensors",
         confidence_threshold: float = 0.50,
         min_peak_distance: int = 10,
         enable_seam_suppression: bool = True,
@@ -42,11 +53,21 @@ class RampNetAdapter(ModelAdapterV2):
         self.confidence_threshold = confidence_threshold
         self.min_peak_distance = min_peak_distance
         self.enable_seam_suppression = enable_seam_suppression
-        self.preferred_device = device or "cpu"
+        self.preferred_device = device or ("cuda" if self._has_cuda() else "cpu")
         self.model = None
         self._is_mock = False
+        self._weight_path: Optional[str] = None
+        self._weight_sha256: Optional[str] = None
 
-    def load(self, device: Optional[str] = None) -> bool:
+    @staticmethod
+    def _has_cuda() -> bool:
+        try:
+            import torch
+            return torch.cuda.is_available()
+        except ImportError:
+            return False
+
+    def load(self, device: Optional[str] = None, allow_fallback: bool = False) -> bool:
         """Loads RampNet weights into memory."""
         self._status = AdapterStatus.LOADING
         target_device = device or self.preferred_device
@@ -58,34 +79,59 @@ class RampNetAdapter(ModelAdapterV2):
                 logger.warning("CUDA requested for RampNet but unavailable; falling back to CPU.")
                 self._device = "cpu"
 
-            # Attempt to load model from local path or Hugging Face Hub if available
-            try:
-                from transformers import AutoModel
-                # Verify local file or HuggingFace
-                self.model = AutoModel.from_pretrained(
-                    self.model_id_or_path,
-                    trust_remote_code=True,
-                    local_files_only=False
-                )
+            candidate_paths = [
+                self.model_id_or_path,
+                "data/models/rampnet.safetensors"
+            ]
+            valid_path = next((p for p in candidate_paths if p and os.path.exists(p)), None)
+
+            if valid_path:
+                import sys
+                import safetensors.torch
+                model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "data", "models", "rampnet"))
+                if model_dir not in sys.path:
+                    sys.path.insert(0, model_dir)
+
+                from rampnet_model import KeypointModel
+                self.model = KeypointModel()
+                raw_weights = safetensors.torch.load_file(valid_path)
+                cleaned = {k.removeprefix("model."): v for k, v in raw_weights.items()}
+                self.model.load_state_dict(cleaned)
                 self.model.to(self._device).eval()
+
+                self._weight_path = valid_path
+                self._weight_sha256 = _compute_sha256(valid_path)
                 self._status = AdapterStatus.READY
                 self.is_initialized = True
-                logger.info(f"Loaded live RampNet model ({self.model_id_or_path}) on {self._device}")
+                self._is_mock = False
+                logger.info(f"Loaded live RampNet model ({valid_path}) on {self._device} (SHA256: {self._weight_sha256[:16]}...)")
                 return True
-            except Exception as hf_err:
-                logger.info(f"RampNet hub model not available locally ({hf_err}); activating high-fidelity fallback.")
-                self._is_mock = True
-                self._status = AdapterStatus.DEGRADED
-                self.is_initialized = True
-                return True
+            else:
+                self._last_error = "UNAVAILABLE: MODEL_WEIGHTS_NOT_FOUND (rampnet.safetensors)"
+                if allow_fallback:
+                    logger.info("RampNet weights not found locally; activating high-fidelity fallback.")
+                    self._is_mock = True
+                    self._status = AdapterStatus.DEGRADED
+                    self.is_initialized = True
+                    return True
+                else:
+                    self._status = AdapterStatus.UNAVAILABLE
+                    self.is_initialized = False
+                    logger.warning("RampNet weights not found locally (rampnet.safetensors); model UNAVAILABLE.")
+                    return False
 
         except Exception as e:
-            self._status = AdapterStatus.DEGRADED
-            self._is_mock = True
-            self.is_initialized = True
-            self._last_error = str(e)
-            logger.warning(f"Could not load RampNet model or dependencies ({e}); activating high-fidelity fallback.")
-            return True
+            self._last_error = f"UNAVAILABLE: MODEL_DEPENDENCY_MISSING ({e})"
+            if allow_fallback:
+                self._status = AdapterStatus.DEGRADED
+                self._is_mock = True
+                self.is_initialized = True
+                logger.warning(f"Could not load RampNet model or dependencies ({e}); activating fallback.")
+                return True
+            else:
+                self._status = AdapterStatus.UNAVAILABLE
+                self.is_initialized = False
+                return False
 
     def unload(self) -> bool:
         """Deallocates RampNet model weights and purges device cache."""
@@ -139,15 +185,16 @@ class RampNetAdapter(ModelAdapterV2):
 
         return [p for p in peaks if p not in suppressed_right]
 
-    def predict_v2(self, image: Union[np.ndarray, str], **kwargs) -> AdapterInferenceResult:
+    def predict_v2(self, image: Union[np.ndarray, str], allow_fallback: bool = False, **kwargs) -> AdapterInferenceResult:
         """Runs RampNet curb ramp keypoint detection."""
         start_time = time.perf_counter()
 
         if self._status not in (AdapterStatus.READY, AdapterStatus.DEGRADED):
-            if not self.load():
+            if not self.load(allow_fallback=allow_fallback):
                 return AdapterInferenceResult(
-                    status=AdapterStatus.INFERENCE_FAILED,
+                    status=self._status,
                     adapter_name=self.name,
+                    execution_type="heuristic_fallback" if self._is_mock else "model_inference",
                     error_message=f"Model not initialized ({self._last_error or 'load failed'})"
                 )
 
@@ -167,12 +214,12 @@ class RampNetAdapter(ModelAdapterV2):
             if self.model is not None and not self._is_mock:
                 import torch
                 from torchvision import transforms
-                from skimage.feature import peak_local_max
 
                 # Preprocessing
+                target_h, target_w = (1024, 2048) if self._device == "cpu" else (2048, 4096)
                 preprocess = transforms.Compose([
                     transforms.ToPILImage(),
-                    transforms.Resize((2048, 4096), interpolation=transforms.InterpolationMode.BILINEAR),
+                    transforms.Resize((target_h, target_w), interpolation=transforms.InterpolationMode.BILINEAR),
                     transforms.ToTensor(),
                     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
                 ])
@@ -183,11 +230,19 @@ class RampNetAdapter(ModelAdapterV2):
                 with torch.no_grad():
                     heatmap = self.model(img_tensor).squeeze().cpu().numpy()
 
-                raw_peaks = peak_local_max(
-                    np.clip(heatmap, 0, 1),
-                    min_distance=self.min_peak_distance,
-                    threshold_abs=self.confidence_threshold
-                )
+                try:
+                    from skimage.feature import peak_local_max
+                    raw_peaks = peak_local_max(
+                        np.clip(heatmap, 0, 1),
+                        min_distance=self.min_peak_distance,
+                        threshold_abs=self.confidence_threshold
+                    )
+                except ImportError:
+                    from scipy.ndimage import maximum_filter
+                    clipped = np.clip(heatmap, 0, 1)
+                    filtered = maximum_filter(clipped, size=self.min_peak_distance)
+                    detected = (clipped == filtered) & (clipped >= self.confidence_threshold)
+                    raw_peaks = np.argwhere(detected)
 
                 # Format peaks as (row, col, confidence)
                 peaks_with_conf = [(int(r), int(c), float(heatmap[r, c])) for r, c in raw_peaks]
@@ -206,7 +261,7 @@ class RampNetAdapter(ModelAdapterV2):
                             evidence={"source_heatmap_shape": list(heatmap.shape)}
                         )
                     )
-            else:
+            elif self._is_mock:
                 # High-fidelity fallback for offline / mock testing:
                 # Detect edge transitions characteristic of curb transitions
                 gray = np.mean(img_bgr, axis=2)
@@ -228,16 +283,24 @@ class RampNetAdapter(ModelAdapterV2):
             self._inference_count += 1
             self._last_latency_ms = latency
 
+            exec_type = "heuristic_fallback" if self._is_mock else "model_inference"
+
             result = AdapterInferenceResult(
                 status=self._status,
                 adapter_name=self.name,
                 keypoints=keypoints,
                 execution_time_ms=round(latency, 2),
                 device_used=self._device,
+                execution_type=exec_type,
+                weight_path=self._weight_path if not self._is_mock else None,
+                weight_sha256=self._weight_sha256 if not self._is_mock else None,
+                upstream_repo="https://github.com/ProjectSidewalk/RampNet",
+                input_dimensions=(w, h),
                 metadata={
                     "model_id": self.model_id_or_path,
                     "seam_suppressed": self.enable_seam_suppression,
-                    "peak_count": len(keypoints)
+                    "peak_count": len(keypoints),
+                    "is_fallback": self._is_mock
                 }
             )
             # Synthesize legacy DetectedBarrier objects for backward compatibility
