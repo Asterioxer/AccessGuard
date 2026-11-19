@@ -86,7 +86,7 @@ class YOLOSegmentationAdapter(SegmentationAdapter):
             self.load()
 
         if self.model is None:
-            return self._fallback.predict_masks(image_bgr)
+            return []
 
         h, w = image_bgr.shape[:2]
         total_pixels = h * w
@@ -156,9 +156,7 @@ class YOLOSegmentationAdapter(SegmentationAdapter):
                             )
                         )
 
-            if not regions:
-                return self._fallback.predict_masks(image_bgr)
             return regions
         except Exception as e:
-            logger.warning(f"Error in YOLO segmentation prediction: {e}")
-            return self._fallback.predict_masks(image_bgr)
+            logger.error(f"YOLO segmentation inference failed: {e}")
+            raise RuntimeError(f"YOLO segmentation inference failed: {e}") from e
