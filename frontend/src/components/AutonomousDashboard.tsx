@@ -103,6 +103,7 @@ export const AutonomousDashboard: React.FC = () => {
       }
       const result = await api.importOSMPedestrianNetwork(coords);
       setOsmImportSummary(String(result.new_segments_inserted) + ' new OSM pedestrian ways imported (' + String(result.ways_returned) + ' returned). Imported ways remain unassessed until observations are collected.');
+      window.dispatchEvent(new Event('accessguard:segments-updated'));
     } catch (err: any) {
       setError(err.message || 'OpenStreetMap import failed');
     } finally {
