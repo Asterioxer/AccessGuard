@@ -1355,14 +1355,49 @@ class ImageProcessingService:
                 )
                 db.add(b_det)
 
+            # Aggregate genuine per-frame adapter telemetry into the parent video provenance record.
+            adapter_summary: Dict[str, Dict[str, Any]] = {}
+            segmentation_status_counts: Dict[str, int] = {}
+            for frame_result in frame_results:
+                frame_seg_status = frame_result.segmentation_results.status
+                segmentation_status_counts[frame_seg_status] = segmentation_status_counts.get(frame_seg_status, 0) + 1
+                for model_record in frame_result.model_execution_records:
+                    aggregate = adapter_summary.setdefault(model_record.adapter_name, {
+                        "adapter_name": model_record.adapter_name,
+                        "model_family": model_record.model_family,
+                        "status_counts": {},
+                        "execution_types": {},
+                        "frames_attempted": 0,
+                        "output_count": 0,
+                        "checkpoint_path": model_record.checkpoint_path,
+                        "weight_sha256": model_record.weight_sha256,
+                        "errors": []
+                    })
+                    aggregate["status_counts"][model_record.status] = aggregate["status_counts"].get(model_record.status, 0) + 1
+                    aggregate["execution_types"][model_record.execution_type] = aggregate["execution_types"].get(model_record.execution_type, 0) + 1
+                    aggregate["frames_attempted"] += 1
+                    aggregate["output_count"] += model_record.output_count
+                    aggregate["errors"].extend(model_record.errors or [])
+
+            models_executed = []
+            for aggregate in adapter_summary.values():
+                statuses = aggregate["status_counts"]
+                execution_types = aggregate["execution_types"]
+                aggregate["status"] = "READY" if set(statuses) == {"READY"} else ("UNAVAILABLE" if set(statuses) == {"UNAVAILABLE"} else "PARTIAL")
+                aggregate["execution_type"] = next(iter(execution_types)) if len(execution_types) == 1 else "mixed"
+                models_executed.append(aggregate)
+
             raw_meta = {
                 "video_id": vid_id,
                 "original_sha256": video_sha256,
                 "execution_policy": policy.value,
+                "overall_status": overall_status,
                 "total_frames": total_frames,
                 "sampled_frames": sampled_idx,
                 "duration_seconds": round(duration, 2),
                 "unique_obstacles_count": len(consolidated_barriers),
+                "models_executed": models_executed,
+                "segmentation_status_counts": segmentation_status_counts,
                 "frames_summary": [
                     {
                         "run_id": fr.run_id,
