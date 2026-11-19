@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
 
 from app.config import settings
 from app.db.session import SessionLocal
-from app.db.models import Observation, PedestrianSegment
+from app.db.models import Observation, PedestrianSegment, ImageProvenance, SegmentedObservation
 
 
 DEMO_OBSERVATION_IDS = {
@@ -62,6 +62,9 @@ def main():
             print("DRY RUN ONLY. Back up the database, then rerun with --apply to delete these exact fixtures.")
             return
 
+        # Remove dependent evidence rows first to respect database foreign keys.
+        db.query(ImageProvenance).filter(ImageProvenance.observation_id.in_(DEMO_OBSERVATION_IDS)).delete(synchronize_session=False)
+        db.query(SegmentedObservation).filter(SegmentedObservation.observation_id.in_(DEMO_OBSERVATION_IDS)).delete(synchronize_session=False)
         for observation in observations:
             db.delete(observation)
         db.flush()
