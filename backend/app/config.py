@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "accessguard-development-secret-key-replace-in-production-32bytesmin"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
+    ADMIN_INITIAL_PASSWORD: Optional[str] = None
+    VERIFIER_INITIAL_PASSWORD: Optional[str] = None
     
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [
