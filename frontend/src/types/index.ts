@@ -38,8 +38,8 @@ export interface Observation {
   segment_id?: string;
   media_url: string;
   media_type: 'image' | 'video';
-  latitude: number;
-  longitude: number;
+  latitude?: number | null;
+  longitude?: number | null;
   status: 'tentative' | 'verified' | 'disputed' | 'rejected';
   verification_score: number;
   captured_at?: string;
@@ -237,6 +237,15 @@ export interface RealityScorecard {
   total_scenes_evaluated: number;
   pipeline_execution_rate: number;
   consensus_grade: string;
+  execution_integrity?: {
+    total_scenes: number;
+    successful_executions: number;
+    execution_errors: number;
+    execution_rate_pct: number;
+    policy_enforced: string;
+  };
+  model_integrity?: Record<string, any>;
+  output_integrity?: Record<string, any>;
   detection_metrics: {
     macro_precision: number;
     macro_recall: number;
@@ -252,13 +261,17 @@ export interface RealityScorecard {
     mean_iou: number;
     per_class_miou: Record<string, number>;
   };
-  geospatial_accuracy: {
-    mean_association_error_meters: number;
-    percent_correctly_snapped: number;
+  geospatial_accuracy?: {
+    mean_association_error_meters?: number;
+    percent_correctly_snapped?: number;
+    status?: string;
+    reason?: string;
   };
-  temporal_deduplication: {
-    suppression_efficiency_percent: number;
-    frame_to_obstacle_reduction_ratio: string;
+  temporal_deduplication?: {
+    suppression_efficiency_percent?: number;
+    frame_to_obstacle_reduction_ratio?: string;
+    status?: string;
+    reason?: string;
   };
   environmental_robustness: Record<string, Record<string, number>>;
   failed_predictions_count: number;

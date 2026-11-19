@@ -1,0 +1,10 @@
+{
+  "mission": "MISSION_006_6",
+  "version": "v2.0.0-rc1",
+  "release_decision": "PASS \u2014 READY FOR HUMAN MERGE REVIEW",
+  "gates_evaluated": 16,
+  "gates_passed": 16,
+  "gates_failed": 0,
+  "unmerged_pr_enforced": true,
+  "base_branch_protected": true
+}

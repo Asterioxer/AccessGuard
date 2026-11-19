@@ -46,10 +46,11 @@ class RampNetAdapter(ModelAdapterV2):
         confidence_threshold: float = 0.50,
         min_peak_distance: int = 10,
         enable_seam_suppression: bool = True,
-        device: Optional[str] = None
+        device: Optional[str] = None,
+        model_path: Optional[str] = None
     ):
         super().__init__(name="rampnet_adapter", version="1.1.0")
-        self.model_id_or_path = model_id_or_path
+        self.model_id_or_path = model_path or model_id_or_path
         self.confidence_threshold = confidence_threshold
         self.min_peak_distance = min_peak_distance
         self.enable_seam_suppression = enable_seam_suppression
@@ -79,10 +80,13 @@ class RampNetAdapter(ModelAdapterV2):
                 logger.warning("CUDA requested for RampNet but unavailable; falling back to CPU.")
                 self._device = "cpu"
 
-            candidate_paths = [
-                self.model_id_or_path,
-                "data/models/rampnet.safetensors"
-            ]
+            if self.model_id_or_path and self.model_id_or_path != "data/models/rampnet.safetensors":
+                candidate_paths = [self.model_id_or_path]
+            else:
+                candidate_paths = [
+                    self.model_id_or_path,
+                    "data/models/rampnet.safetensors"
+                ]
             valid_path = next((p for p in candidate_paths if p and os.path.exists(p)), None)
 
             if valid_path:
@@ -194,7 +198,7 @@ class RampNetAdapter(ModelAdapterV2):
                 return AdapterInferenceResult(
                     status=self._status,
                     adapter_name=self.name,
-                    execution_type="heuristic_fallback" if self._is_mock else "model_inference",
+                    execution_type="heuristic_fallback" if self._is_mock else "unavailable",
                     error_message=f"Model not initialized ({self._last_error or 'load failed'})"
                 )
 
@@ -310,12 +314,14 @@ class RampNetAdapter(ModelAdapterV2):
         except Exception as e:
             self._last_error = str(e)
             logger.error(f"RampNet inference failed: {e}")
-            return AdapterInferenceResult(
-                status=AdapterStatus.INFERENCE_FAILED,
+            return AdapterInferenceResult.create_failed(
                 adapter_name=self.name,
                 error_message=str(e),
+                status=AdapterStatus.INFERENCE_FAILED,
                 execution_time_ms=round((time.perf_counter() - start_time) * 1000.0, 2),
-                device_used=self._device
+                device_used=self._device,
+                weight_path=self._weight_path if not self._is_mock else None,
+                weight_sha256=self._weight_sha256 if not self._is_mock else None
             )
 
     @staticmethod

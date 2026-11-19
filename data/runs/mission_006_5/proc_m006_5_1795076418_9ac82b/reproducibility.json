@@ -1,0 +1,20 @@
+{
+  "mission": "MISSION_006_5_INFERENCE_INTEGRITY",
+  "tested_code_commit": "45f7d6ed344b21be9308b016228e5a1380a1ac50",
+  "environment_setup": {
+    "python": "3.12.1",
+    "os": "Windows-11-10.0.26340-SP0",
+    "env_vars": {
+      "PYTHONPATH": "backend",
+      "ACCESSGUARD_OFFLINE_DATASETS": "1"
+    }
+  },
+  "verification_commands": [
+    "$env:PYTHONPATH='backend'; pytest backend/tests/test_inference_failure_integrity.py -v",
+    "$env:PYTHONPATH='backend'; pytest backend/tests/test_unified_image_processing.py -v",
+    "$env:PYTHONPATH='backend'; $env:ACCESSGUARD_OFFLINE_DATASETS='1'; pytest backend/tests -v",
+    "$env:PYTHONPATH='backend'; python backend/app/cv/evaluation/run_eval.py",
+    "cd frontend; npm run build",
+    "docker compose config --quiet"
+  ]
+}

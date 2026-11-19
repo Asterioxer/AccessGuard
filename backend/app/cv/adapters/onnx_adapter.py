@@ -91,6 +91,9 @@ class ONNXAdapter(ModelAdapter):
 
     def predict(self, image_bgr: np.ndarray) -> List[DetectedBarrier]:
         """Runs ONNX inference and post-processes output boxes."""
+        if image_bgr is None or not isinstance(image_bgr, np.ndarray) or image_bgr.size == 0 or image_bgr.ndim not in (2, 3):
+            raise ValueError(f"Invalid image input for ONNXAdapter: expected non-empty numpy ndarray, got {type(image_bgr)}")
+
         if not self.is_initialized:
             if not self.load():
                 return []

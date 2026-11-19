@@ -39,10 +39,16 @@ def main():
     for cls, val in seg["per_class_miou"].items():
         print(f"  - {cls:<25}: IoU {val:.4f}")
     print("-"*80)
-    geo = scorecard["geospatial_accuracy"]
-    print(f"Geospatial Association Error: {geo['mean_association_error_meters']}m (Correctly Snapped: {geo['percent_correctly_snapped']}%)")
-    dedup = scorecard["temporal_deduplication"]
-    print(f"Temporal Dedup Efficiency:    {dedup['suppression_efficiency_percent']}% (Reduction: {dedup['frame_to_obstacle_reduction_ratio']})")
+    geo = scorecard.get("geospatial_accuracy", {})
+    if geo.get("status") == "NOT_MEASURED":
+        print(f"Geospatial Association:     NOT_MEASURED ({geo.get('reason', '')})")
+    else:
+        print(f"Geospatial Association Error: {geo.get('mean_association_error_meters', 'N/A')}m (Correctly Snapped: {geo.get('percent_correctly_snapped', 'N/A')}%)")
+    dedup = scorecard.get("temporal_deduplication", {})
+    if dedup.get("status") == "NOT_MEASURED":
+        print(f"Temporal Deduplication:       NOT_MEASURED ({dedup.get('reason', '')})")
+    else:
+        print(f"Temporal Dedup Efficiency:    {dedup.get('suppression_efficiency_percent', 'N/A')}% (Reduction: {dedup.get('frame_to_obstacle_reduction_ratio', 'N/A')})")
     print("-"*80)
     print("Environmental Robustness:")
     for cat, vals in scorecard["environmental_robustness"].items():

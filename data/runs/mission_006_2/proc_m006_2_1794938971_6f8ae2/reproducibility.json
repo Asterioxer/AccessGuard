@@ -1,0 +1,38 @@
+{
+  "environment": {
+    "os": "Windows 11 / Linux (Ubuntu 22.04 LTS)",
+    "python": "3.12.1",
+    "node": "v20+",
+    "target_gpu": "NVIDIA RTX 3050 Laptop GPU (4 GB VRAM) / CPU"
+  },
+  "reproduction_commands": [
+    {
+      "step": "Install Backend Dependencies",
+      "command": "pip install -r backend/requirements.txt"
+    },
+    {
+      "step": "Install Frontend Dependencies",
+      "command": "cd frontend && npm install"
+    },
+    {
+      "step": "Run Unified Inference Test Suite",
+      "command": "powershell -Command \"$env:PYTHONPATH='backend'; pytest backend/tests/test_unified_image_processing.py\""
+    },
+    {
+      "step": "Run Complete Backend Test Suite",
+      "command": "powershell -Command \"$env:PYTHONPATH='backend'; pytest backend/tests\""
+    },
+    {
+      "step": "Build Frontend Production Bundle",
+      "command": "cd frontend && npm run build"
+    },
+    {
+      "step": "Run Reality Engine Evaluation",
+      "command": "powershell -Command \"$env:PYTHONPATH='backend'; pytest backend/tests/test_reality_engine.py\""
+    },
+    {
+      "step": "Generate Execution Ledger",
+      "command": "powershell -Command \"$env:PYTHONPATH='backend'; python scripts/generate_mission_006_2_ledger.py\""
+    }
+  ]
+}

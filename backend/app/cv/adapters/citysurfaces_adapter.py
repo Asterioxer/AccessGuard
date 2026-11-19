@@ -195,7 +195,7 @@ class CitySurfacesAdapter(ModelAdapterV2):
                 return AdapterInferenceResult(
                     status=self._status,
                     adapter_name=self.name,
-                    execution_type="heuristic_fallback" if self._is_mock else "model_inference",
+                    execution_type="heuristic_fallback" if self._is_mock else "unavailable",
                     error_message=f"Model not initialized ({self._last_error or 'load failed'})"
                 )
 
@@ -300,12 +300,14 @@ class CitySurfacesAdapter(ModelAdapterV2):
         except Exception as e:
             self._last_error = str(e)
             logger.error(f"CitySurfaces inference failed: {e}")
-            return AdapterInferenceResult(
-                status=AdapterStatus.INFERENCE_FAILED,
+            return AdapterInferenceResult.create_failed(
                 adapter_name=self.name,
                 error_message=str(e),
+                status=AdapterStatus.INFERENCE_FAILED,
                 execution_time_ms=round((time.perf_counter() - start_time) * 1000.0, 2),
-                device_used=self._device
+                device_used=self._device,
+                weight_path=self.model_path if not self._is_mock else None,
+                weight_sha256=self._weight_sha256 if not self._is_mock else None
             )
 
     def health(self) -> AdapterHealth:

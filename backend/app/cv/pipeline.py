@@ -111,42 +111,21 @@ class CVPipeline:
         max_duration_seconds: int = 60
     ) -> List[DetectedBarrier]:
         """
-        Samples keyframes from a short video, detects barriers on each frame,
+        Samples keyframes from a short video, detects barriers on each frame via canonical ImageProcessingService,
         and clusters detections temporally to boost confidence on persistent obstacles.
         """
-        cap = cv2.VideoCapture(str(video_path))
-        if not cap.isOpened():
-            raise ValueError(f"Could not open video file: {video_path}")
-            
-        video_fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
-        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        duration = total_frames / video_fps
-        
-        if duration > max_duration_seconds:
-            cap.release()
-            raise ValueError(f"Video duration ({duration:.1f}s) exceeds maximum allowed {max_duration_seconds}s.")
-            
-        frame_interval = max(1, int(video_fps / sample_fps))
-        frame_idx = 0
-        all_frame_detections: List[Tuple[int, DetectedBarrier]] = []
-        
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
-                
-            if frame_idx % frame_interval == 0:
-                dets = self.adapter.predict(frame)
-                for d in dets:
-                    all_frame_detections.append((frame_idx, d))
-                    
-            frame_idx += 1
-            
-        cap.release()
-        
-        # Cluster detections across video frames by barrier_type and spatial overlap
-        clustered_barriers = self._cluster_video_detections(all_frame_detections, total_frames)
-        return self.calibrate_detections(clustered_barriers)
+        from app.cv.orchestration.image_processing_service import ImageProcessingService
+        from app.cv.adapters.base_v2 import ExecutionPolicy
+        service = ImageProcessingService()
+        result = service.process_video(
+            video_path=video_path,
+            sample_fps=sample_fps,
+            max_duration_seconds=max_duration_seconds,
+            execution_policy=ExecutionPolicy.STRICT_GENUINE if self.adapter_name != "heuristic" else ExecutionPolicy.DEVELOPMENT_FALLBACK,
+            save_media=False,
+            db=None
+        )
+        return self.calibrate_detections(result.detected_barriers)
 
     def _cluster_video_detections(
         self,

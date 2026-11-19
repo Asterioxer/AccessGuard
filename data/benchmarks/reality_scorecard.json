@@ -1,19 +1,120 @@
 {
-  "scorecard_id": "reality_96f02812",
-  "evaluation_timestamp": "2026-11-16T03:06:45Z",
-  "dataset_manifest": "AccessGuard-Indian-Streetscapes-Benchmark-v1.2",
-  "model_version": "v1.2.0",
+  "scorecard_id": "reality_100659c2",
+  "evaluation_timestamp": "2026-11-19T10:27:36Z",
+  "dataset_manifest": "AccessGuard-Indian-Streetscapes-Synthetic-Validation-Suite-v1.2",
+  "dataset_type": "synthetic_validation_suite",
+  "evaluation_category": "synthetic_benchmarking",
+  "real_world_evaluation_distinction": "Synthetic benchmark suite explicitly verifies zero-fallback pipeline mechanics, strict-genuine threshold constraints, and geometric coordinate handling. Real-world physical performance is independently assessed on real-world imagery.",
+  "model_version": "v2.0.0-unified",
   "total_scenes_evaluated": 25,
   "pipeline_execution_rate": 100.0,
+  "execution_integrity": {
+    "total_scenes": 25,
+    "scenes_processed_successfully": 25,
+    "scenes_processing_failed": 0,
+    "successful_executions": 25,
+    "execution_errors": 0,
+    "execution_rate_pct": 100.0,
+    "model_inference_attempts": 50,
+    "model_inference_successes": 50,
+    "model_inference_failures": 0,
+    "unavailable_models": 58,
+    "fallback_executions": 0,
+    "zero_detection_successes": 42,
+    "policy_enforced": "STRICT_GENUINE",
+    "strict_genuine_enforced": true
+  },
+  "model_integrity": {
+    "yolo_adapter": {
+      "status": "READY",
+      "execution_type": "model_inference",
+      "model_family": "YOLOv8",
+      "checkpoint_path": "data/models/yolov8n.onnx",
+      "weight_sha256": "fbb11393b8823050ff79f2ed837eeeab4c51e9d9220da80fd773d94ed7531d76",
+      "mean_latency_ms": 332.55,
+      "error_count": 0,
+      "inferences_attempted": 25,
+      "inferences_succeeded": 25,
+      "inferences_failed": 0,
+      "unavailable_count": 0,
+      "fallback_count": 0,
+      "zero_detection_successes": 19
+    },
+    "rampnet_adapter": {
+      "status": "READY",
+      "execution_type": "model_inference",
+      "model_family": "ConvNeXt-V2",
+      "checkpoint_path": "data/models/rampnet.safetensors",
+      "weight_sha256": "f2119e3becb0b551fa1470f7b7ba85b82122a3f73a6ed2a85609dd57617866b5",
+      "mean_latency_ms": 6248.76,
+      "error_count": 0,
+      "inferences_attempted": 25,
+      "inferences_succeeded": 25,
+      "inferences_failed": 0,
+      "unavailable_count": 0,
+      "fallback_count": 0,
+      "zero_detection_successes": 23
+    },
+    "guidecane_adapter": {
+      "status": "UNAVAILABLE",
+      "execution_type": "unavailable",
+      "model_family": "YOLOv8-GuideCane",
+      "checkpoint_path": null,
+      "weight_sha256": null,
+      "mean_latency_ms": 0.46,
+      "error_count": 25,
+      "inferences_attempted": 0,
+      "inferences_succeeded": 0,
+      "inferences_failed": 0,
+      "unavailable_count": 25,
+      "fallback_count": 0,
+      "zero_detection_successes": 0
+    },
+    "citysurfaces_adapter": {
+      "status": "UNAVAILABLE",
+      "execution_type": "unavailable",
+      "model_family": "CitySurfaces-HRNet",
+      "checkpoint_path": null,
+      "weight_sha256": null,
+      "mean_latency_ms": 0.29,
+      "error_count": 25,
+      "inferences_attempted": 0,
+      "inferences_succeeded": 0,
+      "inferences_failed": 0,
+      "unavailable_count": 25,
+      "fallback_count": 0,
+      "zero_detection_successes": 0
+    },
+    "sidewalk_validator_adapter": {
+      "status": "UNAVAILABLE",
+      "execution_type": "unavailable",
+      "model_family": "DINOv2-Classifier",
+      "checkpoint_path": null,
+      "weight_sha256": null,
+      "mean_latency_ms": 6.06,
+      "error_count": 8,
+      "inferences_attempted": 0,
+      "inferences_succeeded": 0,
+      "inferences_failed": 0,
+      "unavailable_count": 8,
+      "fallback_count": 0,
+      "zero_detection_successes": 0
+    }
+  },
+  "output_integrity": {
+    "expected_calibration_error": 0.4836,
+    "total_predictions": 28,
+    "total_ground_truth": 25
+  },
   "detection_metrics": {
-    "macro_precision": 0.2571,
-    "macro_recall": 0.2333,
-    "macro_f1": 0.2327,
-    "map_50": 0.2364,
-    "map_50_95": 0.0836,
-    "expected_calibration_error": 0.3755,
+    "macro_precision": 0.0,
+    "macro_recall": 0.0,
+    "macro_f1": 0.0,
+    "map_50": 0.0,
+    "map_50_95": 0.0,
+    "expected_calibration_error": 0.4836,
     "total_ground_truth": 25,
-    "total_predictions": 11,
+    "total_predictions": 28,
     "per_class": {
       "construction_obstacle": {
         "ground_truth_count": 8,
@@ -21,6 +122,39 @@
         "true_positives": 0,
         "false_positives": 0,
         "false_negatives": 8,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "curb_ramp_missing": {
+        "ground_truth_count": 0,
+        "prediction_count": 9,
+        "true_positives": 0,
+        "false_positives": 9,
+        "false_negatives": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "curb_ramp_present": {
+        "ground_truth_count": 0,
+        "prediction_count": 2,
+        "true_positives": 0,
+        "false_positives": 2,
+        "false_negatives": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "narrow_sidewalk": {
+        "ground_truth_count": 0,
+        "prediction_count": 1,
+        "true_positives": 0,
+        "false_positives": 1,
+        "false_negatives": 0,
         "precision": 0.0,
         "recall": 0.0,
         "f1_score": 0.0,
@@ -50,63 +184,78 @@
       },
       "stairs": {
         "ground_truth_count": 4,
-        "prediction_count": 7,
-        "true_positives": 2,
-        "false_positives": 5,
-        "false_negatives": 2,
-        "precision": 0.2857,
-        "recall": 0.5,
-        "f1_score": 0.3636,
-        "average_precision": 0.5455
+        "prediction_count": 1,
+        "true_positives": 0,
+        "false_positives": 1,
+        "false_negatives": 4,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
+      },
+      "steep_incline": {
+        "ground_truth_count": 0,
+        "prediction_count": 15,
+        "true_positives": 0,
+        "false_positives": 15,
+        "false_negatives": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
       },
       "surface_damage": {
         "ground_truth_count": 6,
-        "prediction_count": 4,
-        "true_positives": 4,
+        "prediction_count": 0,
+        "true_positives": 0,
         "false_positives": 0,
-        "false_negatives": 2,
-        "precision": 1.0,
-        "recall": 0.6667,
-        "f1_score": 0.8,
-        "average_precision": 0.6364
+        "false_negatives": 6,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "average_precision": 0.0
       }
     }
   },
   "segmentation_metrics": {
-    "mean_iou": 0.5342,
+    "status": "READY",
+    "mean_iou": 0.1558,
     "per_class_miou": {
-      "surface_damage": 0.665,
-      "construction_obstacle": 0.3579,
-      "raised_curb": 0.6099,
-      "stairs": 0.7864,
-      "pole_or_bollard": 0.252
-    }
+      "surface_damage": 0.0,
+      "construction_obstacle": 0.0,
+      "raised_curb": 0.0,
+      "stairs": 0.7791,
+      "pole_or_bollard": 0.0
+    },
+    "execution_mode": "genuine_neural_model",
+    "total_regions_segmented": 58,
+    "scenes_with_masks": 25
   },
   "geospatial_accuracy": {
-    "mean_association_error_meters": 1.85,
-    "percent_correctly_snapped": 94.2
+    "status": "NOT_MEASURED",
+    "reason": "Benchmark scenes lack ground-truth PostGIS segment associations"
   },
   "temporal_deduplication": {
-    "suppression_efficiency_percent": 96.8,
-    "frame_to_obstacle_reduction_ratio": "30:1"
+    "status": "NOT_MEASURED",
+    "reason": "Benchmark consists of single static images; temporal tracking requires multi-frame video sequences"
   },
   "environmental_robustness": {
     "illumination": {
-      "bright_daylight": 0.1429,
+      "bright_daylight": 0.0,
       "harsh_shadows": 0.0,
       "dusk_low_light": 0.0
     },
     "weather": {
-      "dry_pavement": 0.0909,
+      "dry_pavement": 0.0,
       "monsoon_wet_puddle": 0.0
     },
     "camera_angle": {
-      "eye_level_pedestrian": 0.1333,
+      "eye_level_pedestrian": 0.0,
       "chest_height_wheelchair": 0.0,
       "high_angle_cctv": 0.0
     }
   },
-  "failed_predictions_count": 23,
+  "failed_predictions_count": 25,
   "failed_predictions_sample": [
     {
       "sample_id": "in_scene_01_broken_footpath_rebar",
@@ -118,7 +267,88 @@
         0.85,
         0.8
       ],
-      "predictions_generated": [],
+      "predictions_generated": [
+        {
+          "class": "curb_ramp_missing",
+          "confidence": 0.56,
+          "bbox": [
+            0.7479,
+            0.175,
+            0.7625,
+            0.2047
+          ]
+        },
+        {
+          "class": "steep_incline",
+          "confidence": 0.5197,
+          "bbox": [
+            0.5083,
+            0.5875,
+            0.5417,
+            0.6188
+          ]
+        },
+        {
+          "class": "steep_incline",
+          "confidence": 0.517,
+          "bbox": [
+            0.5042,
+            0.4094,
+            0.5354,
+            0.4422
+          ]
+        },
+        {
+          "class": "curb_ramp_missing",
+          "confidence": 0.4554,
+          "bbox": [
+            0.725,
+            0.3516,
+            0.7458,
+            0.3672
+          ]
+        },
+        {
+          "class": "steep_incline",
+          "confidence": 0.4223,
+          "bbox": [
+            0.6375,
+            0.4984,
+            0.6646,
+            0.5109
+          ]
+        },
+        {
+          "class": "curb_ramp_missing",
+          "confidence": 0.4142,
+          "bbox": [
+            0.7146,
+            0.7688,
+            0.7417,
+            0.7953
+          ]
+        },
+        {
+          "class": "steep_incline",
+          "confidence": 0.3924,
+          "bbox": [
+            0.4958,
+            0.6266,
+            0.5167,
+            0.6609
+          ]
+        },
+        {
+          "class": "curb_ramp_missing",
+          "confidence": 0.3699,
+          "bbox": [
+            0.775,
+            0.3547,
+            0.8,
+            0.3641
+          ]
+        }
+      ],
       "environmental_context": {
         "illumination": "bright_daylight",
         "weather": "dry_pavement",
@@ -137,18 +367,7 @@
         0.8,
         0.75
       ],
-      "predictions_generated": [
-        {
-          "class": "stairs",
-          "confidence": 0.83,
-          "bbox": [
-            0.233,
-            0.0,
-            0.84,
-            1.0
-          ]
-        }
-      ],
+      "predictions_generated": [],
       "environmental_context": {
         "illumination": "bright_daylight",
         "weather": "dry_pavement",
@@ -186,18 +405,7 @@
         0.9,
         0.9
       ],
-      "predictions_generated": [
-        {
-          "class": "stairs",
-          "confidence": 0.83,
-          "bbox": [
-            0.527,
-            0.0,
-            0.94,
-            1.0
-          ]
-        }
-      ],
+      "predictions_generated": [],
       "environmental_context": {
         "illumination": "bright_daylight",
         "weather": "dry_pavement",
@@ -216,7 +424,88 @@
         0.9,
         0.85
       ],
-      "predictions_generated": [],
+      "predictions_generated": [
+        {
+          "class": "curb_ramp_missing",
+          "confidence": 0.5605,
+          "bbox": [
+            0.875,
+            0.4703,
+            0.9042,
+            0.4891
+          ]
+        },
+        {
+          "class": "curb_ramp_missing",
+          "confidence": 0.5114,
+          "bbox": [
+            0.7792,
+            0.1781,
+            0.8021,
+            0.2016
+          ]
+        },
+        {
+          "class": "curb_ramp_missing",
+          "confidence": 0.5064,
+          "bbox": [
+            0.725,
+            0.6781,
+            0.7583,
+            0.7047
+          ]
+        },
+        {
+          "class": "steep_incline",
+          "confidence": 0.504,
+          "bbox": [
+            0.6562,
+            0.7375,
+            0.6917,
+            0.7594
+          ]
+        },
+        {
+          "class": "steep_incline",
+          "confidence": 0.4291,
+          "bbox": [
+            0.725,
+            0.3375,
+            0.7583,
+            0.3594
+          ]
+        },
+        {
+          "class": "curb_ramp_missing",
+          "confidence": 0.4245,
+          "bbox": [
+            0.7688,
+            0.4906,
+            0.8063,
+            0.5156
+          ]
+        },
+        {
+          "class": "curb_ramp_missing",
+          "confidence": 0.4107,
+          "bbox": [
+            0.8354,
+            0.7172,
+            0.8542,
+            0.7281
+          ]
+        },
+        {
+          "class": "steep_incline",
+          "confidence": 0.3875,
+          "bbox": [
+            0.5208,
+            0.6922,
+            0.5521,
+            0.7203
+          ]
+        }
+      ],
       "environmental_context": {
         "illumination": "harsh_shadows",
         "weather": "dry_pavement",

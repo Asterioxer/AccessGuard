@@ -103,6 +103,32 @@ def point_near_box(
     return dist <= 0.08
 
 
+SEMANTIC_FAMILIES = [
+    {"curb_ramp_present", "curb_ramp_missing", "curb_ramp_steep", "curb_ramp", "curb", "stairs", "steps"},
+    {"pole_or_bollard", "pole", "bollard", "tree_trunk", "light_post"},
+    {"surface_damage", "pothole", "crack", "uneven_surface", "rough_surface"},
+    {"trash_can", "chair", "table", "bicycle", "motorcycle", "scooter", "shopping_cart"},
+    {"construction_barrier", "fence", "scaffolding", "traffic_cone"},
+]
+
+
+def are_classes_compatible(clsA: Optional[str], clsB: Optional[str]) -> bool:
+    """
+    Checks whether two class labels can belong to the same physical object hypothesis.
+    Prevents merging conflicting independent physical objects (e.g. pole vs stairs).
+    """
+    if not clsA or not clsB:
+        return True
+    a = clsA.lower().strip()
+    b = clsB.lower().strip()
+    if a == b:
+        return True
+    for family in SEMANTIC_FAMILIES:
+        if a in family and b in family:
+            return True
+    return False
+
+
 def cluster_spatial_observations(
     detections_by_adapter: List[Tuple[str, DetectedBarrier]],
     keypoints_by_adapter: List[Tuple[str, PointKeypoint]],
@@ -110,6 +136,7 @@ def cluster_spatial_observations(
 ) -> List[SpatialCluster]:
     """
     Clusters bounding boxes and keypoints from multiple adapters into unified SpatialClusters.
+    Enforces class compatibility so unrelated physical objects are never merged.
     """
     clusters: List[SpatialCluster] = []
     cluster_counter = 0
@@ -120,6 +147,8 @@ def cluster_spatial_observations(
         for cluster in clusters:
             # Check against existing detections in cluster
             for _, existing_barrier in cluster.detections:
+                if not are_classes_compatible(barrier.barrier_type, existing_barrier.barrier_type):
+                    continue
                 iou = calculate_iou(barrier.bbox, existing_barrier.bbox)
                 if iou >= iou_threshold:
                     cluster.detections.append((adapter_name, barrier))
@@ -140,18 +169,19 @@ def cluster_spatial_observations(
         for cluster in clusters:
             if cluster.detections:
                 for _, existing_barrier in cluster.detections:
-                    if point_near_box(kp, existing_barrier.bbox):
+                    if are_classes_compatible(kp.label, existing_barrier.barrier_type) and point_near_box(kp, existing_barrier.bbox):
                         cluster.keypoints.append((adapter_name, kp))
                         assigned = True
                         break
             elif cluster.keypoints:
                 # Keypoint to keypoint distance
                 for _, existing_kp in cluster.keypoints:
-                    dist = np.sqrt((kp.x - existing_kp.x) ** 2 + (kp.y - existing_kp.y) ** 2)
-                    if dist <= 0.06:
-                        cluster.keypoints.append((adapter_name, kp))
-                        assigned = True
-                        break
+                    if are_classes_compatible(kp.label, existing_kp.label):
+                        dist = np.sqrt((kp.x - existing_kp.x) ** 2 + (kp.y - existing_kp.y) ** 2)
+                        if dist <= 0.06:
+                            cluster.keypoints.append((adapter_name, kp))
+                            assigned = True
+                            break
             if assigned:
                 break
 

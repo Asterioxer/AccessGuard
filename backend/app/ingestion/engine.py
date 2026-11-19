@@ -36,8 +36,11 @@ from app.db.models import (
     SegmentedObservation,
     PedestrianSegment,
 )
-from app.cv.pipeline import CVPipeline
-from app.cv.segmentation import HeuristicSegmentationAdapter
+from app.cv.orchestration.image_processing_service import (
+    ImageProcessingService,
+    ImageProcessingRequest,
+)
+from app.cv.adapters.base_v2 import ExecutionPolicy
 from app.gis.spatial_index import snap_point_to_segments
 from app.gis.scoring import calculate_segment_accessibility_score
 from app.core.sanitize import apply_privacy_redaction
@@ -47,9 +50,14 @@ from app.core.logging import logger
 class AcquisitionEngine:
     """
     Central coordinator for acquiring, processing, and indexing external street-level imagery.
+    Delegates all computer vision and persistence to the canonical ImageProcessingService.
     """
 
-    def __init__(self, media_storage_dir: str = "data/uploads"):
+    def __init__(
+        self,
+        media_storage_dir: str = "data/uploads",
+        proc_service: Optional[ImageProcessingService] = None
+    ):
         self.media_storage_dir = Path(media_storage_dir)
         self.media_storage_dir.mkdir(parents=True, exist_ok=True)
 
@@ -62,13 +70,11 @@ class AcquisitionEngine:
             "pexels": PexelsConnector(),
         }
 
-        # CV Pipeline & Hybrid Vision Adapter
-        from app.cv.adapters.hybrid_adapter import HybridVisionAdapter
-        self.hybrid_adapter = HybridVisionAdapter(mode="RESOURCE_CONSTRAINED")
+        # Canonical Unified Image-Processing Service
+        self.proc_service = proc_service or ImageProcessingService(storage_dir=self.media_storage_dir)
+        self.hybrid_adapter = self.proc_service.hybrid_adapter
         self.hybrid_adapter.load()
-        self.cv_pipeline = CVPipeline()
-        self.seg_adapter = HeuristicSegmentationAdapter()
-        self.seg_adapter.load()
+        self.seg_adapter = self.proc_service.seg_adapter
 
     def get_connector(self, provider: str) -> BaseImageryConnector:
         prov = provider.lower()
@@ -109,7 +115,7 @@ class AcquisitionEngine:
         if external_image_id:
             existing = db.query(ImageProvenance).filter(
                 ImageProvenance.provider == provider,
-                ImageProvenance.external_image_id == external_image_id
+                ImageProvenance.external_image_id == str(external_image_id)
             ).first()
             if existing:
                 return True
@@ -176,119 +182,43 @@ class AcquisitionEngine:
                         failed_count += 1
                         continue
 
-                    # 3. Privacy anonymization (blur faces and license plates)
-                    redacted_bgr = apply_privacy_redaction(img_bgr)
+                    # Encode to bytes for canonical ImageProcessingRequest
+                    success_enc, encoded_bytes = cv2.imencode(".jpg", img_bgr)
+                    if not success_enc:
+                        failed_count += 1
+                        continue
+                    img_bytes = encoded_bytes.tobytes()
 
-                    # 4. Save sanitized media file
-                    filename = f"acquired_{item.provider}_{uuid.uuid4().hex[:10]}.jpg"
-                    filepath = self.media_storage_dir / filename
-                    cv2.imwrite(str(filepath), redacted_bgr)
-
-                    # Calculate authentic image SHA-256
-                    import hashlib
-                    with open(filepath, "rb") as f_img:
-                        img_sha256 = hashlib.sha256(f_img.read()).hexdigest()
-
-                    # 5. Run Hybrid Computer Vision Pipeline (YOLO, RampNet, Multi-Expert Fusion)
-                    hybrid_res = self.hybrid_adapter.predict_v2(redacted_bgr)
-                    detections = hybrid_res.detections
-
-                    # 6. Run Segmentation Pipeline (Pixel-Level Contour Masks)
-                    segment_regions = self.seg_adapter.predict_masks(redacted_bgr)
-
-                    # 7. Spatial association with pedestrian segments
                     lon, lat = item.coordinates
-                    segments = db.query(PedestrianSegment).all()
-                    snap_res = snap_point_to_segments(lat, lon, segments)
-                    matched_seg = snap_res[0] if snap_res else None
-                    segment_id = matched_seg.id if matched_seg else None
 
-                    # 8. Create Observation Record
-                    obs = Observation(
-                        contributor_id=None, # Autonomous system observation
-                        segment_id=segment_id,
-                        media_path=str(filepath),
-                        media_type="image",
-                        latitude=lat,
-                        longitude=lon,
-                        status="tentative", # Never auto-mark verified without human review
-                        verification_score=0,
-                        captured_at=datetime.fromisoformat(item.capture_timestamp.replace("Z", "+00:00")) if item.capture_timestamp and "T" in item.capture_timestamp else datetime.now(timezone.utc)
-                    )
-                    db.add(obs)
-                    db.flush()
-
-                    # 9. Create Barrier Detection records
-                    for det in detections:
-                        ymin, xmin, ymax, xmax = det.bbox
-                        b_det = BarrierDetection(
-                            observation_id=obs.id,
-                            barrier_type=det.barrier_type,
-                            confidence=det.confidence,
-                            uncertainty_score=det.uncertainty_score,
-                            is_confirmed=False,
-                            bbox_ymin=ymin,
-                            bbox_xmin=xmin,
-                            bbox_ymax=ymax,
-                            bbox_xmax=xmax,
-                            evidence_json=json.dumps(det.evidence) if det.evidence else "{}"
-                        )
-                        db.add(b_det)
-
-                    # 10. Create Segmented Observation records
-                    for reg in segment_regions:
-                        seg_obs = SegmentedObservation(
-                            observation_id=obs.id,
-                            class_id=reg.class_id,
-                            class_name=reg.class_name,
-                            confidence=reg.confidence,
-                            polygon_json=json.dumps(reg.polygon),
-                            rle_json=json.dumps(reg.rle) if reg.rle else None,
-                            area_ratio=reg.area_ratio,
-                            model_identifier=reg.model_identifier,
-                            model_version=reg.model_version
-                        )
-                        db.add(seg_obs)
-
-                    # 11. Create Image Provenance Record
-                    prov_record = ImageProvenance(
-                        observation_id=obs.id,
-                        provider=item.provider,
+                    # 3. Process image through canonical unified ImageProcessingService
+                    proc_req = ImageProcessingRequest(
+                        image_bytes=img_bytes,
+                        filename=f"acquired_{item.provider}_{item.item_id}.jpg",
                         external_image_id=item.item_id,
-                        sequence_id=item.sequence_id,
-                        capture_timestamp=item.capture_timestamp,
-                        ingestion_timestamp=str(int(time.time())),
+                        source=item.provider,
+                        source_metadata={
+                            **(item.raw_metadata or {}),
+                            "item_id": item.item_id,
+                            "sequence_id": item.sequence_id,
+                            "heading": item.heading,
+                            "attribution": item.attribution,
+                            "license": item.license
+                        },
                         latitude=lat,
                         longitude=lon,
-                        heading=item.heading,
-                        source_attribution=item.attribution,
-                        license_metadata=item.license,
-                        model_version="v2.0.0-hybrid",
-                        raw_metadata_json=json.dumps({
-                            **(item.raw_metadata or {}),
-                            "image_sha256": img_sha256,
-                            "cv_pipeline": "HybridVisionAdapter",
-                            "hybrid_telemetry": hybrid_res.metadata
-                        })
+                        capture_timestamp=item.capture_timestamp,
+                        execution_policy=ExecutionPolicy.STRICT_GENUINE,
+                        enable_privacy_redaction=True,
+                        save_media=True
                     )
-                    db.add(prov_record)
+                    proc_res = self.proc_service.process_image(proc_req, db=db)
 
-                    # 12. Update Segment Accessibility Score
-                    if matched_seg:
-                        # Fetch all active segment detections
-                        all_dets = db.query(BarrierDetection).join(Observation).filter(
-                            Observation.segment_id == matched_seg.id
-                        ).all()
-                        score, grade, breakdown = calculate_segment_accessibility_score(all_dets)
-                        matched_seg.accessibility_score = score
-                        matched_seg.score_grade = grade
-                        breakdown_json = breakdown.model_dump_json() if hasattr(breakdown, "model_dump_json") else json.dumps(breakdown.dict() if hasattr(breakdown, "dict") else str(breakdown))
-                        matched_seg.score_criteria_breakdown = breakdown_json
-                        matched_seg.barrier_count = len(all_dets)
-                        matched_seg.last_evaluated_at = datetime.now(timezone.utc)
-
-                    db.commit()
-                    processed_count += 1
+                    if proc_res.overall_status == "FAILED" and not proc_res.detections:
+                        logger.warning(f"Processing failed for item {item.item_id}: {proc_res.errors}")
+                        failed_count += 1
+                    else:
+                        processed_count += 1
 
                 except Exception as item_err:
                     logger.error(f"Failed processing item {item.item_id} from {item.provider}: {item_err}")

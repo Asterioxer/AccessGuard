@@ -135,7 +135,9 @@ class EvidenceFusionEngine:
 
             if res.mask is not None:
                 surface_mask = res.mask
-                surface_roughness = res.mask.roughness_score
+                surface_roughness = getattr(res.mask, "roughness_score", 0.0)
+            elif res.metadata and "roughness_score" in res.metadata:
+                surface_roughness = float(res.metadata["roughness_score"])
 
         # 2. Cluster observations spatially
         clusters = cluster_spatial_observations(
@@ -163,21 +165,31 @@ class EvidenceFusionEngine:
 
             fused_barriers.append(fused_evidence)
 
-        # 4. If surface roughness indicates severe damage, ensure a surface barrier exists
+        # 4. If surface roughness indicates severe damage, extract actual surface barrier if mask exists
+        # Strict rule: NEVER invent synthetic spatial coordinates (0.60, 0.20, 0.95, 0.80) when no mask exists.
         if surface_roughness > 0.65 and not any(b.canonical_type == "surface_damage" for b in fused_barriers):
-            fused_barriers.append(
-                FusedBarrierEvidence(
-                    id=str(uuid.uuid4())[:8],
-                    canonical_type="surface_damage",
-                    fused_confidence=round(min(0.95, surface_roughness), 4),
-                    uncertainty_score=0.15,
-                    consensus_status="SINGLE_MODEL",
-                    bbox=(0.60, 0.20, 0.95, 0.80),
-                    contributing_adapters=["citysurfaces_adapter"],
-                    verification_state="VERIFIED",
-                    provenance={"roughness_score": surface_roughness, "source": "CitySurfaces"}
-                )
-            )
+            if surface_mask is not None and isinstance(surface_mask, np.ndarray) and np.any(surface_mask > 0):
+                pos = np.argwhere(surface_mask > 0)
+                if len(pos) > 0:
+                    h_m, w_m = surface_mask.shape[:2]
+                    ymin = max(0.0, min(1.0, float(np.min(pos[:, 0])) / h_m))
+                    ymax = max(0.0, min(1.0, float(np.max(pos[:, 0])) / h_m))
+                    xmin = max(0.0, min(1.0, float(np.min(pos[:, 1])) / w_m))
+                    xmax = max(0.0, min(1.0, float(np.max(pos[:, 1])) / w_m))
+
+                    fused_barriers.append(
+                        FusedBarrierEvidence(
+                            id=str(uuid.uuid4())[:8],
+                            canonical_type="surface_damage",
+                            fused_confidence=round(min(0.95, surface_roughness), 4),
+                            uncertainty_score=0.20,
+                            consensus_status="SINGLE_MODEL",
+                            bbox=(round(ymin, 4), round(xmin, 4), round(ymax, 4), round(xmax, 4)),
+                            contributing_adapters=["citysurfaces_adapter"],
+                            verification_state="TENTATIVE",
+                            provenance={"roughness_score": surface_roughness, "source": "CitySurfaces", "mask_derived": True}
+                        )
+                    )
 
         return FusedInferenceResult(
             fused_barriers=fused_barriers,

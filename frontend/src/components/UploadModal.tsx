@@ -12,9 +12,9 @@ interface UploadModalProps {
 export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUploadSuccess }) => {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [latitude, setLatitude] = useState<string>('37.7765');
-  const [longitude, setLongitude] = useState<string>('-122.4194');
-  const [adapter, setAdapter] = useState<string>('heuristic');
+  const [latitude, setLatitude] = useState<string>('');
+  const [longitude, setLongitude] = useState<string>('');
+  const [adapter, setAdapter] = useState<string>('unified');
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
@@ -173,9 +173,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
               onChange={(e) => setAdapter(e.target.value)}
               className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-emerald-500"
             >
-              <option value="heuristic">OpenCV Heuristic Pipeline (Edge, Rung & Texture Analysis)</option>
+              <option value="unified">Unified Inference Engine (Hybrid Vision V2 + Multi-Specialist)</option>
+              <option value="heuristic">OpenCV Heuristic Pipeline (Development Fallback Mode)</option>
+              <option value="yolo">YOLO / ONNX Specialist Adapter</option>
               <option value="torchvision">PyTorch Torchvision Mask R-CNN Adapter</option>
-              <option value="yolo">YOLO / ONNX Interchangeable Model Adapter</option>
               <option value="dummy">Deterministic Benchmark Adapter</option>
             </select>
           </div>

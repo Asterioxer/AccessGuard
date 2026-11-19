@@ -6,6 +6,7 @@ mask confidence estimation, and class taxonomy normalization.
 """
 
 import os
+import hashlib
 from typing import List, Optional
 import cv2
 import numpy as np
@@ -17,6 +18,7 @@ from app.cv.segmentation.base import (
     mask_to_rle,
     CLASS_NAME_TO_ID,
 )
+from app.cv.adapters.base_v2 import AdapterStatus
 from app.cv.segmentation.heuristic_seg_adapter import HeuristicSegmentationAdapter
 from app.core.logging import logger
 
@@ -36,6 +38,8 @@ class YOLOSegmentationAdapter(SegmentationAdapter):
         self.model_path = model_path
         self.confidence_threshold = confidence_threshold
         self.model = None
+        self._weight_sha256: Optional[str] = None
+        self._device: str = "cpu"
         self._fallback = HeuristicSegmentationAdapter()
 
     def load(self) -> bool:
@@ -46,17 +50,36 @@ class YOLOSegmentationAdapter(SegmentationAdapter):
 
             if weights:
                 self.model = YOLO(weights)
-                logger.info(f"Loaded YOLO segmentation model from {weights}")
+                hasher = hashlib.sha256()
+                with open(weights, "rb") as f:
+                    while chunk := f.read(65536):
+                        hasher.update(chunk)
+                self._weight_sha256 = hasher.hexdigest()
+                try:
+                    self._device = str(next(self.model.model.parameters()).device)
+                except Exception:
+                    self._device = "cpu"
+                logger.info(f"Loaded YOLO segmentation model from {weights} (sha256: {self._weight_sha256[:12]}...)")
+                self.is_loaded = True
+                return True
             else:
                 self.model = None
-                logger.info("YOLOSegmentationAdapter using fallback heuristic segmenter.")
-
-            self.is_loaded = True
-            return True
+                self._weight_sha256 = None
+                self._device = "cpu"
+                self.is_loaded = False
+                logger.info("YOLOSegmentationAdapter weights not found; model marked unavailable.")
+                return False
         except Exception as e:
             logger.warning(f"Could not load YOLO segmentation model: {e}")
-            self.is_loaded = True
-            return True
+            self.model = None
+            self.is_loaded = False
+            return False
+
+    @property
+    def status(self) -> AdapterStatus:
+        if self.is_loaded and self.model is not None:
+            return AdapterStatus.READY
+        return AdapterStatus.UNAVAILABLE
 
     def predict_masks(self, image_bgr: np.ndarray) -> List[SegmentedRegion]:
         if not self.is_loaded:
@@ -72,6 +95,7 @@ class YOLOSegmentationAdapter(SegmentationAdapter):
             results = self.model.predict(
                 source=image_bgr,
                 conf=self.confidence_threshold,
+                device="cpu",
                 verbose=False
             )
 
