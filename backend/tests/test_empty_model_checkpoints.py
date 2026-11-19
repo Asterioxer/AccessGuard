@@ -25,4 +25,8 @@ def test_empty_yolo_segmentation_checkpoint_is_unavailable(tmp_path):
 
     assert adapter.load() is False
     assert adapter.is_loaded is False
-    assert adapter.status == AdapterStatus.UNAVAILABLE
+    # Missing weights must not trigger heuristic contour generation.
+    from unittest.mock import Mock
+    adapter._fallback.predict_masks = Mock(side_effect=AssertionError("heuristic fallback must not run"))
+    assert adapter.predict_masks(np.zeros((64, 64, 3), dtype=np.uint8)) == []
+    adapter._fallback.predict_masks.assert_not_called()
