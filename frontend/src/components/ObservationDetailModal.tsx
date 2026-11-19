@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, CheckCircle, AlertTriangle, HelpCircle, ThumbsUp, ThumbsDown, ShieldAlert, FileText, Check } from 'lucide-react';
 import { Observation } from '../types';
 import { api } from '../api/client';
@@ -21,6 +21,18 @@ export const ObservationDetailModal: React.FC<ObservationDetailModalProps> = ({
   const [voteSubmitted, setVoteSubmitted] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
+  const [provenance, setProvenance] = useState<any | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setProvenance(null);
+    if (observation?.id) {
+      api.getObservationProvenance(observation.id)
+        .then((data) => { if (!cancelled) setProvenance(data); })
+        .catch(() => { if (!cancelled) setProvenance(null); });
+    }
+    return () => { cancelled = true; };
+  }, [observation?.id]);
 
   if (!observation) return null;
 
@@ -162,6 +174,33 @@ export const ObservationDetailModal: React.FC<ObservationDetailModalProps> = ({
             <video controls className="max-h-[360px] w-full object-contain">
               <source src={observation.media_url} type="video/mp4" />
             </video>
+          )}
+        </div>
+
+        {/* Provenance and genuine model execution status */}
+        <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-4 mb-6 space-y-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">Processing Provenance</h3>
+          {provenance ? (
+            <>
+              <p className="text-xs text-slate-400">Source: <span className="text-slate-200">{provenance.provider}</span> · Attribution: {provenance.source_attribution || 'Not supplied'}</p>
+              <p className="text-xs text-slate-400">Model pipeline: {provenance.raw_metadata?.execution_policy || 'Not recorded'} · Segmentation: {provenance.raw_metadata?.segmentation_status || 'Not recorded'}</p>
+              {Array.isArray(provenance.raw_metadata?.models_executed) && provenance.raw_metadata.models_executed.length > 0 ? (
+                <div className="space-y-2 pt-1">
+                  {provenance.raw_metadata.models_executed.map((model: any, index: number) => (
+                    <div key={model.adapter_name || index} className="flex flex-wrap items-center justify-between gap-2 text-xs border-t border-slate-700 pt-2">
+                      <span className="text-slate-200">{model.adapter_name || model.model_family}</span>
+                      <span className={model.status === 'READY' ? 'text-emerald-300' : model.status === 'DEGRADED' ? 'text-amber-300' : 'text-rose-300'}>
+                        {model.status || 'UNKNOWN'} · {model.execution_type || 'unreported'} · {model.output_count ?? 0} outputs
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-amber-300">Per-model execution details were not recorded for this media item.</p>
+              )}
+            </>
+          ) : (
+            <p className="text-xs text-amber-300">No provenance record is available. Treat this observation as unverified until its processing source can be established.</p>
           )}
         </div>
 
