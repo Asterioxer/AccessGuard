@@ -91,10 +91,23 @@ docker compose up -d --build
 - API Documentation: http://localhost:8000/docs
 - Health Status: http://localhost:8000/health
 
-Seed sample demo data:
+Initialize local development accounts (no fabricated streets, images, or detections are created):
 ```bash
 docker compose exec backend python /app/scripts/seed_demo_data.py
 ```
+
+The map starts empty by design. Sign in with an administrator account and use **Autonomous → Ingestion → Import real OSM pedestrian ways** with a small bounding box to load OpenStreetMap pedestrian geometry. OSM ways are marked **Unassessed** until genuine street imagery and verification evidence are collected.
+
+If an older local database already contains the three synthetic seed observations, first back up the database, then preview the exact cleanup plan:
+```bash
+# Dry run (no deletions)
+docker compose exec backend python /app/scripts/remove_legacy_demo_fixtures.py
+# Apply only after reviewing the dry-run output and backing up the database
+docker compose exec backend python /app/scripts/remove_legacy_demo_fixtures.py --apply
+```
+This removes only the known legacy fixture IDs and their exact demo media filenames; it preserves any pedestrian segment still referenced by other observations.
+
+Upload real JPEG/PNG photographs or MP4/MOV videos using **Upload Sidewalk Observation**. The default mode is strict genuine inference: if the required model checkpoint is missing, the adapter is reported unavailable rather than silently substituting synthetic detections. The OpenCV heuristic mode is an explicitly selected development fallback only.
 
 ### Option B: Local Development
 #### 1. Backend:
