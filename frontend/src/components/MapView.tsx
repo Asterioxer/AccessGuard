@@ -12,6 +12,15 @@ interface MapViewProps {
   onMapClickCoord?: (coord: { lat: number; lng: number }) => void;
 }
 
+const escapeHtml = (value: string): string =>
+  value.replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[char] || char));
+
 const GRADE_COLORS: Record<string, string> = {
   A: '#10b981', // Emerald green
   B: '#0284c7', // Sky blue
@@ -105,7 +114,7 @@ export const MapView: React.FC<MapViewProps> = ({
         });
 
         polyline.bindTooltip(
-          `<strong>${seg.name}</strong><br/>Score: <b>${seg.accessibility_score}</b> (Grade ${seg.score_grade})`,
+          `<strong>${escapeHtml(seg.name)}</strong><br/>Score: <b>${seg.accessibility_score}</b> (Grade ${escapeHtml(seg.score_grade)})`,
           { sticky: true }
         );
 
