@@ -266,7 +266,7 @@ def test_ingestion_engine_uses_unified_service(db_session, monkeypatch):
 
     # Verify provenance was saved by unified service with run_id and models_executed
     prov = db_session.query(ImageProvenance).filter(
-        ImageProvenance.external_image_id == f"acquired_kartaview_{mock_item.item_id}.jpg"
+        ImageProvenance.external_image_id == mock_item.item_id
     ).first()
     assert prov is not None
     meta = json.loads(prov.raw_metadata_json)
@@ -485,3 +485,140 @@ def test_video_upload_endpoint_unification(client, contributor_token, tmp_path):
     assert data["media_type"] == "video"
     assert data["latitude"] == pytest.approx(28.6129, 0.0001)
     assert data["longitude"] == pytest.approx(77.2295, 0.0001)
+
+
+def test_yolo_adapter_strict_mode_rejects_missing_weights_truthfully():
+    """Verifies YOLOAdapter returns UNAVAILABLE without pretending to succeed when weights are missing."""
+    from app.cv.adapters.yolo_adapter import YOLOAdapter
+
+    adapter = YOLOAdapter(model_path="data/models/nonexistent_yolo_checkpoint.onnx")
+    loaded = adapter.load(allow_fallback=False)
+    assert loaded is False
+    assert adapter._status == AdapterStatus.UNAVAILABLE
+
+    dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
+    res = adapter.predict_v2(dummy_img, allow_fallback=False)
+    assert res.status == AdapterStatus.UNAVAILABLE
+    assert res.execution_type == "unavailable"
+    assert "MODEL_WEIGHTS_NOT_FOUND" in res.error_message
+
+
+def test_sidewalk_validator_unavailable_status_consistency():
+    """Verifies SidewalkValidatorAdapter returns UNAVAILABLE and execution_type='unavailable' when weights absent."""
+    from app.cv.adapters.sidewalk_validator_adapter import SidewalkValidatorAdapter
+
+    val = SidewalkValidatorAdapter(model_path="data/models/nonexistent_validator.pt")
+    loaded = val.load(allow_fallback=False)
+    assert loaded is False
+    assert val.status == AdapterStatus.UNAVAILABLE
+
+    dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
+    res = val.predict_v2(dummy_img, allow_fallback=False)
+    assert res.status == AdapterStatus.UNAVAILABLE
+    assert res.execution_type == "unavailable"
+
+
+def test_selected_adapter_honored_in_unified_pipeline():
+    """Verifies that ImageProcessingRequest honors requested_adapter for yolo, heuristic, and unified."""
+    real_img = "data/processed/demo_stairs.jpg"
+    assert os.path.exists(real_img)
+    with open(real_img, "rb") as f:
+        img_bytes = f.read()
+
+    service = ImageProcessingService()
+
+    # 1. Request YOLO adapter specifically
+    req_yolo = ImageProcessingRequest(
+        image_bytes=img_bytes,
+        filename="stairs.jpg",
+        requested_adapter="yolo",
+        execution_policy=ExecutionPolicy.STRICT_GENUINE,
+        save_media=False
+    )
+    res_yolo = service.process_image(req_yolo)
+    assert len(res_yolo.model_execution_records) == 1
+    assert res_yolo.model_execution_records[0].adapter_name == "yolo_adapter"
+
+    # 2. Request Heuristic adapter specifically
+    req_heur = ImageProcessingRequest(
+        image_bytes=img_bytes,
+        filename="stairs.jpg",
+        requested_adapter="heuristic",
+        execution_policy=ExecutionPolicy.DEVELOPMENT_FALLBACK,
+        save_media=False
+    )
+    res_heur = service.process_image(req_heur)
+    assert len(res_heur.model_execution_records) == 1
+    assert res_heur.model_execution_records[0].adapter_name == "opencv_heuristic_adapter"
+    assert res_heur.model_execution_records[0].execution_type == "heuristic_fallback"
+
+    # 3. Request Unified / Hybrid
+    req_unified = ImageProcessingRequest(
+        image_bytes=img_bytes,
+        filename="stairs.jpg",
+        requested_adapter="unified",
+        execution_policy=ExecutionPolicy.STRICT_GENUINE,
+        save_media=False
+    )
+    res_unified = service.process_image(req_unified)
+    assert len(res_unified.model_execution_records) >= 4
+
+
+def test_ingestion_provider_id_persistence_and_deduplication(db_session):
+    """Verifies autonomous ingestion persists exact provider item_id as external_image_id and blocks duplicates."""
+    from app.ingestion.engine import AcquisitionEngine
+    from app.ingestion.connectors.base import ImageryItem, ImagerySearchResult
+    from app.db.models import IngestionJob, ImageProvenance, Observation
+
+    engine = AcquisitionEngine()
+
+    job = IngestionJob(
+        provider="mapillary",
+        bbox_min_lon=77.20,
+        bbox_min_lat=28.60,
+        bbox_max_lon=77.25,
+        bbox_max_lat=28.65,
+        status="pending"
+    )
+    db_session.add(job)
+    db_session.commit()
+    db_session.refresh(job)
+
+    test_item = ImageryItem(
+        provider="mapillary",
+        item_id="provider_img_998877",
+        url="https://mock.example.com/img.jpg",
+        coordinates=(77.2295, 28.6129),
+        capture_timestamp="2026-11-19T05:00:00Z",
+        heading=90.0,
+        attribution="Mapillary CC-BY-SA",
+        license="CC-BY-SA-4.0"
+    )
+
+    class MockConnector:
+        def search_imagery(self, bbox, limit):
+            return ImagerySearchResult(items=[test_item], total_count=1)
+
+    engine.get_connector = lambda provider: MockConnector()
+    engine._acquire_image_array = lambda connector, item: np.full((120, 160, 3), 150, dtype=np.uint8)
+
+    # Run 1: Should process item
+    engine.execute_job(job.id, db=db_session, max_items=10)
+    assert job.items_processed == 1
+    assert job.items_failed == 0
+
+    prov = db_session.query(ImageProvenance).filter(
+        ImageProvenance.provider == "mapillary",
+        ImageProvenance.external_image_id == "provider_img_998877"
+    ).first()
+    assert prov is not None
+    assert prov.external_image_id == "provider_img_998877"
+
+    # Run 2: Same item repeated; deduplication must catch it
+    engine.execute_job(job.id, db=db_session, max_items=10)
+    obs_count = db_session.query(Observation).count()
+    assert obs_count == 1
+    prov_count = db_session.query(ImageProvenance).filter(
+        ImageProvenance.external_image_id == "provider_img_998877"
+    ).count()
+    assert prov_count == 1

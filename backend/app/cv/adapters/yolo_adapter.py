@@ -34,58 +34,111 @@ class YOLOAdapter(ModelAdapter):
         self._device = "cpu"
         self._weight_sha256: Optional[str] = None
         self._status: AdapterStatus = AdapterStatus.NOT_LOADED
+        self._is_mock: bool = False
+        self._last_error: Optional[str] = None
+        self.onnx_subadapter = None
 
-    def load(self) -> bool:
-        """Loads Ultralytics YOLO model from weights file or pretrained baseline."""
+    def load(self, allow_fallback: bool = False) -> bool:
+        """Loads Ultralytics YOLO model from weights file or ONNX runtime."""
         import hashlib
         try:
-            # Check if ONNX model exists first for pure C++ hardware acceleration without torchvision::nms issues
             onnx_default = "data/models/yolov8n.onnx"
-            chosen_path = None
-            if self.model_path and self.model_path.endswith(".onnx") and os.path.exists(self.model_path):
-                chosen_path = self.model_path
-            elif os.path.exists(onnx_default):
-                chosen_path = onnx_default
+            pt_default = "data/models/yolov8n.pt"
 
-            if chosen_path:
+            # If explicit model path provided
+            if self.model_path:
+                if not os.path.exists(self.model_path):
+                    self._last_error = f"UNAVAILABLE: MODEL_WEIGHTS_NOT_FOUND ({self.model_path})"
+                    if allow_fallback:
+                        self.is_initialized = True
+                        self._is_mock = True
+                        self._status = AdapterStatus.DEGRADED
+                        return True
+                    else:
+                        self.is_initialized = False
+                        self._is_mock = False
+                        self._status = AdapterStatus.UNAVAILABLE
+                        return False
+
+                if self.model_path.endswith(".onnx"):
+                    from app.cv.adapters.onnx_adapter import ONNXAdapter
+                    self.onnx_subadapter = ONNXAdapter(self.model_path)
+                    if self.onnx_subadapter.load():
+                        self.is_initialized = True
+                        self._status = AdapterStatus.READY
+                        self._is_mock = False
+                        with open(self.model_path, "rb") as f_w:
+                            self._weight_sha256 = hashlib.sha256(f_w.read()).hexdigest()
+                        return True
+                    else:
+                        self._last_error = f"UNAVAILABLE: ONNX_LOAD_FAILED ({self.model_path})"
+                        self.is_initialized = False
+                        self._is_mock = False
+                        self._status = AdapterStatus.UNAVAILABLE
+                        return False
+                else:
+                    from ultralytics import YOLO
+                    self.model = YOLO(self.model_path)
+                    self.is_initialized = True
+                    self._status = AdapterStatus.READY
+                    self._is_mock = False
+                    with open(self.model_path, "rb") as f_w:
+                        self._weight_sha256 = hashlib.sha256(f_w.read()).hexdigest()
+                    return True
+
+            # Default search order: ONNX first, then PyTorch weights
+            if os.path.exists(onnx_default):
                 from app.cv.adapters.onnx_adapter import ONNXAdapter
-                self.onnx_subadapter = ONNXAdapter(chosen_path)
-                self.onnx_subadapter.load()
-                self.model_path = chosen_path
+                self.onnx_subadapter = ONNXAdapter(onnx_default)
+                if self.onnx_subadapter.load():
+                    self.model_path = onnx_default
+                    self.is_initialized = True
+                    self._status = AdapterStatus.READY
+                    self._is_mock = False
+                    with open(onnx_default, "rb") as f_w:
+                        self._weight_sha256 = hashlib.sha256(f_w.read()).hexdigest()
+                    return True
+
+            if os.path.exists(pt_default):
+                from ultralytics import YOLO
+                self.model = YOLO(pt_default)
+                self.model_path = pt_default
                 self.is_initialized = True
                 self._status = AdapterStatus.READY
-                try:
-                    with open(chosen_path, "rb") as f_w:
-                        self._weight_sha256 = hashlib.sha256(f_w.read()).hexdigest()
-                except Exception:
-                    pass
+                self._is_mock = False
+                with open(pt_default, "rb") as f_w:
+                    self._weight_sha256 = hashlib.sha256(f_w.read()).hexdigest()
                 return True
 
-            from ultralytics import YOLO
-            if self.model_path and os.path.exists(self.model_path):
-                self.model = YOLO(self.model_path)
-                chosen_path = self.model_path
-                logger.info(f"Loaded custom YOLO model from {self.model_path}")
+            # If neither onnx nor pt weights exist
+            self._last_error = "UNAVAILABLE: MODEL_WEIGHTS_NOT_FOUND (yolov8n.onnx / yolov8n.pt)"
+            if allow_fallback:
+                logger.info("YOLO weights not found locally; running in fallback mode.")
+                self.is_initialized = True
+                self._is_mock = True
+                self._status = AdapterStatus.DEGRADED
+                return True
             else:
-                logger.info("YOLOAdapter initialized with lightweight YOLOv8n baseline.")
-                chosen_path = "data/models/yolov8n.pt" if os.path.exists("data/models/yolov8n.pt") else "yolov8n.pt"
-                self.model = YOLO(chosen_path)
+                self.is_initialized = False
+                self._is_mock = False
+                self._status = AdapterStatus.UNAVAILABLE
+                logger.warning("YOLO weights not found; model marked UNAVAILABLE.")
+                return False
 
-            if chosen_path and os.path.exists(chosen_path):
-                try:
-                    with open(chosen_path, "rb") as f_w:
-                        self._weight_sha256 = hashlib.sha256(f_w.read()).hexdigest()
-                except Exception:
-                    pass
-
-            self.is_initialized = True
-            self._status = AdapterStatus.READY
-            return True
         except Exception as e:
-            logger.warning(f"Could not initialize Ultralytics YOLO ({e}); running in fallback mode.")
-            self.is_initialized = True
-            self._status = AdapterStatus.READY
-            return True
+            self._last_error = f"UNAVAILABLE: MODEL_LOAD_FAILED ({e})"
+            if allow_fallback:
+                logger.warning(f"Could not initialize YOLO ({e}); running in fallback mode.")
+                self.is_initialized = True
+                self._is_mock = True
+                self._status = AdapterStatus.DEGRADED
+                return True
+            else:
+                self.is_initialized = False
+                self._is_mock = False
+                self._status = AdapterStatus.UNAVAILABLE
+                logger.warning(f"Could not load YOLO ({e}); marked UNAVAILABLE.")
+                return False
 
     def predict(self, image_bgr: np.ndarray) -> List[DetectedBarrier]:
         """Runs inference on a single BGR image array."""
@@ -158,19 +211,37 @@ class YOLOAdapter(ModelAdapter):
             logger.warning(f"Error during YOLO prediction ({e}); returning empty detections.")
             return []
 
-    def predict_v2(self, image_bgr: np.ndarray, **kwargs):
+    def predict_v2(self, image_bgr: np.ndarray, allow_fallback: bool = False, **kwargs):
         """Unified AdapterInferenceResult return for Evidence Fusion."""
         from app.cv.adapters.base_v2 import AdapterInferenceResult, AdapterStatus
         import time
 
         start_time = time.perf_counter()
+
+        if self._status not in (AdapterStatus.READY, AdapterStatus.DEGRADED):
+            if not self.load(allow_fallback=allow_fallback):
+                return AdapterInferenceResult(
+                    status=self._status,
+                    adapter_name=self.name,
+                    execution_type="heuristic_fallback" if self._is_mock else "unavailable",
+                    error_message=f"Model not initialized ({self._last_error or 'load failed'})",
+                    execution_time_ms=round((time.perf_counter() - start_time) * 1000.0, 2),
+                    device_used=self._device
+                )
+
         detections = self.predict(image_bgr)
         latency = (time.perf_counter() - start_time) * 1000.0
 
+        exec_type = "heuristic_fallback" if self._is_mock else "model_inference"
+
         return AdapterInferenceResult(
-            status=AdapterStatus.READY,
+            status=self._status,
             adapter_name=self.name,
             detections=detections,
             execution_time_ms=round(latency, 2),
-            device_used="cpu"
+            device_used=self._device,
+            execution_type=exec_type,
+            weight_path=self.model_path if not self._is_mock else None,
+            weight_sha256=self._weight_sha256 if not self._is_mock else None,
+            upstream_repo="https://github.com/ultralytics/ultralytics"
         )

@@ -62,8 +62,10 @@ class ImageProcessingRequest:
     """Canonical request payload for image processing."""
     image_bytes: bytes
     filename: str = "image.jpg"
+    external_image_id: Optional[str] = None
     source: str = "user_upload"                       # "user_upload", "mapillary", "kartaview", "live_stream", "benchmark"
     source_metadata: Dict[str, Any] = field(default_factory=dict)
+    requested_adapter: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     capture_timestamp: Optional[str] = None
@@ -352,166 +354,315 @@ class ImageProcessingService:
         allow_dev_fallback = (request.execution_policy == ExecutionPolicy.DEVELOPMENT_FALLBACK)
         hybrid_exec_start = time.perf_counter()
 
-        # Execute YOLO Specialist
-        t0 = time.perf_counter()
-        r_yolo = self.hybrid_adapter.yolo_adapter.predict_v2(redacted_bgr)
-        t_yolo = (time.perf_counter() - t0) * 1000.0
-        model_exec_records.append(ModelExecutionRecord(
-            adapter_name=self.hybrid_adapter.yolo_adapter.name,
-            model_family="YOLOv8",
-            upstream_repo="https://github.com/ultralytics/ultralytics",
-            checkpoint_path=getattr(self.hybrid_adapter.yolo_adapter, "model_path", None),
-            weight_sha256=getattr(self.hybrid_adapter.yolo_adapter, "_weight_sha256", None),
-            model_architecture="YOLOv8n-Detection",
-            model_version=getattr(self.hybrid_adapter.yolo_adapter, "version", "1.2.0"),
-            class_mapping_version="v1.2",
-            device_used=getattr(self.hybrid_adapter.yolo_adapter, "_device", "cpu"),
-            execution_type="model_inference" if r_yolo.is_successful else "failed",
-            execution_time_ms=round(t_yolo, 2),
-            input_dimensions=(w, h),
-            output_count=len(r_yolo.detections),
-            status=r_yolo.status.value,
-            warnings=[] if r_yolo.is_successful else ["YOLO inference returned non-ready status."],
-            errors=[r_yolo.error_message] if r_yolo.error_message else []
-        ))
+        req_adapter = (
+            request.requested_adapter
+            or request.source_metadata.get("requested_adapter")
+            or "unified"
+        ).lower().strip()
 
-        # Execute RampNet Specialist (ConvNeXt-V2)
-        t0 = time.perf_counter()
-        r_ramp = self.hybrid_adapter.rampnet_adapter.predict_v2(
-            redacted_bgr,
-            allow_fallback=allow_dev_fallback
-        )
-        t_ramp = (time.perf_counter() - t0) * 1000.0
-        model_exec_records.append(ModelExecutionRecord(
-            adapter_name=self.hybrid_adapter.rampnet_adapter.name,
-            model_family="ConvNeXt-V2",
-            upstream_repo="https://github.com/ProjectSidewalk/RampNet",
-            checkpoint_path=getattr(self.hybrid_adapter.rampnet_adapter, "_weight_path", None),
-            weight_sha256=getattr(self.hybrid_adapter.rampnet_adapter, "_weight_sha256", None),
-            model_architecture="KeypointModel(convnextv2_base)",
-            model_version=getattr(self.hybrid_adapter.rampnet_adapter, "version", "1.1.0"),
-            class_mapping_version="v2.0",
-            device_used=getattr(self.hybrid_adapter.rampnet_adapter, "_device", "cpu"),
-            execution_type=r_ramp.execution_type,
-            execution_time_ms=round(t_ramp, 2),
-            input_dimensions=(w, h),
-            output_count=len(r_ramp.keypoints),
-            status=r_ramp.status.value,
-            warnings=[] if r_ramp.is_successful else ["RampNet not available or degraded."],
-            errors=[r_ramp.error_message] if r_ramp.error_message else []
-        ))
+        # Track specialist latencies
+        t_yolo = t_ramp = t_guide = t_city = t_val = 0.0
+        valid_fused_barriers = []
 
-        # Execute GuideCane Specialist
-        t0 = time.perf_counter()
-        r_guide = self.hybrid_adapter.guidecane_adapter.predict_v2(
-            redacted_bgr,
-            allow_fallback=allow_dev_fallback
-        )
-        t_guide = (time.perf_counter() - t0) * 1000.0
-        model_exec_records.append(ModelExecutionRecord(
-            adapter_name=self.hybrid_adapter.guidecane_adapter.name,
-            model_family="YOLOv8-GuideCane",
-            upstream_repo="https://github.com/yolo0731/GuideCaneOD",
-            checkpoint_path=getattr(self.hybrid_adapter.guidecane_adapter, "model_path", None),
-            weight_sha256=getattr(self.hybrid_adapter.guidecane_adapter, "_weight_sha256", None),
-            model_architecture="GuideCane-17Class-Obstacle",
-            model_version=getattr(self.hybrid_adapter.guidecane_adapter, "version", "1.0.0"),
-            class_mapping_version="v1.0",
-            device_used=getattr(self.hybrid_adapter.guidecane_adapter, "_device", "cpu"),
-            execution_type=r_guide.execution_type,
-            execution_time_ms=round(t_guide, 2),
-            input_dimensions=(w, h),
-            output_count=len(r_guide.detections),
-            status=r_guide.status.value,
-            warnings=[] if r_guide.is_successful else ["GuideCane weights not found; specialist omitted from fusion."],
-            errors=[r_guide.error_message] if r_guide.error_message else []
-        ))
-
-        # Execute CitySurfaces Specialist
-        t0 = time.perf_counter()
-        r_city = self.hybrid_adapter.citysurfaces_adapter.predict_v2(
-            redacted_bgr,
-            allow_fallback=allow_dev_fallback
-        )
-        t_city = (time.perf_counter() - t0) * 1000.0
-        model_exec_records.append(ModelExecutionRecord(
-            adapter_name=self.hybrid_adapter.citysurfaces_adapter.name,
-            model_family="CitySurfaces-HRNet",
-            upstream_repo="https://github.com/VIDA-NYU/city-surfaces",
-            checkpoint_path=getattr(self.hybrid_adapter.citysurfaces_adapter, "model_path", None),
-            weight_sha256=getattr(self.hybrid_adapter.citysurfaces_adapter, "_weight_sha256", None),
-            model_architecture="CitySurfaces-10Class-Roughness",
-            model_version=getattr(self.hybrid_adapter.citysurfaces_adapter, "version", "1.0.0"),
-            class_mapping_version="v1.0",
-            device_used=getattr(self.hybrid_adapter.citysurfaces_adapter, "_device", "cpu"),
-            execution_type=r_city.execution_type,
-            execution_time_ms=round(t_city, 2),
-            input_dimensions=(w, h),
-            output_count=1 if r_city.mask else 0,
-            status=r_city.status.value,
-            warnings=[] if r_city.is_successful else ["CitySurfaces weights missing; surface roughness not measured."],
-            errors=[r_city.error_message] if r_city.error_message else []
-        ))
-
-        # Execute Sidewalk Validator on Candidate Crop
-        validator_verdict: Optional[VerificationVerdict] = None
-        t_val = 0.0
-        if self.hybrid_adapter.enable_validator:
+        if req_adapter in ("yolo", "onnx"):
+            # Execute only requested YOLO Specialist
             t0 = time.perf_counter()
-            candidate_crop = None
-            candidate_type = "curb_ramp_present"
+            r_yolo = self.hybrid_adapter.yolo_adapter.predict_v2(
+                redacted_bgr,
+                allow_fallback=allow_dev_fallback
+            )
+            t_yolo = (time.perf_counter() - t0) * 1000.0
+            model_exec_records.append(ModelExecutionRecord(
+                adapter_name=self.hybrid_adapter.yolo_adapter.name,
+                model_family="YOLOv8",
+                upstream_repo="https://github.com/ultralytics/ultralytics",
+                checkpoint_path=getattr(self.hybrid_adapter.yolo_adapter, "model_path", None),
+                weight_sha256=getattr(self.hybrid_adapter.yolo_adapter, "_weight_sha256", None),
+                model_architecture="YOLOv8n-Detection",
+                model_version=getattr(self.hybrid_adapter.yolo_adapter, "version", "1.2.0"),
+                class_mapping_version="v1.2",
+                device_used=getattr(self.hybrid_adapter.yolo_adapter, "_device", "cpu"),
+                execution_type=r_yolo.execution_type,
+                execution_time_ms=round(t_yolo, 2),
+                input_dimensions=(w, h),
+                output_count=len(r_yolo.detections),
+                status=r_yolo.status.value,
+                warnings=[] if r_yolo.is_successful else ["YOLO inference returned non-ready status."],
+                errors=[r_yolo.error_message] if r_yolo.error_message else []
+            ))
+            final_detections = r_yolo.detections
 
-            if r_ramp.keypoints:
-                candidate_crop = r_ramp.keypoints[0].to_detected_barrier().bbox
+        elif req_adapter in ("rampnet", "convnextv2"):
+            # Execute only requested RampNet Specialist
+            t0 = time.perf_counter()
+            r_ramp = self.hybrid_adapter.rampnet_adapter.predict_v2(
+                redacted_bgr,
+                allow_fallback=allow_dev_fallback
+            )
+            t_ramp = (time.perf_counter() - t0) * 1000.0
+            model_exec_records.append(ModelExecutionRecord(
+                adapter_name=self.hybrid_adapter.rampnet_adapter.name,
+                model_family="ConvNeXt-V2",
+                upstream_repo="https://github.com/ProjectSidewalk/RampNet",
+                checkpoint_path=getattr(self.hybrid_adapter.rampnet_adapter, "_weight_path", None),
+                weight_sha256=getattr(self.hybrid_adapter.rampnet_adapter, "_weight_sha256", None),
+                model_architecture="KeypointModel(convnextv2_base)",
+                model_version=getattr(self.hybrid_adapter.rampnet_adapter, "version", "1.1.0"),
+                class_mapping_version="v2.0",
+                device_used=getattr(self.hybrid_adapter.rampnet_adapter, "_device", "cpu"),
+                execution_type=r_ramp.execution_type,
+                execution_time_ms=round(t_ramp, 2),
+                input_dimensions=(w, h),
+                output_count=len(r_ramp.keypoints),
+                status=r_ramp.status.value,
+                warnings=[] if r_ramp.is_successful else ["RampNet not available or degraded."],
+                errors=[r_ramp.error_message] if r_ramp.error_message else []
+            ))
+            final_detections = [kp.to_detected_barrier() for kp in r_ramp.keypoints]
+
+        elif req_adapter in ("heuristic", "fallback"):
+            from app.cv.adapters.heuristic_adapter import HeuristicCVAdapter
+            heur = HeuristicCVAdapter()
+            t0 = time.perf_counter()
+            detections = heur.predict(redacted_bgr)
+            t_heur = (time.perf_counter() - t0) * 1000.0
+            model_exec_records.append(ModelExecutionRecord(
+                adapter_name=heur.name,
+                model_family="OpenCV-Morphological",
+                upstream_repo="internal",
+                checkpoint_path=None,
+                weight_sha256=None,
+                model_architecture="HeuristicContourDetector",
+                model_version=getattr(heur, "version", "1.0.0"),
+                class_mapping_version="v1.0",
+                device_used="cpu",
+                execution_type="heuristic_fallback",
+                execution_time_ms=round(t_heur, 2),
+                input_dimensions=(w, h),
+                output_count=len(detections),
+                status="DEGRADED",
+                warnings=["Operating in requested OpenCV heuristic fallback mode."],
+                errors=[]
+            ))
+            final_detections = detections
+
+        elif req_adapter == "torchvision":
+            from app.cv.adapters.torchvision_adapter import TorchvisionAdapter
+            tv = TorchvisionAdapter()
+            t0 = time.perf_counter()
+            detections = tv.predict(redacted_bgr)
+            t_tv = (time.perf_counter() - t0) * 1000.0
+            model_exec_records.append(ModelExecutionRecord(
+                adapter_name=tv.name,
+                model_family="MaskRCNN-ResNet50",
+                upstream_repo="torchvision",
+                checkpoint_path=None,
+                weight_sha256=None,
+                model_architecture="MaskRCNN",
+                model_version=getattr(tv, "version", "1.0.0"),
+                class_mapping_version="v1.0",
+                device_used="cpu",
+                execution_type="model_inference" if tv.is_initialized else "heuristic_fallback",
+                execution_time_ms=round(t_tv, 2),
+                input_dimensions=(w, h),
+                output_count=len(detections),
+                status="READY" if tv.is_initialized else "DEGRADED",
+                warnings=[] if tv.is_initialized else ["Torchvision running in fallback mode."],
+                errors=[]
+            ))
+            final_detections = detections
+
+        elif req_adapter == "dummy":
+            from app.cv.adapters.dummy_adapter import DummyAdapter
+            dum = DummyAdapter()
+            t0 = time.perf_counter()
+            detections = dum.predict(redacted_bgr)
+            t_dum = (time.perf_counter() - t0) * 1000.0
+            model_exec_records.append(ModelExecutionRecord(
+                adapter_name=dum.name,
+                model_family="Deterministic-Benchmark",
+                upstream_repo="internal",
+                checkpoint_path=None,
+                weight_sha256=None,
+                model_architecture="DummyBenchmarkAdapter",
+                model_version=getattr(dum, "version", "1.0.0"),
+                class_mapping_version="v1.0",
+                device_used="cpu",
+                execution_type="heuristic_fallback",
+                execution_time_ms=round(t_dum, 2),
+                input_dimensions=(w, h),
+                output_count=len(detections),
+                status="READY",
+                warnings=["Deterministic dummy benchmark adapter executed."],
+                errors=[]
+            ))
+            final_detections = detections
+
+        else:
+            # Full Unified Hybrid Vision Pipeline with Multi-Model Evidence Fusion
+            # Execute YOLO Specialist
+            t0 = time.perf_counter()
+            r_yolo = self.hybrid_adapter.yolo_adapter.predict_v2(
+                redacted_bgr,
+                allow_fallback=allow_dev_fallback
+            )
+            t_yolo = (time.perf_counter() - t0) * 1000.0
+            model_exec_records.append(ModelExecutionRecord(
+                adapter_name=self.hybrid_adapter.yolo_adapter.name,
+                model_family="YOLOv8",
+                upstream_repo="https://github.com/ultralytics/ultralytics",
+                checkpoint_path=getattr(self.hybrid_adapter.yolo_adapter, "model_path", None),
+                weight_sha256=getattr(self.hybrid_adapter.yolo_adapter, "_weight_sha256", None),
+                model_architecture="YOLOv8n-Detection",
+                model_version=getattr(self.hybrid_adapter.yolo_adapter, "version", "1.2.0"),
+                class_mapping_version="v1.2",
+                device_used=getattr(self.hybrid_adapter.yolo_adapter, "_device", "cpu"),
+                execution_type=r_yolo.execution_type,
+                execution_time_ms=round(t_yolo, 2),
+                input_dimensions=(w, h),
+                output_count=len(r_yolo.detections),
+                status=r_yolo.status.value,
+                warnings=[] if r_yolo.is_successful else ["YOLO inference returned non-ready status."],
+                errors=[r_yolo.error_message] if r_yolo.error_message else []
+            ))
+
+            # Execute RampNet Specialist (ConvNeXt-V2)
+            t0 = time.perf_counter()
+            r_ramp = self.hybrid_adapter.rampnet_adapter.predict_v2(
+                redacted_bgr,
+                allow_fallback=allow_dev_fallback
+            )
+            t_ramp = (time.perf_counter() - t0) * 1000.0
+            model_exec_records.append(ModelExecutionRecord(
+                adapter_name=self.hybrid_adapter.rampnet_adapter.name,
+                model_family="ConvNeXt-V2",
+                upstream_repo="https://github.com/ProjectSidewalk/RampNet",
+                checkpoint_path=getattr(self.hybrid_adapter.rampnet_adapter, "_weight_path", None),
+                weight_sha256=getattr(self.hybrid_adapter.rampnet_adapter, "_weight_sha256", None),
+                model_architecture="KeypointModel(convnextv2_base)",
+                model_version=getattr(self.hybrid_adapter.rampnet_adapter, "version", "1.1.0"),
+                class_mapping_version="v2.0",
+                device_used=getattr(self.hybrid_adapter.rampnet_adapter, "_device", "cpu"),
+                execution_type=r_ramp.execution_type,
+                execution_time_ms=round(t_ramp, 2),
+                input_dimensions=(w, h),
+                output_count=len(r_ramp.keypoints),
+                status=r_ramp.status.value,
+                warnings=[] if r_ramp.is_successful else ["RampNet not available or degraded."],
+                errors=[r_ramp.error_message] if r_ramp.error_message else []
+            ))
+
+            # Execute GuideCane Specialist
+            t0 = time.perf_counter()
+            r_guide = self.hybrid_adapter.guidecane_adapter.predict_v2(
+                redacted_bgr,
+                allow_fallback=allow_dev_fallback
+            )
+            t_guide = (time.perf_counter() - t0) * 1000.0
+            model_exec_records.append(ModelExecutionRecord(
+                adapter_name=self.hybrid_adapter.guidecane_adapter.name,
+                model_family="YOLOv8-GuideCane",
+                upstream_repo="https://github.com/yolo0731/GuideCaneOD",
+                checkpoint_path=getattr(self.hybrid_adapter.guidecane_adapter, "model_path", None),
+                weight_sha256=getattr(self.hybrid_adapter.guidecane_adapter, "_weight_sha256", None),
+                model_architecture="GuideCane-17Class-Obstacle",
+                model_version=getattr(self.hybrid_adapter.guidecane_adapter, "version", "1.0.0"),
+                class_mapping_version="v1.0",
+                device_used=getattr(self.hybrid_adapter.guidecane_adapter, "_device", "cpu"),
+                execution_type=r_guide.execution_type,
+                execution_time_ms=round(t_guide, 2),
+                input_dimensions=(w, h),
+                output_count=len(r_guide.detections),
+                status=r_guide.status.value,
+                warnings=[] if r_guide.is_successful else ["GuideCane weights not found; specialist omitted from fusion."],
+                errors=[r_guide.error_message] if r_guide.error_message else []
+            ))
+
+            # Execute CitySurfaces Specialist
+            t0 = time.perf_counter()
+            r_city = self.hybrid_adapter.citysurfaces_adapter.predict_v2(
+                redacted_bgr,
+                allow_fallback=allow_dev_fallback
+            )
+            t_city = (time.perf_counter() - t0) * 1000.0
+            model_exec_records.append(ModelExecutionRecord(
+                adapter_name=self.hybrid_adapter.citysurfaces_adapter.name,
+                model_family="CitySurfaces-HRNet",
+                upstream_repo="https://github.com/VIDA-NYU/city-surfaces",
+                checkpoint_path=getattr(self.hybrid_adapter.citysurfaces_adapter, "model_path", None),
+                weight_sha256=getattr(self.hybrid_adapter.citysurfaces_adapter, "_weight_sha256", None),
+                model_architecture="CitySurfaces-10Class-Roughness",
+                model_version=getattr(self.hybrid_adapter.citysurfaces_adapter, "version", "1.0.0"),
+                class_mapping_version="v1.0",
+                device_used=getattr(self.hybrid_adapter.citysurfaces_adapter, "_device", "cpu"),
+                execution_type=r_city.execution_type,
+                execution_time_ms=round(t_city, 2),
+                input_dimensions=(w, h),
+                output_count=1 if r_city.mask else 0,
+                status=r_city.status.value,
+                warnings=[] if r_city.is_successful else ["CitySurfaces weights missing; surface roughness not measured."],
+                errors=[r_city.error_message] if r_city.error_message else []
+            ))
+
+            # Execute Sidewalk Validator on Candidate Crop
+            validator_verdict: Optional[VerificationVerdict] = None
+            t_val = 0.0
+            if self.hybrid_adapter.enable_validator:
+                t0 = time.perf_counter()
+                candidate_crop = None
                 candidate_type = "curb_ramp_present"
-            elif r_yolo.detections:
-                candidate_crop = r_yolo.detections[0].bbox
-                candidate_type = r_yolo.detections[0].barrier_type
 
-            if candidate_crop is not None:
-                r_val = self.hybrid_adapter.validator_adapter.predict_v2(
-                    redacted_bgr,
-                    candidate_label=candidate_type,
-                    crop_box=candidate_crop,
-                    allow_fallback=allow_dev_fallback
-                )
-                validator_verdict = r_val.verification
-                t_val = (time.perf_counter() - t0) * 1000.0
-                model_exec_records.append(ModelExecutionRecord(
-                    adapter_name=self.hybrid_adapter.validator_adapter.name,
-                    model_family="DINOv2-Classifier",
-                    upstream_repo="https://github.com/ProjectSidewalk/sidewalk-validator-ai",
-                    checkpoint_path=getattr(self.hybrid_adapter.validator_adapter, "model_path", None),
-                    weight_sha256=getattr(self.hybrid_adapter.validator_adapter, "_weight_sha256", None),
-                    model_architecture="DINOv2-SidewalkValidator",
-                    model_version=getattr(self.hybrid_adapter.validator_adapter, "version", "1.0.0"),
-                    class_mapping_version="v1.0",
-                    device_used=getattr(self.hybrid_adapter.validator_adapter, "_device", "cpu"),
-                    execution_type=r_val.execution_type,
-                    execution_time_ms=round(t_val, 2),
-                    input_dimensions=(w, h),
-                    output_count=1 if validator_verdict else 0,
-                    status=r_val.status.value,
-                    warnings=[] if r_val.is_successful else ["Validator unavailable; candidates marked tentative."],
-                    errors=[r_val.error_message] if r_val.error_message else []
-                ))
+                if r_ramp.keypoints:
+                    candidate_crop = r_ramp.keypoints[0].to_detected_barrier().bbox
+                    candidate_type = "curb_ramp_present"
+                elif r_yolo.detections:
+                    candidate_crop = r_yolo.detections[0].bbox
+                    candidate_type = r_yolo.detections[0].barrier_type
+
+                if candidate_crop is not None:
+                    r_val = self.hybrid_adapter.validator_adapter.predict_v2(
+                        redacted_bgr,
+                        candidate_label=candidate_type,
+                        crop_box=candidate_crop,
+                        allow_fallback=allow_dev_fallback
+                    )
+                    validator_verdict = r_val.verification
+                    t_val = (time.perf_counter() - t0) * 1000.0
+                    model_exec_records.append(ModelExecutionRecord(
+                        adapter_name=self.hybrid_adapter.validator_adapter.name,
+                        model_family="DINOv2-Classifier",
+                        upstream_repo="https://github.com/ProjectSidewalk/sidewalk-validator-ai",
+                        checkpoint_path=getattr(self.hybrid_adapter.validator_adapter, "model_path", None),
+                        weight_sha256=getattr(self.hybrid_adapter.validator_adapter, "_weight_sha256", None),
+                        model_architecture="DINOv2-SidewalkValidator",
+                        model_version=getattr(self.hybrid_adapter.validator_adapter, "version", "1.0.0"),
+                        class_mapping_version="v1.0",
+                        device_used=getattr(self.hybrid_adapter.validator_adapter, "_device", "cpu"),
+                        execution_type=r_val.execution_type,
+                        execution_time_ms=round(t_val, 2),
+                        input_dimensions=(w, h),
+                        output_count=1 if validator_verdict else 0,
+                        status=r_val.status.value,
+                        warnings=[] if r_val.is_successful else ["Validator unavailable; candidates marked tentative."],
+                        errors=[r_val.error_message] if r_val.error_message else []
+                    ))
+
+            # 11 & 12. Multi-Model Evidence Fusion & Class-Aware Association
+            sub_results = [r_yolo, r_guide, r_ramp, r_city]
+            valid_sub_results = [r for r in sub_results if r.is_successful]
+
+            fused_result = self.hybrid_adapter.fusion_engine.fuse(
+                valid_sub_results,
+                validator_verdict=validator_verdict
+            )
+
+            valid_fused_barriers = [b for b in fused_result.fused_barriers if b.verification_state != "REJECTED"]
+            final_detections = [b.to_detected_barrier() for b in valid_fused_barriers]
 
         # 10. Execute Genuine Segmentation Adapter
         t0 = time.perf_counter()
         seg_record = self._execute_segmentation(redacted_bgr, allow_dev_fallback)
         t_seg = (time.perf_counter() - t0) * 1000.0
-
-        # 11 & 12. Multi-Model Evidence Fusion & Class-Aware Association
-        sub_results = [r_yolo, r_guide, r_ramp, r_city]
-        valid_sub_results = [r for r in sub_results if r.is_successful]
-
-        fused_result = self.hybrid_adapter.fusion_engine.fuse(
-            valid_sub_results,
-            validator_verdict=validator_verdict
-        )
-
-        valid_fused_barriers = [b for b in fused_result.fused_barriers if b.verification_state != "REJECTED"]
-        final_detections = [b.to_detected_barrier() for b in valid_fused_barriers]
 
         # Uncertainty Summary
         uncertainties = [d.uncertainty_score for d in final_detections]
@@ -567,18 +718,32 @@ class ImageProcessingService:
         ready_count = sum(1 for r in model_exec_records if r.status == "READY")
         overall_status = "SUCCESS" if ready_count >= 1 else "FAILED"
 
-        fused_evidence_list = [
-            {
-                "barrier_type": b.canonical_type,
-                "confidence": b.fused_confidence,
-                "uncertainty": b.uncertainty_score,
-                "consensus": b.consensus_status,
-                "verification_state": b.verification_state,
-                "adapters": b.contributing_adapters,
-                "bbox": b.bbox
-            }
-            for b in valid_fused_barriers
-        ]
+        if valid_fused_barriers:
+            fused_evidence_list = [
+                {
+                    "barrier_type": b.canonical_type,
+                    "confidence": b.fused_confidence,
+                    "uncertainty": b.uncertainty_score,
+                    "consensus": b.consensus_status,
+                    "verification_state": b.verification_state,
+                    "adapters": b.contributing_adapters,
+                    "bbox": b.bbox
+                }
+                for b in valid_fused_barriers
+            ]
+        else:
+            fused_evidence_list = [
+                {
+                    "barrier_type": d.barrier_type,
+                    "confidence": d.confidence,
+                    "uncertainty": d.uncertainty_score,
+                    "consensus": "SINGLE_MODEL",
+                    "verification_state": "VERIFIED" if d.confidence >= 0.85 else "TENTATIVE",
+                    "adapters": [req_adapter] if req_adapter not in ("unified", "hybrid") else ["hybrid_vision"],
+                    "bbox": d.bbox
+                }
+                for d in final_detections
+            ]
 
         return ImageProcessingResult(
             run_id=run_id,
@@ -780,10 +945,17 @@ class ImageProcessingService:
             "uncertainty_summary": uncertainty_summary
         }
 
+        resolved_external_id = (
+            request.external_image_id
+            or request.source_metadata.get("item_id")
+            or request.source_metadata.get("external_image_id")
+            or request.filename
+        )
+
         provenance = ImageProvenance(
             observation_id=obs.id,
             provider=request.source,
-            external_image_id=request.filename,
+            external_image_id=str(resolved_external_id),
             sequence_id=request.source_metadata.get("sequence_id"),
             capture_timestamp=request.capture_timestamp or datetime.now(timezone.utc).isoformat(),
             ingestion_timestamp=str(int(time.time())),
@@ -881,6 +1053,7 @@ class ImageProcessingService:
         sample_fps: float = 1.0,
         max_duration_seconds: int = 60,
         execution_policy: Optional[ExecutionPolicy] = None,
+        requested_adapter: Optional[str] = None,
         db: Optional[Session] = None,
         save_media: bool = True
     ) -> VideoProcessingResult:
@@ -1000,6 +1173,7 @@ class ImageProcessingService:
                     },
                     latitude=latitude,
                     longitude=longitude,
+                    requested_adapter=requested_adapter,
                     execution_policy=policy,
                     enable_privacy_redaction=True,
                     save_media=False

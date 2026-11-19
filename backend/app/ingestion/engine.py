@@ -115,7 +115,7 @@ class AcquisitionEngine:
         if external_image_id:
             existing = db.query(ImageProvenance).filter(
                 ImageProvenance.provider == provider,
-                ImageProvenance.external_image_id == external_image_id
+                ImageProvenance.external_image_id == str(external_image_id)
             ).first()
             if existing:
                 return True
@@ -195,6 +195,7 @@ class AcquisitionEngine:
                     proc_req = ImageProcessingRequest(
                         image_bytes=img_bytes,
                         filename=f"acquired_{item.provider}_{item.item_id}.jpg",
+                        external_image_id=item.item_id,
                         source=item.provider,
                         source_metadata={
                             **(item.raw_metadata or {}),

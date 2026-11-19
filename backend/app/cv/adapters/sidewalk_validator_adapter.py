@@ -210,7 +210,7 @@ class SidewalkValidatorAdapter(ModelAdapterV2):
                 return AdapterInferenceResult(
                     status=self._status,
                     adapter_name=self.name,
-                    execution_type="heuristic_fallback" if self._is_mock else "model_inference",
+                    execution_type="heuristic_fallback" if self._is_mock else "unavailable",
                     error_message=f"Model not initialized ({self._last_error or 'load failed'})"
                 )
 

@@ -157,6 +157,7 @@ async def upload_observation(
                 "mime_type": mime_type,
                 "requested_adapter": adapter
             },
+            requested_adapter=adapter,
             latitude=final_lat,
             longitude=final_lon,
             execution_policy=policy,
@@ -189,6 +190,7 @@ async def upload_observation(
                 video_path=saved_path,
                 source="user_upload_video",
                 filename=file.filename or filename,
+                requested_adapter=adapter,
                 contributor_id=contributor_id,
                 latitude=final_lat,
                 longitude=final_lon,

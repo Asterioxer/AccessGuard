@@ -1,7 +1,10 @@
 {
-  "scorecard_id": "reality_4d32f791",
-  "evaluation_timestamp": "2026-11-19T04:06:36Z",
+  "scorecard_id": "reality_75d37d48",
+  "evaluation_timestamp": "2026-11-19T05:43:13Z",
   "dataset_manifest": "AccessGuard-Indian-Streetscapes-Synthetic-Validation-Suite-v1.2",
+  "dataset_type": "synthetic_validation_suite",
+  "evaluation_category": "synthetic_benchmarking",
+  "real_world_evaluation_distinction": "Synthetic benchmark suite explicitly verifies zero-fallback pipeline mechanics, strict-genuine threshold constraints, and geometric coordinate handling. Real-world physical performance is independently assessed on real-world imagery.",
   "model_version": "v2.0.0-unified",
   "total_scenes_evaluated": 25,
   "pipeline_execution_rate": 100.0,
@@ -18,35 +21,35 @@
       "status": "READY",
       "execution_type": "model_inference",
       "model_family": "YOLOv8",
-      "mean_latency_ms": 414.21,
+      "mean_latency_ms": 341.11,
       "error_count": 0
     },
     "rampnet_adapter": {
       "status": "READY",
       "execution_type": "model_inference",
       "model_family": "ConvNeXt-V2",
-      "mean_latency_ms": 6327.35,
+      "mean_latency_ms": 6341.31,
       "error_count": 0
     },
     "guidecane_adapter": {
       "status": "UNAVAILABLE",
       "execution_type": "unavailable",
       "model_family": "YOLOv8-GuideCane",
-      "mean_latency_ms": 0.47,
+      "mean_latency_ms": 0.52,
       "error_count": 25
     },
     "citysurfaces_adapter": {
       "status": "UNAVAILABLE",
       "execution_type": "unavailable",
       "model_family": "CitySurfaces-HRNet",
-      "mean_latency_ms": 0.34,
+      "mean_latency_ms": 0.33,
       "error_count": 25
     },
     "sidewalk_validator_adapter": {
       "status": "UNAVAILABLE",
-      "execution_type": "model_inference",
+      "execution_type": "unavailable",
       "model_family": "DINOv2-Classifier",
-      "mean_latency_ms": 6.0,
+      "mean_latency_ms": 5.88,
       "error_count": 8
     }
   },
