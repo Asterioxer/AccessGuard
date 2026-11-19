@@ -4,7 +4,8 @@ on:
   push:
     branches: [ main, master ]
   pull_request:
-    branches: [ main, master ]
+    # Include the stacked implementation branch so dependent draft PRs receive CI too.
+    branches: [ main, master, feature/unified-inference-evidence-integrity ]
 
 jobs:
   backend-test:
