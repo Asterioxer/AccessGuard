@@ -1,0 +1,58 @@
+{
+  "full_backend_suite": {
+    "total_collected": 139,
+    "passed": 139,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 1,
+    "duration_seconds": 442.9
+  },
+  "new_regression_suites": {
+    "test_torchvision_adapter_integrity": {
+      "total": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    "test_video_segment_snapping": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0
+    },
+    "test_reality_engine_accounting": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0
+    },
+    "test_segmentation_adapter_lifecycle": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0
+    }
+  },
+  "prior_integrity_suites": {
+    "test_inference_failure_integrity": {
+      "total": 15,
+      "passed": 15,
+      "failed": 0
+    },
+    "test_unified_image_processing": {
+      "total": 15,
+      "passed": 15,
+      "failed": 0
+    },
+    "test_reality_engine": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0
+    }
+  },
+  "frontend_production_build": {
+    "status": "PASSED",
+    "errors": 0,
+    "tool": "vite v5.4.21"
+  },
+  "docker_compose_validation": {
+    "status": "PASSED",
+    "errors": 0
+  }
+}
