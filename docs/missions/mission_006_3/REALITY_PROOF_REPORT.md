@@ -54,7 +54,14 @@ Under **Mission 006.3**, every single one of these defects has been definitively
 - Successfully generated `data/benchmarks/reality_scorecard.json` with 100% pipeline execution rate, mean IoU 0.1558 (genuine neural model), and complete per-class breakdowns.
 
 ### E. Clean Commit-Exact Reproducibility Ledger
-- Updated `scripts/generate_mission_006_2_ledger.py` with clean git status checks (`dirty: false`), model inventories, and test suite counts.
+- Executed `scripts/generate_mission_006_2_ledger.py` generating canonical run directory `data/runs/mission_006_2/proc_m006_2_1795061953_b94697/`.
+- Verified run manifest:
+  - Commit: `7b0e9549ae6fffa5764c784d1ca0fa5d224f74c4`
+  - Branch: `feature/unified-inference-evidence-integrity`
+  - Dirty: `false`
+  - Checkpoint cryptography verified for all active models (RampNet, YOLOv8n ONNX, YOLOv8n PyTorch, YOLOv8n-seg).
+  - 103/103 tests passing, frontend production bundle clean in 10.28s.
+  - Complete `audit_trail.jsonl` and `reproducibility.json` preserved.
 
 ---
 
