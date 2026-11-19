@@ -1,3 +1,4 @@
+import os
 from typing import List, Optional
 import numpy as np
 from app.cv.base import ModelAdapter, DetectedBarrier, ACCESSIBILITY_CLASSES
