@@ -177,7 +177,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
               <option value="heuristic">OpenCV Heuristic Pipeline (Development Fallback Mode)</option>
               <option value="yolo">YOLO / ONNX Specialist Adapter</option>
               <option value="torchvision">PyTorch Torchvision Mask R-CNN Adapter</option>
-              <option value="dummy">Deterministic Benchmark Adapter</option>
             </select>
           </div>
 
