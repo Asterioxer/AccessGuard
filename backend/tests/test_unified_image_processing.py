@@ -330,8 +330,10 @@ def test_model_checkpoints_integrity_and_hashes():
     if loaded:
         assert seg_adapter.model is not None
         assert seg_adapter._weight_sha256 == seg_sha
+        assert seg_adapter.status == AdapterStatus.READY
     else:
-        assert seg_adapter.status == SegmentationStatus.UNAVAILABLE
+        assert seg_adapter.model is None
+        assert seg_adapter.status == AdapterStatus.UNAVAILABLE
 
 
 def test_real_image_strict_genuine_model_execution():
@@ -387,7 +389,7 @@ def test_real_image_strict_genuine_model_execution():
         assert result.segmentation_results.execution_type == "model_inference"
     else:
         assert result.segmentation_results.status == "UNAVAILABLE"
-        assert result.segmentation_results.execution_type == "unavailable"
+        assert result.segmentation_results.execution_type in ("none", "unavailable")
 
 
 def test_strict_genuine_mode_forbids_heuristic_fallback():

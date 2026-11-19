@@ -18,6 +18,7 @@ from app.cv.segmentation.base import (
     mask_to_rle,
     CLASS_NAME_TO_ID,
 )
+from app.cv.adapters.base_v2 import AdapterStatus
 from app.cv.segmentation.heuristic_seg_adapter import HeuristicSegmentationAdapter
 from app.core.logging import logger
 
@@ -59,18 +60,26 @@ class YOLOSegmentationAdapter(SegmentationAdapter):
                 except Exception:
                     self._device = "cpu"
                 logger.info(f"Loaded YOLO segmentation model from {weights} (sha256: {self._weight_sha256[:12]}...)")
+                self.is_loaded = True
+                return True
             else:
                 self.model = None
                 self._weight_sha256 = None
                 self._device = "cpu"
-                logger.info("YOLOSegmentationAdapter using fallback heuristic segmenter.")
-
-            self.is_loaded = True
-            return True
+                self.is_loaded = False
+                logger.info("YOLOSegmentationAdapter weights not found; model marked unavailable.")
+                return False
         except Exception as e:
             logger.warning(f"Could not load YOLO segmentation model: {e}")
-            self.is_loaded = True
-            return True
+            self.model = None
+            self.is_loaded = False
+            return False
+
+    @property
+    def status(self) -> AdapterStatus:
+        if self.is_loaded and self.model is not None:
+            return AdapterStatus.READY
+        return AdapterStatus.UNAVAILABLE
 
     def predict_masks(self, image_bgr: np.ndarray) -> List[SegmentedRegion]:
         if not self.is_loaded:
