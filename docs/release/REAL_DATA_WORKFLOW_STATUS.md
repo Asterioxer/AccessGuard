@@ -36,11 +36,21 @@ Therefore, the strict runtime must report these adapters as Unavailable until ge
 - Keep provider imagery license metadata separate from software/model code licenses.
 - Do not claim live imagery from archived sources.
 
+## Verification completed in CI
+
+On PR #2 head `b56be63a01b77056dd35906c5112dd488f909177`, GitHub Actions run #27 passed all three jobs:
+
+- Backend Tests & CV Evaluation: 130 tests passed; CV evaluation runner completed successfully.
+- Frontend Build & Typecheck: TypeScript and production build passed.
+- Docker Compose Validation: `docker compose config` passed.
+
+The async video route, OSM importer, strict empty-checkpoint behavior, and frontend build are covered by automated tests or build validation. CI does not replace a real deployment smoke test.
+
 ## Verification still required before release
 
-- Run backend tests, frontend typecheck/build, and Docker Compose validation on the final PR head. The stacked PR base workflow has been updated to include this branch as a pull-request target; verify the resulting run before release.
-- Verify the async video job route persists the same observation and provenance records as the synchronous upload route.
-- Exercise an actual image upload and an actual video upload in a clean local deployment.
+- Exercise an actual image upload and an actual video upload in a clean local deployment, then inspect persisted media and provenance.
+- Verify an actual small-area Overpass query and map rendering against live OSM data.
+- Provision compatible accessibility-specific model weights, record their source, license, version, and SHA-256, and verify that model inference is genuine.
 - Provision compatible accessibility-specific model weights, record their source, license, version, and SHA-256, and verify that model inference is genuine.
 - Verify OSM import against a real small-area query and confirm the map zooms to imported geometry.
 - Inspect an existing local database separately; this change prevents new fixture seeding but intentionally does not delete old rows or media.
