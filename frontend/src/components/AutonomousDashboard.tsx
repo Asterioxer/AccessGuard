@@ -149,6 +149,7 @@ export const AutonomousDashboard: React.FC = () => {
 
     try {
       setVideoProcessing(true);
+      setVideoJob(null);
       setError(null);
       const resp = await api.uploadVideo(file);
       const jid = resp.job_id;
@@ -571,8 +572,26 @@ export const AutonomousDashboard: React.FC = () => {
                 </div>
               )}
 
+              {videoJob && videoJob.status === 'FAILED' && (
+                <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300">
+                  Video processing failed: {videoJob.error_message || videoJob.errors?.join('; ') || 'No further error details were returned.'}
+                </div>
+              )}
+
               {videoJob && videoJob.status === 'COMPLETED' && (
                 <div className="space-y-4">
+                  <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-3 text-xs space-y-1">
+                    <p className="text-slate-200">Pipeline result: <strong>{videoJob.overall_status || 'UNKNOWN'}</strong></p>
+                    <p className="text-slate-400">Persisted observation: {videoJob.observation_id || 'Not created'}</p>
+                    {videoJob.model_execution_summary?.map((model) => (
+                      <p key={model.adapter_name} className="text-slate-400">
+                        {model.adapter_name}: {Object.entries(model.status_counts).map(([status, count]) => status + ' ' + count).join(', ')} · {model.detections_reported} frame detections
+                      </p>
+                    ))}
+                    {(!videoJob.model_execution_summary || videoJob.model_execution_summary.length === 0) && (
+                      <p className="text-amber-300">No model execution telemetry was recorded. Do not interpret zero detections as evidence of an accessible path.</p>
+                    )}
+                  </div>
                   <div className="grid grid-cols-3 gap-2 text-center text-xs">
                     <div className="p-3 bg-slate-800/60 rounded-lg">
                       <div className="text-slate-400">Sampled Frames</div>
