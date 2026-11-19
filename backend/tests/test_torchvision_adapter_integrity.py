@@ -71,68 +71,71 @@ def test_torchvision_invalid_image_input():
 
 def test_torchvision_genuine_execution_and_zero_detections():
     """Loaded model running successfully with zero detections must report READY and model_inference."""
-    adapter = TorchvisionAdapter(weights_path=None)
-    adapter.is_initialized = True
-    adapter._status = AdapterStatus.READY
-    adapter.device = "cpu"
-    adapter.transforms = MagicMock(return_value=MagicMock(unsqueeze=MagicMock(return_value=MagicMock(to=MagicMock()))))
+    with patch.dict("sys.modules", {"torch": MagicMock(), "torchvision": MagicMock(), "torchvision.transforms": MagicMock()}):
+        adapter = TorchvisionAdapter(weights_path=None)
+        adapter.is_initialized = True
+        adapter._status = AdapterStatus.READY
+        adapter.device = "cpu"
+        adapter.transforms = MagicMock(return_value=MagicMock(unsqueeze=MagicMock(return_value=MagicMock(to=MagicMock()))))
 
-    # Mock PyTorch model output with zero boxes
-    mock_model = MagicMock()
-    mock_model.return_value = [{
-        'boxes': MagicMock(cpu=MagicMock(return_value=MagicMock(numpy=MagicMock(return_value=np.empty((0, 4)))))),
-        'labels': MagicMock(cpu=MagicMock(return_value=MagicMock(numpy=MagicMock(return_value=np.empty((0,)))))),
-        'scores': MagicMock(cpu=MagicMock(return_value=MagicMock(numpy=MagicMock(return_value=np.empty((0,))))))
-    }]
-    adapter.model = mock_model
+        # Mock PyTorch model output with zero boxes
+        mock_model = MagicMock()
+        mock_model.return_value = [{
+            'boxes': MagicMock(cpu=MagicMock(return_value=MagicMock(numpy=MagicMock(return_value=np.empty((0, 4)))))),
+            'labels': MagicMock(cpu=MagicMock(return_value=MagicMock(numpy=MagicMock(return_value=np.empty((0,)))))),
+            'scores': MagicMock(cpu=MagicMock(return_value=MagicMock(numpy=MagicMock(return_value=np.empty((0,))))))
+        }]
+        adapter.model = mock_model
 
-    img = np.zeros((200, 200, 3), dtype=np.uint8)
-    res = adapter.predict_v2(img, allow_fallback=False)
+        img = np.zeros((200, 200, 3), dtype=np.uint8)
+        res = adapter.predict_v2(img, allow_fallback=False)
 
-    assert res.status == AdapterStatus.READY
-    assert res.execution_type == "model_inference"
-    assert res.execution_succeeded is True
-    assert res.execution_attempted is True
-    assert len(res.detections) == 0
-    assert res.metadata.get("output_count") == 0
+        assert res.status == AdapterStatus.READY
+        assert res.execution_type == "model_inference"
+        assert res.execution_succeeded is True
+        assert res.execution_attempted is True
+        assert len(res.detections) == 0
+        assert res.metadata.get("output_count") == 0
 
 
 def test_torchvision_oom_failure():
     """CUDA OOM must be classified as RESOURCE_EXHAUSTED."""
-    adapter = TorchvisionAdapter(weights_path=None)
-    adapter.is_initialized = True
-    adapter._status = AdapterStatus.READY
-    adapter.device = "cpu"
-    adapter.transforms = MagicMock(return_value=MagicMock(unsqueeze=MagicMock(return_value=MagicMock(to=MagicMock()))))
+    with patch.dict("sys.modules", {"torch": MagicMock(), "torchvision": MagicMock(), "torchvision.transforms": MagicMock()}):
+        adapter = TorchvisionAdapter(weights_path=None)
+        adapter.is_initialized = True
+        adapter._status = AdapterStatus.READY
+        adapter.device = "cpu"
+        adapter.transforms = MagicMock(return_value=MagicMock(unsqueeze=MagicMock(return_value=MagicMock(to=MagicMock()))))
 
-    mock_model = MagicMock(side_effect=RuntimeError("CUDA out of memory. Tried to allocate 2.00 GiB"))
-    adapter.model = mock_model
+        mock_model = MagicMock(side_effect=RuntimeError("CUDA out of memory. Tried to allocate 2.00 GiB"))
+        adapter.model = mock_model
 
-    img = np.zeros((200, 200, 3), dtype=np.uint8)
-    res = adapter.predict_v2(img, allow_fallback=False)
+        img = np.zeros((200, 200, 3), dtype=np.uint8)
+        res = adapter.predict_v2(img, allow_fallback=False)
 
-    assert res.status == AdapterStatus.RESOURCE_EXHAUSTED
-    assert res.error_code == "RESOURCE_EXHAUSTED"
-    assert res.execution_succeeded is False
+        assert res.status == AdapterStatus.RESOURCE_EXHAUSTED
+        assert res.error_code == "RESOURCE_EXHAUSTED"
+        assert res.execution_succeeded is False
 
 
 def test_torchvision_runtime_inference_failure():
     """General tensor errors during forward pass must report INFERENCE_FAILED."""
-    adapter = TorchvisionAdapter(weights_path=None)
-    adapter.is_initialized = True
-    adapter._status = AdapterStatus.READY
-    adapter.device = "cpu"
-    adapter.transforms = MagicMock(return_value=MagicMock(unsqueeze=MagicMock(return_value=MagicMock(to=MagicMock()))))
+    with patch.dict("sys.modules", {"torch": MagicMock(), "torchvision": MagicMock(), "torchvision.transforms": MagicMock()}):
+        adapter = TorchvisionAdapter(weights_path=None)
+        adapter.is_initialized = True
+        adapter._status = AdapterStatus.READY
+        adapter.device = "cpu"
+        adapter.transforms = MagicMock(return_value=MagicMock(unsqueeze=MagicMock(return_value=MagicMock(to=MagicMock()))))
 
-    mock_model = MagicMock(side_effect=RuntimeError("Dimension mismatch in conv2d kernel"))
-    adapter.model = mock_model
+        mock_model = MagicMock(side_effect=RuntimeError("Dimension mismatch in conv2d kernel"))
+        adapter.model = mock_model
 
-    img = np.zeros((200, 200, 3), dtype=np.uint8)
-    res = adapter.predict_v2(img, allow_fallback=False)
+        img = np.zeros((200, 200, 3), dtype=np.uint8)
+        res = adapter.predict_v2(img, allow_fallback=False)
 
-    assert res.status == AdapterStatus.INFERENCE_FAILED
-    assert res.error_code == "INFERENCE_FAILED"
-    assert res.execution_succeeded is False
+        assert res.status == AdapterStatus.INFERENCE_FAILED
+        assert res.error_code == "INFERENCE_FAILED"
+        assert res.execution_succeeded is False
 
 
 def test_image_processing_service_torchvision_routing():

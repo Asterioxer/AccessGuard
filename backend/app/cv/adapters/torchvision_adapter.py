@@ -99,11 +99,19 @@ class TorchvisionAdapter(ModelAdapter):
         except Exception as e:
             logger.warning(f"Failed to load Torchvision model: {e}")
             self.model = None
-            self.is_initialized = False
-            self._is_mock = False
-            self._status = AdapterStatus.UNAVAILABLE
-            self._last_error = f"Torchvision model load error: {e}"
-            return False
+            if allow_fallback:
+                self.is_initialized = True
+                self._is_mock = True
+                self._status = AdapterStatus.DEGRADED
+                self._last_error = f"Torchvision running in heuristic fallback mode ({e})."
+                logger.info(f"Torchvision load exception; operating in DEGRADED fallback mode: {e}")
+                return True
+            else:
+                self.is_initialized = False
+                self._is_mock = False
+                self._status = AdapterStatus.UNAVAILABLE
+                self._last_error = f"Torchvision model load error: {e}"
+                return False
 
     def predict_v2(self, image_bgr: np.ndarray, allow_fallback: bool = False, **kwargs) -> AdapterInferenceResult:
         """
