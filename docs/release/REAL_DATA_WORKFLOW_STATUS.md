@@ -38,7 +38,7 @@ Therefore, the strict runtime must report these adapters as Unavailable until ge
 
 ## Verification still required before release
 
-- Run backend tests, frontend typecheck/build, and Docker Compose validation on the final PR head.
+- Run backend tests, frontend typecheck/build, and Docker Compose validation on the final PR head. The stacked PR base workflow has been updated to include this branch as a pull-request target; verify the resulting run before release.
 - Verify the async video job route persists the same observation and provenance records as the synchronous upload route.
 - Exercise an actual image upload and an actual video upload in a clean local deployment.
 - Provision compatible accessibility-specific model weights, record their source, license, version, and SHA-256, and verify that model inference is genuine.
