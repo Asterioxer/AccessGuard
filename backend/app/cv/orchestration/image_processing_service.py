@@ -1245,6 +1245,9 @@ class ImageProcessingService:
 
         cap.release()
 
+        if sampled_idx == 0:
+            errors.append("No decodable video frames were sampled; video processing cannot be reported as successful.")
+
         # 3. Consolidate temporal obstacle tracks into unified DetectedBarriers
         consolidated_barriers: List[DetectedBarrier] = []
         for tid, trk in all_tracks_map.items():
