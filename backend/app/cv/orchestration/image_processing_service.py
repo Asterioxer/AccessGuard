@@ -385,12 +385,14 @@ class ImageProcessingService:
                 execution_type=r_yolo.execution_type,
                 execution_time_ms=round(t_yolo, 2),
                 input_dimensions=(w, h),
-                output_count=len(r_yolo.detections),
+                output_count=len(r_yolo.detections) if r_yolo.is_successful else 0,
                 status=r_yolo.status.value,
-                warnings=[] if r_yolo.is_successful else ["YOLO inference returned non-ready status."],
-                errors=[r_yolo.error_message] if r_yolo.error_message else []
+                warnings=[] if r_yolo.is_successful else [f"YOLO returned non-ready status: {r_yolo.error_message or r_yolo.status.value}"],
+                errors=[r_yolo.error_message] if (r_yolo.error_message and not r_yolo.is_successful) else []
             ))
-            final_detections = r_yolo.detections
+            if r_yolo.error_message and not r_yolo.is_successful:
+                errors.append(f"YOLO execution error: {r_yolo.error_message}")
+            final_detections = r_yolo.detections if r_yolo.is_successful else []
 
         elif req_adapter in ("rampnet", "convnextv2"):
             # Execute only requested RampNet Specialist
@@ -413,12 +415,14 @@ class ImageProcessingService:
                 execution_type=r_ramp.execution_type,
                 execution_time_ms=round(t_ramp, 2),
                 input_dimensions=(w, h),
-                output_count=len(r_ramp.keypoints),
+                output_count=len(r_ramp.keypoints) if r_ramp.is_successful else 0,
                 status=r_ramp.status.value,
                 warnings=[] if r_ramp.is_successful else ["RampNet not available or degraded."],
                 errors=[r_ramp.error_message] if r_ramp.error_message else []
             ))
-            final_detections = [kp.to_detected_barrier() for kp in r_ramp.keypoints]
+            if r_ramp.error_message and not r_ramp.is_successful:
+                errors.append(f"RampNet execution error: {r_ramp.error_message}")
+            final_detections = [kp.to_detected_barrier() for kp in r_ramp.keypoints] if r_ramp.is_successful else []
 
         elif req_adapter in ("heuristic", "fallback"):
             from app.cv.adapters.heuristic_adapter import HeuristicCVAdapter
@@ -520,10 +524,10 @@ class ImageProcessingService:
                 execution_type=r_yolo.execution_type,
                 execution_time_ms=round(t_yolo, 2),
                 input_dimensions=(w, h),
-                output_count=len(r_yolo.detections),
+                output_count=len(r_yolo.detections) if r_yolo.is_successful else 0,
                 status=r_yolo.status.value,
-                warnings=[] if r_yolo.is_successful else ["YOLO inference returned non-ready status."],
-                errors=[r_yolo.error_message] if r_yolo.error_message else []
+                warnings=[] if r_yolo.is_successful else [f"YOLO returned non-ready status: {r_yolo.error_message or r_yolo.status.value}"],
+                errors=[r_yolo.error_message] if (r_yolo.error_message and not r_yolo.is_successful) else []
             ))
 
             # Execute RampNet Specialist (ConvNeXt-V2)
@@ -715,8 +719,13 @@ class ImageProcessingService:
         }
 
         # Determine overall status
-        ready_count = sum(1 for r in model_exec_records if r.status == "READY")
-        overall_status = "SUCCESS" if ready_count >= 1 else "FAILED"
+        ready_count = sum(1 for r in model_exec_records if r.status in ("READY", "DEGRADED"))
+        has_critical_failure = any(r.status in ("INFERENCE_FAILED", "RESOURCE_EXHAUSTED", "FAILED") for r in model_exec_records)
+
+        if req_adapter not in ("unified", "hybrid"):
+            overall_status = "SUCCESS" if (ready_count >= 1 and not has_critical_failure) else "FAILED"
+        else:
+            overall_status = "SUCCESS" if ready_count >= 1 else "FAILED"
 
         if valid_fused_barriers:
             fused_evidence_list = [

@@ -209,10 +209,10 @@ class HybridVisionAdapter(ModelAdapterV2):
         except Exception as e:
             self._last_error = str(e)
             logger.error(f"HybridAdapter prediction failed: {e}")
-            return AdapterInferenceResult(
-                status=AdapterStatus.INFERENCE_FAILED,
+            return AdapterInferenceResult.create_failed(
                 adapter_name=self.name,
                 error_message=str(e),
+                status=AdapterStatus.INFERENCE_FAILED,
                 execution_time_ms=round((time.perf_counter() - start_time) * 1000.0, 2),
                 device_used=self._device
             )

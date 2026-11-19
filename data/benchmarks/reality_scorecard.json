@@ -1,6 +1,6 @@
 {
-  "scorecard_id": "reality_75d37d48",
-  "evaluation_timestamp": "2026-11-19T05:43:13Z",
+  "scorecard_id": "reality_91039d14",
+  "evaluation_timestamp": "2026-11-19T08:11:17Z",
   "dataset_manifest": "AccessGuard-Indian-Streetscapes-Synthetic-Validation-Suite-v1.2",
   "dataset_type": "synthetic_validation_suite",
   "evaluation_category": "synthetic_benchmarking",
@@ -21,36 +21,66 @@
       "status": "READY",
       "execution_type": "model_inference",
       "model_family": "YOLOv8",
-      "mean_latency_ms": 341.11,
-      "error_count": 0
+      "checkpoint_path": "data/models/yolov8n.onnx",
+      "weight_sha256": "fbb11393b8823050ff79f2ed837eeeab4c51e9d9220da80fd773d94ed7531d76",
+      "mean_latency_ms": 63.46,
+      "error_count": 0,
+      "inferences_attempted": 25,
+      "inferences_succeeded": 25,
+      "inferences_failed": 0,
+      "zero_detection_successes": 19
     },
     "rampnet_adapter": {
       "status": "READY",
       "execution_type": "model_inference",
       "model_family": "ConvNeXt-V2",
-      "mean_latency_ms": 6341.31,
-      "error_count": 0
+      "checkpoint_path": "data/models/rampnet.safetensors",
+      "weight_sha256": "f2119e3becb0b551fa1470f7b7ba85b82122a3f73a6ed2a85609dd57617866b5",
+      "mean_latency_ms": 5461.96,
+      "error_count": 0,
+      "inferences_attempted": 25,
+      "inferences_succeeded": 25,
+      "inferences_failed": 0,
+      "zero_detection_successes": 23
     },
     "guidecane_adapter": {
       "status": "UNAVAILABLE",
       "execution_type": "unavailable",
       "model_family": "YOLOv8-GuideCane",
-      "mean_latency_ms": 0.52,
-      "error_count": 25
+      "checkpoint_path": null,
+      "weight_sha256": null,
+      "mean_latency_ms": 0.24,
+      "error_count": 25,
+      "inferences_attempted": 0,
+      "inferences_succeeded": 0,
+      "inferences_failed": 0,
+      "zero_detection_successes": 0
     },
     "citysurfaces_adapter": {
       "status": "UNAVAILABLE",
       "execution_type": "unavailable",
       "model_family": "CitySurfaces-HRNet",
-      "mean_latency_ms": 0.33,
-      "error_count": 25
+      "checkpoint_path": null,
+      "weight_sha256": null,
+      "mean_latency_ms": 0.1,
+      "error_count": 25,
+      "inferences_attempted": 0,
+      "inferences_succeeded": 0,
+      "inferences_failed": 0,
+      "zero_detection_successes": 0
     },
     "sidewalk_validator_adapter": {
       "status": "UNAVAILABLE",
       "execution_type": "unavailable",
       "model_family": "DINOv2-Classifier",
-      "mean_latency_ms": 5.88,
-      "error_count": 8
+      "checkpoint_path": null,
+      "weight_sha256": null,
+      "mean_latency_ms": 1.56,
+      "error_count": 8,
+      "inferences_attempted": 0,
+      "inferences_succeeded": 0,
+      "inferences_failed": 0,
+      "zero_detection_successes": 0
     }
   },
   "output_integrity": {

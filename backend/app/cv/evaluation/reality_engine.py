@@ -145,12 +145,28 @@ class RealityEngine:
                         "status": r.status,
                         "execution_type": r.execution_type,
                         "model_family": r.model_family,
+                        "checkpoint_path": r.checkpoint_path,
+                        "weight_sha256": r.weight_sha256,
                         "latencies": [],
-                        "error_count": 0
+                        "error_count": 0,
+                        "inferences_attempted": 0,
+                        "inferences_succeeded": 0,
+                        "inferences_failed": 0,
+                        "zero_detection_successes": 0
                     }
                 model_telemetry_agg[r.adapter_name]["latencies"].append(r.execution_time_ms)
                 if r.errors:
                     model_telemetry_agg[r.adapter_name]["error_count"] += len(r.errors)
+                if r.status in ("READY", "DEGRADED"):
+                    model_telemetry_agg[r.adapter_name]["inferences_attempted"] += 1
+                    model_telemetry_agg[r.adapter_name]["inferences_succeeded"] += 1
+                    if r.output_count == 0:
+                        model_telemetry_agg[r.adapter_name]["zero_detection_successes"] += 1
+                elif r.status in ("INFERENCE_FAILED", "RESOURCE_EXHAUSTED", "FAILED"):
+                    model_telemetry_agg[r.adapter_name]["inferences_attempted"] += 1
+                    model_telemetry_agg[r.adapter_name]["inferences_failed"] += 1
+                    model_telemetry_agg[r.adapter_name]["status"] = r.status
+                    model_telemetry_agg[r.adapter_name]["execution_type"] = r.execution_type
 
             scene_matched = False
             for p in preds:
@@ -252,8 +268,14 @@ class RealityEngine:
                 "status": tel["status"],
                 "execution_type": tel["execution_type"],
                 "model_family": tel["model_family"],
+                "checkpoint_path": tel.get("checkpoint_path"),
+                "weight_sha256": tel.get("weight_sha256"),
                 "mean_latency_ms": round(float(np.mean(tel["latencies"])), 2) if tel["latencies"] else 0.0,
-                "error_count": tel["error_count"]
+                "error_count": tel["error_count"],
+                "inferences_attempted": tel.get("inferences_attempted", 0),
+                "inferences_succeeded": tel.get("inferences_succeeded", 0),
+                "inferences_failed": tel.get("inferences_failed", 0),
+                "zero_detection_successes": tel.get("zero_detection_successes", 0)
             }
 
         scorecard = {

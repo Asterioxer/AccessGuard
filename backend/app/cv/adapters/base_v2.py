@@ -101,18 +101,135 @@ class AdapterInferenceResult:
     verification: Optional[VerificationVerdict] = None
     execution_time_ms: float = 0.0
     device_used: str = "cpu"
-    execution_type: str = "model_inference" # "model_inference" or "heuristic_fallback"
+    execution_type: Optional[str] = None
+    execution_succeeded: bool = False
+    execution_attempted: bool = False
+    error_code: Optional[str] = None
+    error_message: Optional[str] = None
     weight_path: Optional[str] = None
     weight_sha256: Optional[str] = None
+    model_identifier: Optional[str] = None
+    model_version: Optional[str] = None
     upstream_repo: Optional[str] = None
     input_dimensions: Optional[Tuple[int, int]] = None
-    error_message: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if not self.model_identifier:
+            self.model_identifier = self.adapter_name
+
+        # Enforce and validate consistent lifecycle combinations
+        if self.status in (AdapterStatus.NOT_LOADED, AdapterStatus.LOADING, AdapterStatus.UNAVAILABLE):
+            if self.execution_type == "model_inference":
+                raise ValueError(
+                    f"Impossible adapter execution contract: status {self.status.value} cannot have execution_type='model_inference'."
+                )
+            if self.execution_type is None:
+                self.execution_type = "unavailable"
+            self.execution_attempted = False
+            self.execution_succeeded = False
+
+        elif self.status in (AdapterStatus.INFERENCE_FAILED, AdapterStatus.RESOURCE_EXHAUSTED, AdapterStatus.FAILED):
+            if self.execution_type == "model_inference":
+                raise ValueError(
+                    f"Impossible adapter execution contract: status {self.status.value} cannot have execution_type='model_inference'."
+                )
+            if self.execution_type is None:
+                self.execution_type = "failed"
+            self.execution_attempted = True
+            self.execution_succeeded = False
+
+        elif self.status == AdapterStatus.DEGRADED:
+            if self.execution_type == "model_inference" and (self.metadata.get("is_fallback", False) or self.metadata.get("is_mock", False)):
+                raise ValueError(
+                    "Impossible adapter execution contract: DEGRADED status with fallback cannot claim execution_type='model_inference'."
+                )
+            if self.execution_type is None:
+                self.execution_type = "heuristic_fallback"
+            self.execution_attempted = True
+            self.execution_succeeded = True
+
+        elif self.status == AdapterStatus.READY:
+            if self.execution_type is None:
+                self.execution_type = "model_inference"
+            if self.execution_type == "unavailable" and (self.detections or self.keypoints or self.mask or self.verification):
+                raise ValueError(
+                    "Impossible adapter execution contract: READY status with genuine output cannot claim execution_type='unavailable'."
+                )
+            if self.execution_type == "model_inference":
+                self.execution_attempted = True
+                self.execution_succeeded = True
 
     @property
     def is_successful(self) -> bool:
-        """True only if the inference completed successfully without error."""
-        return self.status in (AdapterStatus.READY, AdapterStatus.DEGRADED)
+        """True only if genuine or explicit fallback inference completed without error."""
+        return self.execution_succeeded and self.status in (AdapterStatus.READY, AdapterStatus.DEGRADED)
+
+    @classmethod
+    def create_failed(
+        cls,
+        adapter_name: str,
+        error_message: str,
+        status: AdapterStatus = AdapterStatus.INFERENCE_FAILED,
+        error_code: Optional[str] = None,
+        execution_time_ms: float = 0.0,
+        device_used: str = "cpu",
+        weight_path: Optional[str] = None,
+        weight_sha256: Optional[str] = None,
+        model_identifier: Optional[str] = None,
+        model_version: Optional[str] = None,
+        upstream_repo: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> "AdapterInferenceResult":
+        """Factory for failed or resource-exhausted inference results."""
+        return cls(
+            status=status,
+            adapter_name=adapter_name,
+            execution_type="failed",
+            execution_succeeded=False,
+            execution_attempted=True,
+            error_code=error_code or status.value,
+            error_message=error_message,
+            execution_time_ms=execution_time_ms,
+            device_used=device_used,
+            weight_path=weight_path,
+            weight_sha256=weight_sha256,
+            model_identifier=model_identifier or adapter_name,
+            model_version=model_version,
+            upstream_repo=upstream_repo,
+            metadata=metadata or {}
+        )
+
+    @classmethod
+    def create_unavailable(
+        cls,
+        adapter_name: str,
+        error_message: str,
+        status: AdapterStatus = AdapterStatus.UNAVAILABLE,
+        error_code: str = "MODEL_WEIGHTS_NOT_FOUND",
+        execution_time_ms: float = 0.0,
+        device_used: str = "cpu",
+        model_identifier: Optional[str] = None,
+        model_version: Optional[str] = None,
+        upstream_repo: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> "AdapterInferenceResult":
+        """Factory for unavailable model results."""
+        return cls(
+            status=status,
+            adapter_name=adapter_name,
+            execution_type="unavailable",
+            execution_succeeded=False,
+            execution_attempted=False,
+            error_code=error_code,
+            error_message=error_message,
+            execution_time_ms=execution_time_ms,
+            device_used=device_used,
+            model_identifier=model_identifier or adapter_name,
+            model_version=model_version,
+            upstream_repo=upstream_repo,
+            metadata=metadata or {}
+        )
 
 
 @dataclass
