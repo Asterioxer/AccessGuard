@@ -45,7 +45,13 @@ GuideCane and CitySurfaces weights were reported unavailable in that ledger. Tor
 
 ## Verification completed in CI
 
-On PR #2 head `b56be63a01b77056dd35906c5112dd488f909177`, GitHub Actions run #27 passed all three jobs: 130 backend tests, frontend TypeScript/build, and Docker Compose validation. The later Mission 006.6 base includes its own successful final audit and the stacked branch workflow trigger.
+On PR #3 head `4ee2b3492bf971ada9a9152fa6685e85e4bbd2a1`, GitHub Actions run #34 passed all three jobs:
+
+- Backend Tests & CV Evaluation: **148 tests passed**; CV evaluation runner completed.
+- Frontend Build & Typecheck: **success**.
+- Docker Compose Validation: **success**.
+
+Run: https://github.com/Asterioxer/AccessGuard/actions/runs/44510001202
 
 CI does not replace a real deployment smoke test.
 
