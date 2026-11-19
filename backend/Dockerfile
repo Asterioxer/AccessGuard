@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy backend application and database migrations
 COPY backend/app /app/app
+COPY scripts /app/scripts
 COPY backend/alembic /app/alembic
 COPY backend/alembic.ini /app/alembic.ini
 
