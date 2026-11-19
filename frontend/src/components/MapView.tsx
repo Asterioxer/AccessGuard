@@ -42,8 +42,8 @@ export const MapView: React.FC<MapViewProps> = ({
 
     // Center on downtown innovation corridor (San Francisco baseline)
     const map = L.map(mapContainerRef.current, {
-      center: [37.7765, -122.4194],
-      zoom: 16,
+      center: [20, 0],
+      zoom: 2,
       zoomControl: true,
     });
 
@@ -242,6 +242,12 @@ export const MapView: React.FC<MapViewProps> = ({
   return (
     <div className="relative w-full h-full min-h-[500px]">
       <div ref={mapContainerRef} className="w-full h-full rounded-xl overflow-hidden" />
+      {segments.length === 0 && observations.length === 0 && (
+        <div className="absolute top-5 left-1/2 -translate-x-1/2 z-[1000] bg-slate-950/95 border border-slate-700 rounded-xl px-4 py-3 shadow-xl max-w-lg text-center">
+          <p className="text-sm font-semibold text-white">No real pedestrian data loaded</p>
+          <p className="text-xs text-slate-300 mt-1">Import an OpenStreetMap pedestrian network in Autonomous → Ingestion, then upload genuine street photos or videos. This map will not invent sample streets or obstacles.</p>
+        </div>
+      )}
 
       {/* Map Legend */}
       <div className="absolute bottom-6 left-6 z-[1000] bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-xl p-3 shadow-xl max-w-xs text-xs">
