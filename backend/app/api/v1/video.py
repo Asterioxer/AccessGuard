@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
+from app.config import settings
 from app.core.logging import logger
 from app.core.security import get_optional_user_payload
 from app.db.session import SessionLocal
