@@ -24,9 +24,9 @@ Therefore, the strict runtime must report these adapters as Unavailable until ge
 ## User workflow
 
 1. Import a small OpenStreetMap pedestrian bounding box from Autonomous → Ingestion. This endpoint requires an administrator session.
-2. Upload a genuine street photograph or short video through Upload Sidewalk Observation.
+2. Upload a genuine street photograph or short video through Upload Sidewalk Observation. The asynchronous `/video/process` endpoint also uses the canonical `ImageProcessingService.process_video` path and persists the resulting observation.
 3. Inspect the original sanitized media and detections.
-4. Inspect Processing Provenance to see each adapter's status, execution type, and output count.
+4. Inspect Processing Provenance to see each adapter's status, execution type, and output count. Video jobs also return a per-adapter summary across sampled frames and the persisted observation ID.
 5. Treat unassessed OSM ways and tentative model predictions as unverified until reviewed by people with appropriate local knowledge.
 
 ## Privacy and provenance
@@ -39,6 +39,7 @@ Therefore, the strict runtime must report these adapters as Unavailable until ge
 ## Verification still required before release
 
 - Run backend tests, frontend typecheck/build, and Docker Compose validation on the final PR head.
+- Verify the async video job route persists the same observation and provenance records as the synchronous upload route.
 - Exercise an actual image upload and an actual video upload in a clean local deployment.
 - Provision compatible accessibility-specific model weights, record their source, license, version, and SHA-256, and verify that model inference is genuine.
 - Verify OSM import against a real small-area query and confirm the map zooms to imported geometry.
