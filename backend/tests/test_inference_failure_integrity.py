@@ -378,8 +378,9 @@ def test_scenario_l_sidewalk_validator_failure_reporting():
     val.model = MagicMock()
     val.model.side_effect = RuntimeError("DINOv2 backbone forward pass crashed")
 
-    res_fail = val.predict_v2(dummy_img, allow_fallback=False)
-    assert res_fail.status == AdapterStatus.INFERENCE_FAILED
-    assert res_fail.execution_type == "failed"
-    assert res_fail.execution_succeeded is False
-    assert "DINOv2 backbone forward pass crashed" in res_fail.error_message
+    with patch.dict("sys.modules", {"torch": MagicMock(), "torchvision": MagicMock(), "torchvision.transforms": MagicMock()}):
+        res_fail = val.predict_v2(dummy_img, allow_fallback=False)
+        assert res_fail.status == AdapterStatus.INFERENCE_FAILED
+        assert res_fail.execution_type == "failed"
+        assert res_fail.execution_succeeded is False
+        assert "DINOv2 backbone forward pass crashed" in res_fail.error_message
