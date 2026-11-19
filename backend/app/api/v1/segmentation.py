@@ -8,16 +8,15 @@ import cv2
 import numpy as np
 
 from app.cv.segmentation import (
-    HeuristicSegmentationAdapter,
     SEGMENTATION_CLASSES,
     CLASS_COLOR_PALETTE,
     CLASS_NAME_TO_ID,
 )
+from app.cv.segmentation.yolo_seg_adapter import YOLOSegmentationAdapter
 from app.core.logging import logger
 
 router = APIRouter(prefix="/cv/segmentation", tags=["Segmentation"])
-seg_adapter = HeuristicSegmentationAdapter()
-seg_adapter.load()
+seg_adapter = YOLOSegmentationAdapter()
 
 
 @router.get("/classes")
@@ -54,7 +53,16 @@ async def predict_segmentation_masks(
         raise HTTPException(status_code=400, detail="Could not decode image.")
 
     h, w = img_bgr.shape[:2]
-    regions = seg_adapter.predict_masks(img_bgr)
+    if not seg_adapter.is_loaded and not seg_adapter.load():
+        raise HTTPException(
+            status_code=503,
+            detail="Genuine segmentation is unavailable: configure data/models/yolov8n-seg.pt before requesting masks."
+        )
+    try:
+        regions = seg_adapter.predict_masks(img_bgr)
+    except Exception as exc:
+        logger.exception("Genuine segmentation inference failed")
+        raise HTTPException(status_code=500, detail=f"Segmentation inference failed: {exc}")
 
     results = []
     for reg in regions:
@@ -80,5 +88,7 @@ async def predict_segmentation_masks(
         "region_count": len(results),
         "regions": results,
         "model_identifier": seg_adapter.name,
-        "model_version": seg_adapter.version
+        "model_version": seg_adapter.version,
+        "execution_type": "model_inference",
+        "status": "READY"
     }
