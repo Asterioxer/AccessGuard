@@ -20,6 +20,7 @@ export const AutonomousDashboard: React.FC = () => {
   const [bboxInput, setBboxInput] = useState('');
   const [intervalMin, setIntervalMin] = useState(60);
   const [priority, setPriority] = useState('normal');
+  const [osmImportSummary, setOsmImportSummary] = useState<string | null>(null);
 
   // Segmentation & Video State
   const [segRegions, setSegRegions] = useState<SegmentedRegion[]>([]);
@@ -86,6 +87,24 @@ export const AutonomousDashboard: React.FC = () => {
       await loadJobs();
     } catch (err: any) {
       setError(err.message || 'Failed to create job');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImportOSM = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setOsmImportSummary(null);
+      const coords = bboxInput.split(',').map(s => parseFloat(s.trim())) as [number, number, number, number];
+      if (coords.length !== 4 || coords.some(isNaN)) {
+        throw new Error('Enter a bounding box: min_lon, min_lat, max_lon, max_lat');
+      }
+      const result = await api.importOSMPedestrianNetwork(coords);
+      setOsmImportSummary(String(result.new_segments_inserted) + ' new OSM pedestrian ways imported (' + String(result.ways_returned) + ' returned). Imported ways remain unassessed until observations are collected.');
+    } catch (err: any) {
+      setError(err.message || 'OpenStreetMap import failed');
     } finally {
       setLoading(false);
     }
@@ -386,6 +405,13 @@ export const AutonomousDashboard: React.FC = () => {
                 </button>
               </div>
             </form>
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <button type="button" onClick={handleImportOSM} disabled={loading} className="bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg text-sm">
+                {loading ? 'Importing...' : 'Import real OSM pedestrian ways'}
+              </button>
+              <p className="text-xs text-slate-400">Uses the bounding box above. Requires an administrator session and a small area (maximum 0.02 square degrees). Source: OpenStreetMap (ODbL).</p>
+            </div>
+            {osmImportSummary && <p className="mt-3 text-xs text-emerald-300">{osmImportSummary}</p>}
           </div>
 
           {/* Active Jobs Queue */}
