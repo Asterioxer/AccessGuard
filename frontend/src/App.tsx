@@ -37,6 +37,11 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    const refreshSegments = () => {
+      api.getSegments().then(setSegments).catch(console.error);
+    };
+    window.addEventListener('accessguard:segments-updated', refreshSegments);
+    return () => window.removeEventListener('accessguard:segments-updated', refreshSegments);
   }, []);
 
   const handleUploadSuccess = (newObs: Observation) => {
