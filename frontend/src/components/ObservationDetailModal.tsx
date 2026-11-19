@@ -183,7 +183,7 @@ export const ObservationDetailModal: React.FC<ObservationDetailModalProps> = ({
           {provenance ? (
             <>
               <p className="text-xs text-slate-400">Source: <span className="text-slate-200">{provenance.provider}</span> · Attribution: {provenance.source_attribution || 'Not supplied'}</p>
-              <p className="text-xs text-slate-400">Model pipeline: {provenance.raw_metadata?.execution_policy || 'Not recorded'} · Segmentation: {provenance.raw_metadata?.segmentation_status || 'Not recorded'}</p>
+              <p className="text-xs text-slate-400">Model pipeline: {provenance.raw_metadata?.execution_policy || 'Not recorded'} · Segmentation: {provenance.raw_metadata?.segmentation_status || (provenance.raw_metadata?.segmentation_status_counts ? Object.entries(provenance.raw_metadata.segmentation_status_counts).map(([status, count]) => status + ' ' + count).join(', ') : 'Not recorded')}</p>
               {Array.isArray(provenance.raw_metadata?.models_executed) && provenance.raw_metadata.models_executed.length > 0 ? (
                 <div className="space-y-2 pt-1">
                   {provenance.raw_metadata.models_executed.map((model: any, index: number) => (
