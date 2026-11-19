@@ -11,8 +11,8 @@ from app.schemas.segment import (
     SegmentGeoJSONCollection, SegmentGeoJSONFeature
 )
 from app.gis.scoring import calculate_segment_accessibility_score
-from app.gis.osm_importer import create_pedestrian_segment_models
 from app.core.security import require_role, Role
+from app.gis.osm_importer import fetch_osm_pedestrian_segment_models
 
 router = APIRouter(prefix="/segments", tags=["Pedestrian Segments"])
 
@@ -65,13 +65,8 @@ def list_segments(
     """Retrieves pedestrian segments with accessibility scoring and pagination."""
     query = db.query(PedestrianSegment)
     
-    # Auto-seed demo network if table is empty
-    if query.count() == 0:
-        demo_segs = create_pedestrian_segment_models()
-        for s in demo_segs:
-            db.add(s)
-        db.commit()
-        query = db.query(PedestrianSegment)
+    # An empty network is a valid state. Populate this table only from an explicit,
+    # provenance-bearing OSM/network import; never invent demo streets at read time.
 
     if grade:
         query = query.filter(PedestrianSegment.score_grade == grade.upper())
@@ -85,12 +80,7 @@ def list_segments(
 def get_segments_geojson(db: Session = Depends(get_db)):
     """Returns pedestrian network in standard GeoJSON format for interactive map layers."""
     segments = db.query(PedestrianSegment).all()
-    if not segments:
-        demo_segs = create_pedestrian_segment_models()
-        for s in demo_segs:
-            db.add(s)
-        db.commit()
-        segments = db.query(PedestrianSegment).all()
+    # Return an empty FeatureCollection until real pedestrian-network data is imported.
 
     features = []
     for s in segments:
@@ -117,6 +107,50 @@ def get_segments_geojson(db: Session = Depends(get_db)):
         features.append(feature)
 
     return SegmentGeoJSONCollection(type="FeatureCollection", features=features)
+
+@router.post("/import-osm")
+def import_osm_pedestrian_network(
+    min_lon: float,
+    min_lat: float,
+    max_lon: float,
+    max_lat: float,
+    payload: dict = Depends(require_role(Role.ADMIN)),
+    db: Session = Depends(get_db)
+):
+    """Explicitly import real OSM pedestrian ways for a small bounding box."""
+    try:
+        imported = fetch_osm_pedestrian_segment_models(min_lon, min_lat, max_lon, max_lat)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"OpenStreetMap Overpass import failed: {exc}")
+
+    inserted = 0
+    for segment in imported:
+        existing = db.query(PedestrianSegment).filter(PedestrianSegment.id == segment.id).first()
+        if existing:
+            # Refresh geometry and source tags, but preserve scores and linked observations.
+            existing.name = segment.name
+            existing.start_lat = segment.start_lat
+            existing.start_lon = segment.start_lon
+            existing.end_lat = segment.end_lat
+            existing.end_lon = segment.end_lon
+            existing.geometry_geojson = segment.geometry_geojson
+            existing.length_meters = segment.length_meters
+            existing.osm_way_id = segment.osm_way_id
+        else:
+            db.add(segment)
+            inserted += 1
+
+    db.commit()
+    return {
+        "source": "OpenStreetMap",
+        "license": "ODbL-1.0",
+        "bounding_box": [min_lon, min_lat, max_lon, max_lat],
+        "ways_returned": len(imported),
+        "new_segments_inserted": inserted,
+        "message": "Imported pedestrian ways are unassessed until real observations and verification are available."
+    }
 
 @router.get("/{segment_id}", response_model=PedestrianSegmentSchema)
 def get_segment(segment_id: str, db: Session = Depends(get_db)):
