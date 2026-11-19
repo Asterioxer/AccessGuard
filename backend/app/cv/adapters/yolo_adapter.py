@@ -10,6 +10,7 @@ from typing import List, Optional
 import numpy as np
 
 from app.cv.base import ModelAdapter, DetectedBarrier, ACCESSIBILITY_CLASSES
+from app.cv.adapters.base_v2 import AdapterStatus
 from app.core.logging import logger
 
 class YOLOAdapter(ModelAdapter):
@@ -32,6 +33,7 @@ class YOLOAdapter(ModelAdapter):
         self.model = None
         self._device = "cpu"
         self._weight_sha256: Optional[str] = None
+        self._status: AdapterStatus = AdapterStatus.NOT_LOADED
 
     def load(self) -> bool:
         """Loads Ultralytics YOLO model from weights file or pretrained baseline."""
@@ -51,6 +53,7 @@ class YOLOAdapter(ModelAdapter):
                 self.onnx_subadapter.load()
                 self.model_path = chosen_path
                 self.is_initialized = True
+                self._status = AdapterStatus.READY
                 try:
                     with open(chosen_path, "rb") as f_w:
                         self._weight_sha256 = hashlib.sha256(f_w.read()).hexdigest()
@@ -76,10 +79,12 @@ class YOLOAdapter(ModelAdapter):
                     pass
 
             self.is_initialized = True
+            self._status = AdapterStatus.READY
             return True
         except Exception as e:
             logger.warning(f"Could not initialize Ultralytics YOLO ({e}); running in fallback mode.")
             self.is_initialized = True
+            self._status = AdapterStatus.READY
             return True
 
     def predict(self, image_bgr: np.ndarray) -> List[DetectedBarrier]:

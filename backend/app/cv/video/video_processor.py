@@ -19,6 +19,10 @@ import numpy as np
 from app.cv.base import DetectedBarrier
 from app.cv.pipeline import CVPipeline
 from app.cv.temporal_tracker import TemporalObstacleTracker, TrackedBarrier
+from app.cv.orchestration.image_processing_service import (
+    ImageProcessingService,
+    ImageProcessingRequest,
+)
 from app.core.logging import logger
 
 MAX_VIDEO_FRAMES_DEFAULT = 2000
@@ -54,10 +58,12 @@ class VideoProcessor:
     def __init__(
         self,
         cv_pipeline: Optional[CVPipeline] = None,
+        proc_service: Optional[ImageProcessingService] = None,
         tracker: Optional[TemporalObstacleTracker] = None,
         sample_rate_fps: float = DEFAULT_SAMPLE_RATE_FPS
     ):
         self.cv_pipeline = cv_pipeline or CVPipeline()
+        self.proc_service = proc_service or ImageProcessingService()
         self.tracker = tracker or TemporalObstacleTracker(
             iou_match_threshold=0.35,
             max_track_staleness_seconds=2.5,
@@ -121,8 +127,20 @@ class VideoProcessor:
                     sampled_idx += 1
                     current_video_time = frame_idx / native_fps
 
-                    # Run model inference on sampled frame
-                    detections: List[DetectedBarrier] = self.cv_pipeline.adapter.predict(frame)
+                    # Run canonical unified inference on sampled frame
+                    success, encoded_jpg = cv2.imencode(".jpg", frame)
+                    if success:
+                        req = ImageProcessingRequest(
+                            image_bytes=encoded_jpg.tobytes(),
+                            filename=f"frame_{frame_idx:06d}.jpg",
+                            source="video_processor_frame",
+                            enable_privacy_redaction=True,
+                            save_media=False
+                        )
+                        frame_res = self.proc_service.process_image(req)
+                        detections = frame_res.detections
+                    else:
+                        detections = self.cv_pipeline.adapter.predict(frame)
 
                     # Update temporal tracker with current video timestamp
                     active_tracks, newly_confirmed = self.tracker.update(detections, current_timestamp=current_video_time)

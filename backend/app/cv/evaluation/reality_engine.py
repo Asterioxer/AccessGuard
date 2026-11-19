@@ -42,7 +42,7 @@ class RealityEngine:
     def __init__(
         self,
         proc_service: Optional[ImageProcessingService] = None,
-        execution_policy: ExecutionPolicy = ExecutionPolicy.DEVELOPMENT_FALLBACK
+        execution_policy: ExecutionPolicy = ExecutionPolicy.STRICT_GENUINE
     ):
         self.proc_service = proc_service or ImageProcessingService()
         self.execution_policy = execution_policy
@@ -268,7 +268,8 @@ class RealityEngine:
                 "successful_executions": successful_executions,
                 "execution_errors": execution_errors,
                 "execution_rate_pct": round((successful_executions / max(1, total_scenes)) * 100.0, 1),
-                "policy_enforced": self.execution_policy.value
+                "policy_enforced": self.execution_policy.value,
+                "strict_genuine_enforced": (self.execution_policy == ExecutionPolicy.STRICT_GENUINE)
             },
             "model_integrity": model_integrity_summary,
             "output_integrity": {
@@ -288,9 +289,10 @@ class RealityEngine:
                 "per_class": classes_dict
             },
             "segmentation_metrics": {
+                "status": "READY" if (overall_miou > 0.0 or any(mask_ious_by_class.values())) else ("UNAVAILABLE" if self.execution_policy == ExecutionPolicy.STRICT_GENUINE else "DEGRADED"),
                 "mean_iou": overall_miou,
                 "per_class_miou": per_class_miou,
-                "execution_mode": "heuristic_morphological_fallback" if self.execution_policy == ExecutionPolicy.DEVELOPMENT_FALLBACK else "genuine_neural_model"
+                "execution_mode": "genuine_neural_model" if self.execution_policy == ExecutionPolicy.STRICT_GENUINE else "heuristic_morphological_fallback"
             },
             "geospatial_accuracy": {
                 "status": "NOT_MEASURED",

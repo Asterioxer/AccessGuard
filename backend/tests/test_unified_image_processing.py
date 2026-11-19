@@ -273,3 +273,199 @@ def test_ingestion_engine_uses_unified_service(db_session, monkeypatch):
     assert "run_id" in meta
     assert "models_executed" in meta
     assert "original_sha256" in meta
+
+
+def test_model_checkpoints_integrity_and_hashes():
+    """Validates existence, exact SHA-256 hashes, and clean initialization of real models."""
+    from app.cv.adapters.rampnet_adapter import RampNetAdapter
+    from app.cv.adapters.yolo_adapter import YOLOAdapter
+    from app.cv.segmentation.yolo_seg_adapter import YOLOSegmentationAdapter
+
+    # 1. RampNet Checkpoint
+    ramp_path = "data/models/rampnet.safetensors"
+    assert os.path.exists(ramp_path), f"RampNet checkpoint missing at {ramp_path}"
+    ramp_hasher = hashlib.sha256()
+    with open(ramp_path, "rb") as f:
+        while chunk := f.read(65536):
+            ramp_hasher.update(chunk)
+    ramp_sha = ramp_hasher.hexdigest()
+    assert ramp_sha == "f2119e3becb0b551fa1470f7b7ba85b82122a3f73a6ed2a85609dd57617866b5"
+
+    ramp_adapter = RampNetAdapter(model_path=ramp_path)
+    assert ramp_adapter.load() is True
+    assert ramp_adapter._status == AdapterStatus.READY
+    assert ramp_adapter._weight_sha256 == ramp_sha
+
+    # 2. YOLO Detection Checkpoint
+    yolo_path = "data/models/yolov8n.onnx"
+    assert os.path.exists(yolo_path), f"YOLO ONNX checkpoint missing at {yolo_path}"
+    yolo_hasher = hashlib.sha256()
+    with open(yolo_path, "rb") as f:
+        while chunk := f.read(65536):
+            yolo_hasher.update(chunk)
+    yolo_sha = yolo_hasher.hexdigest()
+    assert yolo_sha == "fbb11393b8823050ff79f2ed837eeeab4c51e9d9220da80fd773d94ed7531d76"
+
+    yolo_adapter = YOLOAdapter(model_path=yolo_path)
+    assert yolo_adapter.load() is True
+    assert yolo_adapter._status == AdapterStatus.READY
+    assert yolo_adapter._weight_sha256 == yolo_sha
+
+    # 3. YOLO Segmentation Checkpoint
+    seg_path = "data/models/yolov8n-seg.pt"
+    assert os.path.exists(seg_path), f"YOLO segmentation checkpoint missing at {seg_path}"
+    seg_hasher = hashlib.sha256()
+    with open(seg_path, "rb") as f:
+        while chunk := f.read(65536):
+            seg_hasher.update(chunk)
+    seg_sha = seg_hasher.hexdigest()
+    assert seg_sha == "a7cd8f929e1903d78a12a48efecab430209f18dc46cb96c3599a5980c63c423c"
+
+    seg_adapter = YOLOSegmentationAdapter(model_path=seg_path)
+    assert seg_adapter.load() is True
+    assert seg_adapter.model is not None
+    assert seg_adapter._weight_sha256 == seg_sha
+
+
+def test_real_image_strict_genuine_model_execution():
+    """Executes canonical service on real streetscape image under STRICT_GENUINE policy without synthetic fallback."""
+    real_img_path = "data/processed/demo_stairs.jpg"
+    assert os.path.exists(real_img_path), f"Real demo image missing at {real_img_path}"
+    with open(real_img_path, "rb") as f:
+        img_bytes = f.read()
+
+    service = ImageProcessingService()
+    req = ImageProcessingRequest(
+        image_bytes=img_bytes,
+        filename="demo_stairs.jpg",
+        source="reality_audit",
+        execution_policy=ExecutionPolicy.STRICT_GENUINE,
+        enable_privacy_redaction=True,
+        save_media=False
+    )
+    result = service.process_image(req)
+
+    assert result.overall_status in ("SUCCESS", "PARTIAL")
+    records_by_name = {r.adapter_name: r for r in result.model_execution_records}
+
+    # YOLO executed genuine model inference with non-zero latency
+    yolo_rec = records_by_name["yolo_adapter"]
+    assert yolo_rec.status == "READY"
+    assert yolo_rec.execution_type == "model_inference"
+    assert yolo_rec.execution_time_ms > 0
+    assert yolo_rec.weight_sha256 is not None
+
+    # RampNet executed genuine model inference with non-zero latency
+    ramp_rec = records_by_name["rampnet_adapter"]
+    assert ramp_rec.status == "READY"
+    assert ramp_rec.execution_type == "model_inference"
+    assert ramp_rec.execution_time_ms > 0
+    assert ramp_rec.weight_sha256 is not None
+
+    # Missing models honestly report UNAVAILABLE and never execute heuristic fallback
+    guide_rec = records_by_name["guidecane_adapter"]
+    assert guide_rec.status == "UNAVAILABLE"
+    assert guide_rec.execution_type == "unavailable"
+
+    city_rec = records_by_name["citysurfaces_adapter"]
+    assert city_rec.status == "UNAVAILABLE"
+    assert city_rec.execution_type == "unavailable"
+
+    # Genuine segmentation adapter
+    assert result.segmentation_results.status == "READY"
+    assert result.segmentation_results.execution_type == "model_inference"
+
+
+def test_strict_genuine_mode_forbids_heuristic_fallback():
+    """Asserts that in STRICT_GENUINE mode, missing weights produce UNAVAILABLE rather than heuristics."""
+    from app.cv.adapters.rampnet_adapter import RampNetAdapter
+    # Missing weights with allow_fallback=False
+    adapter = RampNetAdapter(model_path="data/models/nonexistent_model.safetensors")
+    dummy_img = np.full((128, 128, 3), 128, dtype=np.uint8)
+    res = adapter.predict_v2(dummy_img, allow_fallback=False)
+
+    assert res.status == AdapterStatus.UNAVAILABLE
+    assert res.execution_type == "unavailable"
+    assert len(res.keypoints) == 0
+
+
+def test_video_ingestion_unification_and_temporal_tracking(tmp_path, db_session):
+    """Verifies video frames are routed individually through ImageProcessingService with temporal tracking."""
+    video_file = tmp_path / "test_street_walk.mp4"
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    writer = cv2.VideoWriter(str(video_file), fourcc, 30.0, (320, 240))
+    # Generate 60 frames (2 seconds @ 30 fps)
+    for i in range(60):
+        frame = np.full((240, 320, 3), 140, dtype=np.uint8)
+        # Draw horizontal stair lines
+        for y in (80, 120, 160):
+            cv2.line(frame, (40, y), (280, y), (20, 20, 20), 3)
+        writer.write(frame)
+    writer.release()
+
+    service = ImageProcessingService()
+    vid_res = service.process_video(
+        video_path=video_file,
+        source="test_video_source",
+        filename="test_street_walk.mp4",
+        latitude=28.6139,
+        longitude=77.2090,
+        sample_fps=1.0,
+        max_duration_seconds=10,
+        execution_policy=ExecutionPolicy.STRICT_GENUINE,
+        db=db_session,
+        save_media=True
+    )
+
+    assert vid_res.overall_status in ("SUCCESS", "PARTIAL")
+    assert vid_res.total_frames == 60
+    assert vid_res.sampled_frames == 2
+    assert len(vid_res.frame_results) == 2
+
+    # Every sampled frame followed the canonical ImageProcessingResult contract
+    for fr in vid_res.frame_results:
+        assert isinstance(fr, ImageProcessingResult)
+        assert fr.run_id.startswith("proc_")
+        assert len(fr.original_sha256) == 64
+        assert len(fr.sanitized_sha256) == 64
+
+    # DB persistence check
+    assert vid_res.observation_id is not None
+    obs = db_session.query(Observation).filter(Observation.id == vid_res.observation_id).first()
+    assert obs is not None
+    assert obs.media_type == "video"
+    assert obs.latitude == pytest.approx(28.6139, 0.0001)
+
+    prov = db_session.query(ImageProvenance).filter(ImageProvenance.observation_id == obs.id).first()
+    assert prov is not None
+    p_meta = json.loads(prov.raw_metadata_json)
+    assert p_meta["original_sha256"] == vid_res.original_sha256
+    assert p_meta["total_frames"] == 60
+    assert p_meta["sampled_frames"] == 2
+
+
+def test_video_upload_endpoint_unification(client, contributor_token, tmp_path):
+    """Verifies upload endpoint handles video uploads via canonical unified service."""
+    video_file = tmp_path / "upload_test.mp4"
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    writer = cv2.VideoWriter(str(video_file), fourcc, 30.0, (160, 120))
+    for i in range(30):
+        frame = np.full((120, 160, 3), 100, dtype=np.uint8)
+        writer.write(frame)
+    writer.release()
+
+    with open(video_file, "rb") as f:
+        vid_bytes = f.read()
+
+    response = client.post(
+        "/api/v1/observations/upload",
+        files={"file": ("upload_test.mp4", vid_bytes, "video/mp4")},
+        data={"latitude": 28.6129, "longitude": 77.2295},
+        headers={"Authorization": f"Bearer {contributor_token}"}
+    )
+    assert response.status_code == 201, f"Upload failed: {response.text}"
+    data = response.json()
+    assert "id" in data
+    assert data["media_type"] == "video"
+    assert data["latitude"] == pytest.approx(28.6129, 0.0001)
+    assert data["longitude"] == pytest.approx(77.2295, 0.0001)

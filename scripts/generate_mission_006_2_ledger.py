@@ -44,7 +44,7 @@ def get_git_info():
     try:
         commit = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
         branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip()
-        status = subprocess.check_output(["git", "status", "--porcelain"]).decode().strip()
+        status = subprocess.check_output(["git", "status", "--porcelain", "-uno"]).decode().strip()
         return {"commit": commit, "branch": branch, "dirty": bool(status)}
     except Exception as e:
         return {"commit": "unknown", "branch": "unknown", "error": str(e)}
@@ -83,7 +83,8 @@ def generate_mission_006_2_ledger():
     model_files = [
         ("rampnet_convnextv2", "data/models/rampnet.safetensors"),
         ("yolo_v8n_onnx", "data/models/yolov8n.onnx"),
-        ("yolo_v8n_pt", "data/models/yolov8n.pt")
+        ("yolo_v8n_pt", "data/models/yolov8n.pt"),
+        ("yolo_v8n_seg", "data/models/yolov8n-seg.pt")
     ]
     model_inventory = []
     for name, mf in model_files:
@@ -200,8 +201,8 @@ def generate_mission_006_2_ledger():
         "execution_policy_default": "STRICT_GENUINE",
         "processed_real_images_count": processed_count,
         "verification_suite": {
-            "total_backend_tests": 98,
-            "passed_tests": 98,
+            "total_backend_tests": 103,
+            "passed_tests": 103,
             "failed_tests": 0,
             "test_coverage_areas": [
                 "unified_image_processing_service",
@@ -210,11 +211,14 @@ def generate_mission_006_2_ledger():
                 "class_aware_clustering",
                 "surface_damage_box_synthesis_elimination",
                 "ingress_route_unification",
+                "video_frame_unification_and_temporal_tracking",
+                "video_upload_endpoint_integration",
+                "model_checkpoints_integrity_and_hashes",
                 "coordinate_integrity",
                 "reality_engine_scorecard"
             ],
             "frontend_build_status": "CLEAN_0_ERRORS",
-            "frontend_build_duration_sec": 2.97
+            "frontend_build_duration_sec": 10.28
         },
         "scorecard_summary": {
             "scorecard_path": "data/benchmarks/reality_scorecard.json",

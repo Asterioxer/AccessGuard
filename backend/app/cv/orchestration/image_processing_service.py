@@ -44,6 +44,7 @@ from app.cv.segmentation.base import SegmentationAdapter, SegmentedRegion
 from app.cv.segmentation.yolo_seg_adapter import YOLOSegmentationAdapter
 from app.cv.segmentation.heuristic_seg_adapter import HeuristicSegmentationAdapter
 from app.cv.fusion.evidence_fusion import EvidenceFusionEngine, FusedBarrierEvidence
+from app.cv.temporal_tracker import TemporalObstacleTracker, TrackedBarrier
 from app.cv.base import DetectedBarrier
 from app.db.models import (
     Observation,
@@ -159,6 +160,58 @@ class ImageProcessingResult:
             "segmentation_results": self.segmentation_results.__dict__,
             "fused_evidence": self.fused_evidence,
             "uncertainty_summary": self.uncertainty_summary,
+            "resource_telemetry": self.resource_telemetry,
+            "warnings": self.warnings,
+            "errors": self.errors,
+            "overall_status": self.overall_status,
+            "observation_id": self.observation_id,
+            "segment_id": self.segment_id
+        }
+
+
+@dataclass
+class VideoProcessingResult:
+    """Canonical, auditable output container for unified video processing and temporal tracking."""
+    video_id: str
+    video_path: str
+    original_sha256: str
+    duration_seconds: float
+    total_frames: int
+    sampled_frames: int
+    frame_results: List[ImageProcessingResult]
+    detected_barriers: List[DetectedBarrier]
+    unique_obstacles_count: int
+    execution_policy: str
+    resource_telemetry: Dict[str, Any]
+    warnings: List[str]
+    errors: List[str]
+    overall_status: str                              # "SUCCESS", "PARTIAL", "FAILED"
+    observation_id: Optional[str] = None
+    segment_id: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializes result to JSON-compatible dictionary."""
+        return {
+            "video_id": self.video_id,
+            "video_path": self.video_path,
+            "original_sha256": self.original_sha256,
+            "duration_seconds": self.duration_seconds,
+            "total_frames": self.total_frames,
+            "sampled_frames": self.sampled_frames,
+            "frame_results_count": len(self.frame_results),
+            "detected_barriers": [
+                {
+                    "barrier_type": d.barrier_type,
+                    "confidence": d.confidence,
+                    "uncertainty_score": d.uncertainty_score,
+                    "bbox": d.bbox,
+                    "evidence": d.evidence,
+                    "is_confirmed": d.is_confirmed
+                }
+                for d in self.detected_barriers
+            ],
+            "unique_obstacles_count": self.unique_obstacles_count,
+            "execution_policy": self.execution_policy,
             "resource_telemetry": self.resource_telemetry,
             "warnings": self.warnings,
             "errors": self.errors,
@@ -562,6 +615,9 @@ class ImageProcessingService:
         """
         h, w = image_bgr.shape[:2]
 
+        if hasattr(self.seg_adapter, "load") and not getattr(self.seg_adapter, "is_loaded", False):
+            self.seg_adapter.load()
+
         if hasattr(self.seg_adapter, "model") and self.seg_adapter.model is not None:
             # Genuine neural segmentation model loaded
             regions = self.seg_adapter.predict_masks(image_bgr)
@@ -812,4 +868,325 @@ class ImageProcessingService:
             warnings=[],
             errors=[error_msg],
             overall_status="FAILED"
+        )
+
+    def process_video(
+        self,
+        video_path: Union[str, Path],
+        source: str = "user_upload_video",
+        filename: Optional[str] = None,
+        contributor_id: Optional[str] = None,
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
+        sample_fps: float = 1.0,
+        max_duration_seconds: int = 60,
+        execution_policy: Optional[ExecutionPolicy] = None,
+        db: Optional[Session] = None,
+        save_media: bool = True
+    ) -> VideoProcessingResult:
+        """
+        Canonical unified video processing engine.
+        Extracts keyframes at sample_fps, routes every individual frame through
+        the canonical ImageProcessingService.process_image() contract, feeds detections
+        into the temporal obstacle tracking layer to suppress duplicates and confirm
+        persistent physical obstacles, and records full cryptographic provenance.
+        """
+        v_path = Path(video_path)
+        vid_id = f"vid_{uuid.uuid4().hex[:12]}"
+        policy = execution_policy or ExecutionPolicy.STRICT_GENUINE
+        warnings: List[str] = []
+        errors: List[str] = []
+
+        if not v_path.exists():
+            error_msg = f"Video file not found at {v_path}"
+            logger.error(error_msg)
+            return VideoProcessingResult(
+                video_id=vid_id,
+                video_path=str(v_path),
+                original_sha256="",
+                duration_seconds=0.0,
+                total_frames=0,
+                sampled_frames=0,
+                frame_results=[],
+                detected_barriers=[],
+                unique_obstacles_count=0,
+                execution_policy=policy.value,
+                resource_telemetry={},
+                warnings=[],
+                errors=[error_msg],
+                overall_status="FAILED"
+            )
+
+        # 1. Compute original video SHA-256
+        hasher = hashlib.sha256()
+        try:
+            with open(v_path, "rb") as f:
+                while chunk := f.read(65536):
+                    hasher.update(chunk)
+            video_sha256 = hasher.hexdigest()
+        except Exception as e:
+            video_sha256 = ""
+            warnings.append(f"Failed to compute video SHA-256: {e}")
+
+        # 2. Open video capture
+        cap = cv2.VideoCapture(str(v_path))
+        if not cap.isOpened():
+            error_msg = f"Unable to decode video container at {v_path}"
+            logger.error(error_msg)
+            return VideoProcessingResult(
+                video_id=vid_id,
+                video_path=str(v_path),
+                original_sha256=video_sha256,
+                duration_seconds=0.0,
+                total_frames=0,
+                sampled_frames=0,
+                frame_results=[],
+                detected_barriers=[],
+                unique_obstacles_count=0,
+                execution_policy=policy.value,
+                resource_telemetry={},
+                warnings=warnings,
+                errors=[error_msg],
+                overall_status="FAILED"
+            )
+
+        native_fps = float(cap.get(cv2.CAP_PROP_FPS)) or 30.0
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        duration = total_frames / native_fps if native_fps > 0 else 0.0
+
+        if duration > max_duration_seconds:
+            cap.release()
+            raise ValueError(f"Video duration ({duration:.1f}s) exceeds maximum allowed {max_duration_seconds}s.")
+
+        step = max(1, int(round(native_fps / sample_fps)))
+        frame_idx = 0
+        sampled_idx = 0
+        frame_results: List[ImageProcessingResult] = []
+
+        # Initialize temporal tracker
+        tracker = TemporalObstacleTracker(
+            iou_match_threshold=0.35,
+            max_track_staleness_seconds=3.0,
+            min_frames_for_confirmation=3
+        )
+        all_tracks_map: Dict[str, TrackedBarrier] = {}
+
+        logger.info(f"Unified Video Ingestion: analyzing {v_path.name} ({total_frames} frames @ {native_fps:.1f} fps, step {step})")
+
+        while cap.isOpened() and frame_idx < total_frames:
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                break
+
+            if frame_idx % step == 0:
+                sampled_idx += 1
+                current_ts_sec = frame_idx / native_fps if native_fps > 0 else 0.0
+
+                success, encoded_jpg = cv2.imencode(".jpg", frame)
+                if not success:
+                    warnings.append(f"Failed to encode frame {frame_idx}")
+                    frame_idx += 1
+                    continue
+
+                frame_req = ImageProcessingRequest(
+                    image_bytes=encoded_jpg.tobytes(),
+                    filename=f"frame_{frame_idx:06d}.jpg",
+                    source=f"{source}_frame",
+                    source_metadata={
+                        "video_id": vid_id,
+                        "video_sha256": video_sha256,
+                        "frame_index": frame_idx,
+                        "timestamp_seconds": round(current_ts_sec, 3)
+                    },
+                    latitude=latitude,
+                    longitude=longitude,
+                    execution_policy=policy,
+                    enable_privacy_redaction=True,
+                    save_media=False
+                )
+
+                frame_res = self.process_image(frame_req, db=None)
+                frame_results.append(frame_res)
+                if frame_res.errors:
+                    errors.extend(frame_res.errors)
+                if frame_res.warnings:
+                    warnings.extend(frame_res.warnings)
+
+                active_tracks, newly_confirmed = tracker.update(
+                    frame_res.detections,
+                    current_timestamp=current_ts_sec
+                )
+                for trk in active_tracks:
+                    all_tracks_map[trk.track_id] = trk
+
+            frame_idx += 1
+
+        cap.release()
+
+        # 3. Consolidate temporal obstacle tracks into unified DetectedBarriers
+        consolidated_barriers: List[DetectedBarrier] = []
+        for tid, trk in all_tracks_map.items():
+            if trk.frame_count >= tracker.min_frames_for_confirmation or trk.is_confirmed:
+                boosted_conf = min(0.96, round(trk.max_confidence + 0.08, 2))
+                reduced_unc = max(0.08, round(trk.min_uncertainty - 0.10, 2))
+                is_confirmed = True
+                expl = f"Verified persistent obstacle across {trk.frame_count} sampled video frames ({trk.duration_seconds:.1f}s)."
+            elif trk.frame_count == 1:
+                boosted_conf = max(0.35, round(trk.max_confidence - 0.10, 2))
+                reduced_unc = min(0.70, round(trk.min_uncertainty + 0.15, 2))
+                is_confirmed = False
+                expl = f"Single fleeting video frame detection ({trk.duration_seconds:.1f}s)."
+            else:
+                boosted_conf = trk.max_confidence
+                reduced_unc = trk.min_uncertainty
+                is_confirmed = False
+                expl = f"Observed across {trk.frame_count} sampled video frames ({trk.duration_seconds:.1f}s)."
+
+            evidence = {
+                "video_persistence_frames": trk.frame_count,
+                "first_seen_sec": round(trk.first_seen_timestamp, 2),
+                "last_seen_sec": round(trk.last_seen_timestamp, 2),
+                "duration_sec": round(trk.duration_seconds, 2),
+                "track_id": trk.track_id,
+                "is_confirmed": is_confirmed,
+                "explanation": expl
+            }
+
+            consolidated_barriers.append(
+                DetectedBarrier(
+                    barrier_type=trk.barrier_type,
+                    confidence=boosted_conf,
+                    uncertainty_score=reduced_unc,
+                    bbox=trk.bbox,
+                    polygon=None,
+                    evidence=evidence
+                )
+            )
+
+        # Telemetry
+        vram_mb, ram_mb = self._measure_resource_usage()
+        telemetry = {
+            "vram_allocated_mb": vram_mb,
+            "ram_used_mb": ram_mb,
+            "total_frames": total_frames,
+            "sampled_frames": sampled_idx,
+            "native_fps": native_fps,
+            "duration_seconds": round(duration, 2)
+        }
+
+        # Determine overall status
+        if errors and not consolidated_barriers:
+            overall_status = "FAILED"
+        elif errors or warnings:
+            overall_status = "PARTIAL"
+        else:
+            overall_status = "SUCCESS"
+
+        # 4. Database Persistence
+        obs_id: Optional[str] = None
+        segment_id: Optional[str] = None
+
+        if db is not None and save_media:
+            obs_id = vid_id
+            if latitude is not None and longitude is not None:
+                try:
+                    segment_id = snap_point_to_segments(db, latitude, longitude, max_distance_meters=50.0)
+                except Exception as e:
+                    warnings.append(f"Spatial snapping failed: {e}")
+
+            obs = Observation(
+                id=obs_id,
+                contributor_id=contributor_id,
+                media_path=str(v_path),
+                media_type="video",
+                latitude=latitude,
+                longitude=longitude,
+                segment_id=segment_id,
+                status="tentative",
+                verification_score=0,
+                captured_at=datetime.now(timezone.utc)
+            )
+            db.add(obs)
+            db.flush()
+
+            for det in consolidated_barriers:
+                ymin, xmin, ymax, xmax = det.bbox
+                b_det = BarrierDetection(
+                    id=str(uuid.uuid4()),
+                    observation_id=obs.id,
+                    barrier_type=det.barrier_type,
+                    confidence=det.confidence,
+                    uncertainty_score=det.uncertainty_score,
+                    is_confirmed=det.is_confirmed,
+                    bbox_ymin=ymin,
+                    bbox_xmin=xmin,
+                    bbox_ymax=ymax,
+                    bbox_xmax=xmax,
+                    polygon_json=json.dumps(det.polygon) if det.polygon else None,
+                    evidence_json=json.dumps(det.evidence) if det.evidence else "{}"
+                )
+                db.add(b_det)
+
+            raw_meta = {
+                "video_id": vid_id,
+                "original_sha256": video_sha256,
+                "execution_policy": policy.value,
+                "total_frames": total_frames,
+                "sampled_frames": sampled_idx,
+                "duration_seconds": round(duration, 2),
+                "unique_obstacles_count": len(consolidated_barriers),
+                "frames_summary": [
+                    {
+                        "run_id": fr.run_id,
+                        "detections_count": len(fr.detections),
+                        "overall_status": fr.overall_status
+                    }
+                    for fr in frame_results
+                ]
+            }
+
+            provenance = ImageProvenance(
+                observation_id=obs.id,
+                provider=source,
+                external_image_id=filename or v_path.name,
+                capture_timestamp=datetime.now(timezone.utc).isoformat(),
+                ingestion_timestamp=str(int(time.time())),
+                latitude=latitude,
+                longitude=longitude,
+                source_attribution="AccessGuard Unified Video Ingress",
+                license_metadata="Standard Platform License",
+                model_version="unified_video_v2.0.0",
+                raw_metadata_json=json.dumps(raw_meta)
+            )
+            db.add(provenance)
+
+            if segment_id is not None:
+                seg_obs_list = db.query(Observation).filter(Observation.segment_id == segment_id).all()
+                net_score, grade, breakdown = calculate_segment_accessibility_score(seg_obs_list)
+                target_seg = db.query(PedestrianSegment).filter(PedestrianSegment.id == segment_id).first()
+                if target_seg:
+                    target_seg.accessibility_score = net_score
+                    target_seg.score_grade = grade
+                    target_seg.score_criteria_breakdown = json.dumps(breakdown.model_dump())
+                    target_seg.barrier_count = sum(len(o.detections) for o in seg_obs_list)
+
+            db.commit()
+
+        return VideoProcessingResult(
+            video_id=vid_id,
+            video_path=str(v_path),
+            original_sha256=video_sha256,
+            duration_seconds=round(duration, 2),
+            total_frames=total_frames,
+            sampled_frames=sampled_idx,
+            frame_results=frame_results,
+            detected_barriers=consolidated_barriers,
+            unique_obstacles_count=len(consolidated_barriers),
+            execution_policy=policy.value,
+            resource_telemetry=telemetry,
+            warnings=warnings,
+            errors=errors,
+            overall_status=overall_status,
+            observation_id=obs_id,
+            segment_id=segment_id
         )

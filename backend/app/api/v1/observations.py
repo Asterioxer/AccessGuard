@@ -143,9 +143,10 @@ async def upload_observation(
         adapter in ("heuristic", "fallback") or settings.CV_ADAPTER == "heuristic"
     ) else ExecutionPolicy.STRICT_GENUINE
 
+    # Execute canonical unified ImageProcessingService
+    proc_service = ImageProcessingService()
+
     if media_category == "image":
-        # Execute unified 15-stage ImageProcessingService
-        proc_service = ImageProcessingService()
         proc_req = ImageProcessingRequest(
             image_bytes=file_bytes,
             filename=file.filename or filename,
@@ -174,110 +175,42 @@ async def upload_observation(
             raise HTTPException(status_code=500, detail="Failed to retrieve persisted observation")
         return format_observation_response(observation)
     else:
-        # Video pipeline
+        # Video pipeline via canonical ImageProcessingService
         temp_video_path = settings.UPLOAD_DIR / f"temp_{filename}"
         with open(temp_video_path, "wb") as f:
             f.write(file_bytes)
             
-        pipeline = CVPipeline(adapter_name=adapter or settings.CV_ADAPTER)
         try:
-            detected_barriers = pipeline.process_video(
-                str(temp_video_path),
-                max_duration_seconds=settings.MAX_VIDEO_DURATION_SECONDS
-            )
-            # Rename temp to processed
             if os.path.exists(saved_path):
                 os.remove(saved_path)
             os.rename(temp_video_path, saved_path)
+
+            video_res = proc_service.process_video(
+                video_path=saved_path,
+                source="user_upload_video",
+                filename=file.filename or filename,
+                contributor_id=contributor_id,
+                latitude=final_lat,
+                longitude=final_lon,
+                execution_policy=policy,
+                sample_fps=1.0,
+                max_duration_seconds=settings.MAX_VIDEO_DURATION_SECONDS,
+                db=db,
+                save_media=True
+            )
+            if video_res.overall_status == "FAILED" and not video_res.detected_barriers:
+                if any("duration" in e.lower() or "decode" in e.lower() for e in video_res.errors):
+                    raise HTTPException(status_code=400, detail=video_res.errors[0])
+        except HTTPException:
+            raise
         except Exception as e:
             if os.path.exists(temp_video_path):
                 os.remove(temp_video_path)
             raise HTTPException(status_code=400, detail=f"Video processing failed: {str(e)}")
 
-        # Create Observation record
-        observation = Observation(
-            id=obs_id,
-            contributor_id=contributor_id,
-            media_path=str(saved_path),
-            media_type=media_category,
-            latitude=final_lat,
-            longitude=final_lon,
-            status="tentative",
-            verification_score=0,
-            captured_at=datetime.now(timezone.utc)
-        )
-        db.add(observation)
-
-        # Attach Barrier Detections
-        for det in detected_barriers:
-            poly_str = json.dumps(det.polygon) if det.polygon else None
-            evidence_str = json.dumps(det.evidence) if det.evidence else "{}"
-            
-            db_det = BarrierDetection(
-                id=str(uuid.uuid4()),
-                observation_id=obs_id,
-                barrier_type=det.barrier_type,
-                confidence=det.confidence,
-                uncertainty_score=det.uncertainty_score,
-                is_confirmed=det.is_confirmed,
-                bbox_ymin=det.bbox[0],
-                bbox_xmin=det.bbox[1],
-                bbox_ymax=det.bbox[2],
-                bbox_xmax=det.bbox[3],
-                polygon_json=poly_str,
-                evidence_json=evidence_str
-            )
-            db.add(db_det)
-
-        # Record Image Provenance & cryptographic SHA-256
-        import hashlib
-        import time
-        from app.db.models import ImageProvenance
-        vid_sha256 = hashlib.sha256(file_bytes).hexdigest()
-
-        prov = ImageProvenance(
-            observation_id=obs_id,
-            provider="user_upload",
-            external_image_id=file.filename or obs_id,
-            capture_timestamp=datetime.now(timezone.utc).isoformat(),
-            ingestion_timestamp=str(int(time.time())),
-            latitude=final_lat,
-            longitude=final_lon,
-            source_attribution="User Contributor Upload",
-            license_metadata="User Contributed / Platform Terms",
-            model_version=f"{pipeline.adapter_name}-v1",
-            raw_metadata_json=json.dumps({
-                "video_sha256": vid_sha256,
-                "filename": file.filename,
-                "mime_type": mime_type,
-                "size_bytes": len(file_bytes),
-                "cv_adapter": pipeline.adapter_name
-            })
-        )
-        db.add(prov)
-        db.commit()
-
-        # Snap to nearest pedestrian segment if coordinates are genuinely present
-        if final_lat is not None and final_lon is not None:
-            all_segments = db.query(PedestrianSegment).all()
-            snap_result = snap_point_to_segments(final_lat, final_lon, all_segments, max_distance_meters=settings.SNAP_TOLERANCE_METERS)
-            
-            if snap_result:
-                matched_seg, _ = snap_result
-                observation.segment_id = matched_seg.id
-                db.commit()
-                
-                # Recalculate segment score
-                seg_obs = db.query(Observation).filter(Observation.segment_id == matched_seg.id).all()
-                net_score, grade, breakdown = calculate_segment_accessibility_score(seg_obs)
-                matched_seg.accessibility_score = net_score
-                matched_seg.score_grade = grade
-                matched_seg.score_criteria_breakdown = json.dumps(breakdown.model_dump())
-                matched_seg.barrier_count = sum(len(o.detections) for o in seg_obs)
-                matched_seg.last_evaluated_at = datetime.now(timezone.utc)
-                db.commit()
-
-        db.refresh(observation)
+        observation = db.query(Observation).filter(Observation.id == video_res.observation_id).first()
+        if not observation:
+            raise HTTPException(status_code=500, detail="Failed to retrieve persisted video observation")
         return format_observation_response(observation)
 
 @router.get("", response_model=List[ObservationResponse])

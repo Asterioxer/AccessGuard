@@ -6,6 +6,7 @@ mask confidence estimation, and class taxonomy normalization.
 """
 
 import os
+import hashlib
 from typing import List, Optional
 import cv2
 import numpy as np
@@ -36,6 +37,8 @@ class YOLOSegmentationAdapter(SegmentationAdapter):
         self.model_path = model_path
         self.confidence_threshold = confidence_threshold
         self.model = None
+        self._weight_sha256: Optional[str] = None
+        self._device: str = "cpu"
         self._fallback = HeuristicSegmentationAdapter()
 
     def load(self) -> bool:
@@ -46,9 +49,20 @@ class YOLOSegmentationAdapter(SegmentationAdapter):
 
             if weights:
                 self.model = YOLO(weights)
-                logger.info(f"Loaded YOLO segmentation model from {weights}")
+                hasher = hashlib.sha256()
+                with open(weights, "rb") as f:
+                    while chunk := f.read(65536):
+                        hasher.update(chunk)
+                self._weight_sha256 = hasher.hexdigest()
+                try:
+                    self._device = str(next(self.model.model.parameters()).device)
+                except Exception:
+                    self._device = "cpu"
+                logger.info(f"Loaded YOLO segmentation model from {weights} (sha256: {self._weight_sha256[:12]}...)")
             else:
                 self.model = None
+                self._weight_sha256 = None
+                self._device = "cpu"
                 logger.info("YOLOSegmentationAdapter using fallback heuristic segmenter.")
 
             self.is_loaded = True
@@ -72,6 +86,7 @@ class YOLOSegmentationAdapter(SegmentationAdapter):
             results = self.model.predict(
                 source=image_bgr,
                 conf=self.confidence_threshold,
+                device="cpu",
                 verbose=False
             )
 
