@@ -227,6 +227,19 @@ export interface VideoJobProgress {
     is_physical_obstacle: boolean;
   }>;
   error_message?: string;
+  observation_id?: string | null;
+  overall_status?: string | null;
+  model_execution_summary?: Array<{
+    adapter_name: string;
+    model_family: string;
+    status_counts: Record<string, number>;
+    execution_types: Record<string, number>;
+    frames_reported: number;
+    detections_reported: number;
+    errors: string[];
+  }>;
+  warnings?: string[];
+  errors?: string[];
 }
 
 export interface RealityScorecard {
