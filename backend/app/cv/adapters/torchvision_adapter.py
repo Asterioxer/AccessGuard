@@ -37,26 +37,35 @@ class TorchvisionAdapter(ModelAdapter):
             ])
             
             # If custom fine-tuned weights exist, load model
-            if self.weights_path and torch.cuda.is_available():
-                # Load custom checkpoint safely
-                self.model = torch.load(self.weights_path, map_location=self.device, weights_only=True)
-                self.model.eval()
-            else:
-                # Pretrained architecture ready for fine-tuning / evaluation
+            if not self.weights_path:
                 self.model = None
-                
+                self.is_initialized = False
+                logger.warning("Torchvision weights were not configured; adapter is unavailable.")
+                return False
+            if not os.path.isfile(self.weights_path):
+                self.model = None
+                self.is_initialized = False
+                logger.warning(f"Torchvision checkpoint not found: {self.weights_path}")
+                return False
+
+            # A checkpoint must exist before the adapter can claim readiness.
+            self.model = torch.load(self.weights_path, map_location=self.device, weights_only=True)
+            if not callable(self.model):
+                raise TypeError("Torchvision checkpoint must contain a callable model; state-dict-only checkpoints require an explicit architecture loader.")
+            self.model.eval()
             self.is_initialized = True
             return True
         except Exception as e:
-            logger.warning(f"Failed to load PyTorch model: {e}. Model will run in uninitialized/empty mode.")
-            self.is_initialized = True
+            logger.warning(f"Failed to load PyTorch model: {e}")
+            self.model = None
+            self.is_initialized = False
             return False
 
     def predict(self, image_bgr: np.ndarray) -> List[DetectedBarrier]:
         if not self.is_initialized:
             success = self.load()
             if not success or self.model is None:
-                logger.info("TorchvisionAdapter: no active PyTorch weights loaded; returning empty detections.")
+                logger.info("TorchvisionAdapter unavailable: no callable checkpoint loaded.")
                 return []
         if self.model is None:
             return []
