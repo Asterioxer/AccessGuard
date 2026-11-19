@@ -11,7 +11,6 @@ from app.schemas.segment import (
     SegmentGeoJSONCollection, SegmentGeoJSONFeature
 )
 from app.gis.scoring import calculate_segment_accessibility_score
-from app.gis.osm_importer import create_pedestrian_segment_models
 from app.core.security import require_role, Role
 
 router = APIRouter(prefix="/segments", tags=["Pedestrian Segments"])
@@ -65,13 +64,8 @@ def list_segments(
     """Retrieves pedestrian segments with accessibility scoring and pagination."""
     query = db.query(PedestrianSegment)
     
-    # Auto-seed demo network if table is empty
-    if query.count() == 0:
-        demo_segs = create_pedestrian_segment_models()
-        for s in demo_segs:
-            db.add(s)
-        db.commit()
-        query = db.query(PedestrianSegment)
+    # An empty network is a valid state. Populate this table only from an explicit,
+    # provenance-bearing OSM/network import; never invent demo streets at read time.
 
     if grade:
         query = query.filter(PedestrianSegment.score_grade == grade.upper())
@@ -85,12 +79,7 @@ def list_segments(
 def get_segments_geojson(db: Session = Depends(get_db)):
     """Returns pedestrian network in standard GeoJSON format for interactive map layers."""
     segments = db.query(PedestrianSegment).all()
-    if not segments:
-        demo_segs = create_pedestrian_segment_models()
-        for s in demo_segs:
-            db.add(s)
-        db.commit()
-        segments = db.query(PedestrianSegment).all()
+    # Return an empty FeatureCollection until real pedestrian-network data is imported.
 
     features = []
     for s in segments:
