@@ -454,25 +454,26 @@ class ImageProcessingService:
             from app.cv.adapters.torchvision_adapter import TorchvisionAdapter
             tv = TorchvisionAdapter()
             t0 = time.perf_counter()
-            detections = tv.predict(redacted_bgr)
+            loaded = tv.load()
+            detections = tv.predict(redacted_bgr) if loaded else []
             t_tv = (time.perf_counter() - t0) * 1000.0
             model_exec_records.append(ModelExecutionRecord(
                 adapter_name=tv.name,
                 model_family="MaskRCNN-ResNet50",
                 upstream_repo="torchvision",
-                checkpoint_path=None,
+                checkpoint_path=tv.weights_path,
                 weight_sha256=None,
                 model_architecture="MaskRCNN",
                 model_version=getattr(tv, "version", "1.0.0"),
                 class_mapping_version="v1.0",
-                device_used="cpu",
-                execution_type="model_inference" if tv.is_initialized else "heuristic_fallback",
+                device_used=str(getattr(tv, "device", "cpu")),
+                execution_type="model_inference" if loaded else "unavailable",
                 execution_time_ms=round(t_tv, 2),
                 input_dimensions=(w, h),
                 output_count=len(detections),
-                status="READY" if tv.is_initialized else "DEGRADED",
-                warnings=[] if tv.is_initialized else ["Torchvision running in fallback mode."],
-                errors=[]
+                status="READY" if loaded else "UNAVAILABLE",
+                warnings=[] if loaded else ["Torchvision checkpoint is not configured or could not be loaded."],
+                errors=[] if loaded else [getattr(tv, "last_error", None) or "No callable Torchvision checkpoint is configured."]
             ))
             final_detections = detections
 
