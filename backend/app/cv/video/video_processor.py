@@ -62,7 +62,8 @@ class VideoProcessor:
         tracker: Optional[TemporalObstacleTracker] = None,
         sample_rate_fps: float = DEFAULT_SAMPLE_RATE_FPS
     ):
-        self.cv_pipeline = cv_pipeline or CVPipeline()
+        # Do not instantiate a legacy heuristic pipeline here; sampled frames use the canonical service only.
+        self.cv_pipeline = cv_pipeline
         self.proc_service = proc_service or ImageProcessingService()
         self.tracker = tracker or TemporalObstacleTracker(
             iou_match_threshold=0.35,
