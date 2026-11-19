@@ -25,9 +25,10 @@ services:
     environment:
       - DATABASE_URL=postgresql+psycopg2://accessguard:accessguard_secret_db_pass@db:5432/accessguard_db
       - SECRET_KEY=accessguard-production-super-secret-key-32bytesmin
-      - CV_ADAPTER=heuristic
       - ENABLE_PRIVACY_BLURRING=true
       - STRIP_EXIF_AFTER_EXTRACTION=true
+      - ADMIN_INITIAL_PASSWORD=${ADMIN_INITIAL_PASSWORD:-}
+      - VERIFIER_INITIAL_PASSWORD=${VERIFIER_INITIAL_PASSWORD:-}
     ports:
       - "8000:8000"
     volumes:

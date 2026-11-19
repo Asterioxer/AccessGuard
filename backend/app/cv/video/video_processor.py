@@ -62,7 +62,8 @@ class VideoProcessor:
         tracker: Optional[TemporalObstacleTracker] = None,
         sample_rate_fps: float = DEFAULT_SAMPLE_RATE_FPS
     ):
-        self.cv_pipeline = cv_pipeline or CVPipeline()
+        # Do not instantiate a legacy heuristic pipeline here; sampled frames use the canonical service only.
+        self.cv_pipeline = cv_pipeline
         self.proc_service = proc_service or ImageProcessingService()
         self.tracker = tracker or TemporalObstacleTracker(
             iou_match_threshold=0.35,
@@ -140,7 +141,9 @@ class VideoProcessor:
                         frame_res = self.proc_service.process_image(req)
                         detections = frame_res.detections
                     else:
-                        detections = self.cv_pipeline.adapter.predict(frame)
+                        progress.status = "FAILED"
+                        progress.error_message = f"Could not encode sampled frame {frame_idx}; refusing legacy fallback inference."
+                        return progress
 
                     # Update temporal tracker with current video timestamp
                     active_tracks, newly_confirmed = self.tracker.update(detections, current_timestamp=current_video_time)

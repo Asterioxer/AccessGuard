@@ -109,7 +109,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
         {success && (
           <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs flex items-center space-x-2">
             <CheckCircle className="w-4 h-4 flex-shrink-0" />
-            <span>Inference complete! Barrier analyzed and mapped to sidewalk segment.</span>
+            <span>Upload processed. Inspect the observation and its model evidence before relying on the result.</span>
           </div>
         )}
 
@@ -177,7 +177,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
               <option value="heuristic">OpenCV Heuristic Pipeline (Development Fallback Mode)</option>
               <option value="yolo">YOLO / ONNX Specialist Adapter</option>
               <option value="torchvision">PyTorch Torchvision Mask R-CNN Adapter</option>
-              <option value="dummy">Deterministic Benchmark Adapter</option>
             </select>
           </div>
 
@@ -193,7 +192,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
                 step="any"
                 value={latitude}
                 onChange={(e) => setLatitude(e.target.value)}
-                placeholder="37.7765"
+                placeholder="Optional latitude"
                 className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-emerald-500"
               />
             </div>
@@ -207,7 +206,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
                 step="any"
                 value={longitude}
                 onChange={(e) => setLongitude(e.target.value)}
-                placeholder="-122.4194"
+                placeholder="Optional longitude"
                 className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-emerald-500"
               />
             </div>

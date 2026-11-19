@@ -17,9 +17,10 @@ export const AutonomousDashboard: React.FC = () => {
   const [providers, setProviders] = useState<IngestionProviderInfo[]>([]);
   const [jobs, setJobs] = useState<IngestionJob[]>([]);
   const [newJobProvider, setNewJobProvider] = useState('mapillary');
-  const [bboxInput, setBboxInput] = useState('77.208, 28.613, 77.220, 28.625');
+  const [bboxInput, setBboxInput] = useState('');
   const [intervalMin, setIntervalMin] = useState(60);
   const [priority, setPriority] = useState('normal');
+  const [osmImportSummary, setOsmImportSummary] = useState<string | null>(null);
 
   // Segmentation & Video State
   const [segRegions, setSegRegions] = useState<SegmentedRegion[]>([]);
@@ -91,6 +92,25 @@ export const AutonomousDashboard: React.FC = () => {
     }
   };
 
+  const handleImportOSM = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setOsmImportSummary(null);
+      const coords = bboxInput.split(',').map(s => parseFloat(s.trim())) as [number, number, number, number];
+      if (coords.length !== 4 || coords.some(isNaN)) {
+        throw new Error('Enter a bounding box: min_lon, min_lat, max_lon, max_lat');
+      }
+      const result = await api.importOSMPedestrianNetwork(coords);
+      setOsmImportSummary(String(result.new_segments_inserted) + ' new OSM pedestrian ways imported (' + String(result.ways_returned) + ' returned). Imported ways remain unassessed until observations are collected.');
+      window.dispatchEvent(new Event('accessguard:segments-updated'));
+    } catch (err: any) {
+      setError(err.message || 'OpenStreetMap import failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleRunJob = async (jobId: string) => {
     try {
       setLoading(true);
@@ -129,6 +149,7 @@ export const AutonomousDashboard: React.FC = () => {
 
     try {
       setVideoProcessing(true);
+      setVideoJob(null);
       setError(null);
       const resp = await api.uploadVideo(file);
       const jid = resp.job_id;
@@ -232,7 +253,7 @@ export const AutonomousDashboard: React.FC = () => {
           <div>
             <div className="flex items-center gap-3">
               <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-semibold rounded-full border border-emerald-500/40">
-                ● Autonomous Engine Active
+                ● Acquisition requires a configured source
               </span>
               <span className="text-xs text-slate-400">Baseline v1.2.0 | Mission 005</span>
             </div>
@@ -243,7 +264,7 @@ export const AutonomousDashboard: React.FC = () => {
           </div>
           <div className="flex items-center gap-2">
             <span className="px-3 py-1.5 bg-slate-800 border border-slate-700 text-xs rounded-lg text-slate-300">
-              Archived Imagery vs Live Feed Separation: <strong className="text-emerald-400">Enforced</strong>
+              External imagery is only available when a provider is configured
             </span>
           </div>
         </div>
@@ -386,6 +407,13 @@ export const AutonomousDashboard: React.FC = () => {
                 </button>
               </div>
             </form>
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <button type="button" onClick={handleImportOSM} disabled={loading} className="bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg text-sm">
+                {loading ? 'Importing...' : 'Import real OSM pedestrian ways'}
+              </button>
+              <p className="text-xs text-slate-400">Uses the bounding box above. Requires an administrator session and a small area (maximum 0.02 square degrees). Source: OpenStreetMap (ODbL).</p>
+            </div>
+            {osmImportSummary && <p className="mt-3 text-xs text-emerald-300">{osmImportSummary}</p>}
           </div>
 
           {/* Active Jobs Queue */}
@@ -544,8 +572,26 @@ export const AutonomousDashboard: React.FC = () => {
                 </div>
               )}
 
+              {videoJob && videoJob.status === 'FAILED' && (
+                <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300">
+                  Video processing failed: {videoJob.error_message || videoJob.errors?.join('; ') || 'No further error details were returned.'}
+                </div>
+              )}
+
               {videoJob && videoJob.status === 'COMPLETED' && (
                 <div className="space-y-4">
+                  <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-3 text-xs space-y-1">
+                    <p className="text-slate-200">Pipeline result: <strong>{videoJob.overall_status || 'UNKNOWN'}</strong></p>
+                    <p className="text-slate-400">Persisted observation: {videoJob.observation_id || 'Not created'}</p>
+                    {videoJob.model_execution_summary?.map((model) => (
+                      <p key={model.adapter_name} className="text-slate-400">
+                        {model.adapter_name}: {Object.entries(model.status_counts).map(([status, count]) => status + ' ' + count).join(', ')} · {model.detections_reported} frame detections
+                      </p>
+                    ))}
+                    {(!videoJob.model_execution_summary || videoJob.model_execution_summary.length === 0) && (
+                      <p className="text-amber-300">No model execution telemetry was recorded. Do not interpret zero detections as evidence of an accessible path.</p>
+                    )}
+                  </div>
                   <div className="grid grid-cols-3 gap-2 text-center text-xs">
                     <div className="p-3 bg-slate-800/60 rounded-lg">
                       <div className="text-slate-400">Sampled Frames</div>

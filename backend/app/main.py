@@ -10,9 +10,8 @@ from app.config import settings
 from app.core.limiter import limiter
 from app.core.logging import setup_logging, logger
 from app.db.session import engine, Base, SessionLocal
-from app.db.models import PedestrianSegment, User
+from app.db.models import User
 from app.core.security import get_password_hash
-from app.gis.osm_importer import create_pedestrian_segment_models
 
 # Routers
 from app.api.v1.auth import router as auth_router
@@ -32,45 +31,37 @@ setup_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: create tables and seed default segments/admin if empty
+    # Startup initializes schema and only creates accounts when explicit bootstrap secrets are configured.
+    # No fictional streets, sample media, or pre-labelled observations are inserted here.
     logger.info("Initializing AccessGuard database schema...")
     Base.metadata.create_all(bind=engine)
-    
+
     db = SessionLocal()
     try:
-        # Check if segments exist
-        seg_count = db.query(PedestrianSegment).count()
-        if seg_count == 0:
-            logger.info("Seeding initial pedestrian segment network...")
-            demo_segs = create_pedestrian_segment_models()
-            for s in demo_segs:
-                db.add(s)
-            db.commit()
-
-        # Check if default admin exists
         admin = db.query(User).filter(User.email == "admin@accessguard.org").first()
-        if not admin:
-            admin = User(
+        if not admin and settings.ADMIN_INITIAL_PASSWORD:
+            db.add(User(
                 email="admin@accessguard.org",
-                hashed_password=get_password_hash("AccessGuard2026!"),
+                hashed_password=get_password_hash(settings.ADMIN_INITIAL_PASSWORD),
                 role="admin",
                 reputation_score=100
-            )
-            db.add(admin)
+            ))
             db.commit()
-            logger.info("Default administrator account created: admin@accessguard.org")
+            logger.info("Administrator account created from ADMIN_INITIAL_PASSWORD.")
 
-        # Check if default verifier exists
         verifier = db.query(User).filter(User.email == "verifier@accessguard.org").first()
-        if not verifier:
-            verifier = User(
+        if not verifier and settings.VERIFIER_INITIAL_PASSWORD:
+            db.add(User(
                 email="verifier@accessguard.org",
-                hashed_password=get_password_hash("Verifier2026!"),
+                hashed_password=get_password_hash(settings.VERIFIER_INITIAL_PASSWORD),
                 role="verifier",
                 reputation_score=50
-            )
-            db.add(verifier)
+            ))
             db.commit()
+            logger.info("Verifier account created from VERIFIER_INITIAL_PASSWORD.")
+
+        if not admin and not settings.ADMIN_INITIAL_PASSWORD:
+            logger.warning("No administrator account exists. Configure ADMIN_INITIAL_PASSWORD to bootstrap one.")
     finally:
         db.close()
         

@@ -47,7 +47,7 @@ class YOLOAdapter(ModelAdapter):
 
             # If explicit model path provided
             if self.model_path:
-                if not os.path.exists(self.model_path):
+                if not os.path.isfile(self.model_path) or os.path.getsize(self.model_path) == 0:
                     self._last_error = f"UNAVAILABLE: MODEL_WEIGHTS_NOT_FOUND ({self.model_path})"
                     if allow_fallback:
                         self.is_initialized = True
@@ -87,7 +87,7 @@ class YOLOAdapter(ModelAdapter):
                     return True
 
             # Default search order: ONNX first, then PyTorch weights
-            if os.path.exists(onnx_default):
+            if os.path.isfile(onnx_default) and os.path.getsize(onnx_default) > 0:
                 from app.cv.adapters.onnx_adapter import ONNXAdapter
                 self.onnx_subadapter = ONNXAdapter(onnx_default)
                 if self.onnx_subadapter.load():
@@ -99,7 +99,7 @@ class YOLOAdapter(ModelAdapter):
                         self._weight_sha256 = hashlib.sha256(f_w.read()).hexdigest()
                     return True
 
-            if os.path.exists(pt_default):
+            if os.path.isfile(pt_default) and os.path.getsize(pt_default) > 0:
                 from ultralytics import YOLO
                 self.model = YOLO(pt_default)
                 self.model_path = pt_default
