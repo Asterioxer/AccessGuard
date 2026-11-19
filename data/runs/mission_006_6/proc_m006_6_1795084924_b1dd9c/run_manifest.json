@@ -3,7 +3,7 @@
   "title": "Final Stabilization, Independent Verification & Release Decision",
   "run_id": "proc_m006_6_1795084924_b1dd9c",
   "timestamp": "2026-11-19T10:42:35Z",
-  "tested_code_commit": "b978a61636d95b2b633d52ee2fd7bcba11ebf40f",
+  "tested_code_commit": "ab11f72fa9068f174196e17750bdf3ba856c87cc",
   "branch": "feature/unified-inference-evidence-integrity",
   "dirty": false,
   "hardware": {
