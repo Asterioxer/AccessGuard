@@ -10,9 +10,8 @@ from app.config import settings
 from app.core.limiter import limiter
 from app.core.logging import setup_logging, logger
 from app.db.session import engine, Base, SessionLocal
-from app.db.models import PedestrianSegment, User
+from app.db.models import User
 from app.core.security import get_password_hash
-from app.gis.osm_importer import create_pedestrian_segment_models
 
 # Routers
 from app.api.v1.auth import router as auth_router
@@ -32,22 +31,13 @@ setup_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: create tables and seed default segments/admin if empty
+    # Initialize schema and local development accounts only.
+    # Never populate the production map with fictional demo streets or obstacle observations.
     logger.info("Initializing AccessGuard database schema...")
     Base.metadata.create_all(bind=engine)
-    
+
     db = SessionLocal()
     try:
-        # Check if segments exist
-        seg_count = db.query(PedestrianSegment).count()
-        if seg_count == 0:
-            logger.info("Seeding initial pedestrian segment network...")
-            demo_segs = create_pedestrian_segment_models()
-            for s in demo_segs:
-                db.add(s)
-            db.commit()
-
-        # Check if default admin exists
         admin = db.query(User).filter(User.email == "admin@accessguard.org").first()
         if not admin:
             admin = User(
@@ -60,7 +50,6 @@ async def lifespan(app: FastAPI):
             db.commit()
             logger.info("Default administrator account created: admin@accessguard.org")
 
-        # Check if default verifier exists
         verifier = db.query(User).filter(User.email == "verifier@accessguard.org").first()
         if not verifier:
             verifier = User(
@@ -73,7 +62,7 @@ async def lifespan(app: FastAPI):
             db.commit()
     finally:
         db.close()
-        
+
     yield
     logger.info("Shutting down AccessGuard API service...")
 
