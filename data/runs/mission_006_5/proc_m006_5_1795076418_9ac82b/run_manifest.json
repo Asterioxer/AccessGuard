@@ -1,0 +1,172 @@
+{
+  "mission_id": "MISSION_006_5_INFERENCE_INTEGRITY",
+  "title": "Inference Failure Integrity & Final Review Closure Audit",
+  "run_id": "proc_m006_5_1795076418_9ac82b",
+  "timestamp": "2026-11-19T08:20:34Z",
+  "tested_code_commit": "45f7d6ed344b21be9308b016228e5a1380a1ac50",
+  "branch": "feature/unified-inference-evidence-integrity",
+  "dirty": false,
+  "hardware": {
+    "platform": "Windows-11-10.0.26340-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "system_ram_gb": 23.7,
+    "python_version": "3.12.1",
+    "cuda_available": true,
+    "cuda_version": "12.1",
+    "gpu_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+    "gpu_vram_mb": 4096,
+    "torch_version": "2.5.1+cu121"
+  },
+  "model_inventory": [
+    {
+      "name": "rampnet_convnextv2",
+      "path": "data/models/rampnet.safetensors",
+      "size_bytes": 360247780,
+      "sha256": "f2119e3becb0b551fa1470f7b7ba85b82122a3f73a6ed2a85609dd57617866b5",
+      "status": "VERIFIED_PRESENT"
+    },
+    {
+      "name": "yolo_v8n_onnx",
+      "path": "data/models/yolov8n.onnx",
+      "size_bytes": 12851105,
+      "sha256": "fbb11393b8823050ff79f2ed837eeeab4c51e9d9220da80fd773d94ed7531d76",
+      "status": "VERIFIED_PRESENT"
+    },
+    {
+      "name": "yolo_v8n_pt",
+      "path": "data/models/yolov8n.pt",
+      "size_bytes": 6549796,
+      "sha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+      "status": "VERIFIED_PRESENT"
+    },
+    {
+      "name": "yolo_v8n_seg",
+      "path": "data/models/yolov8n-seg.pt",
+      "size_bytes": 7071756,
+      "sha256": "a7cd8f929e1903d78a12a48efecab430209f18dc46cb96c3599a5980c63c423c",
+      "status": "VERIFIED_PRESENT"
+    }
+  ],
+  "test_counts": {
+    "full_backend_suite": {
+      "total_collected": 122,
+      "passed": 122,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 1,
+      "duration_seconds": 346.83
+    },
+    "inference_failure_integrity_suite": {
+      "total_collected": 15,
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 3.53
+    },
+    "unified_processing_suite": {
+      "total_collected": 15,
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 75.82
+    }
+  },
+  "scenarios_validated": [
+    {
+      "scenario": "A",
+      "description": "YOLO successful inference with detections",
+      "status": "READY",
+      "execution_type": "model_inference",
+      "result": "PASSED"
+    },
+    {
+      "scenario": "B",
+      "description": "YOLO successful inference with zero detections",
+      "status": "READY",
+      "execution_type": "model_inference",
+      "result": "PASSED"
+    },
+    {
+      "scenario": "C",
+      "description": "YOLO inference runtime exception",
+      "status": "INFERENCE_FAILED",
+      "execution_type": "failed",
+      "result": "PASSED"
+    },
+    {
+      "scenario": "D",
+      "description": "ONNX inference runtime exception",
+      "status": "INFERENCE_FAILED",
+      "execution_type": "failed",
+      "result": "PASSED"
+    },
+    {
+      "scenario": "E",
+      "description": "Missing model checkpoint",
+      "status": "UNAVAILABLE",
+      "execution_type": "unavailable",
+      "result": "PASSED"
+    },
+    {
+      "scenario": "F",
+      "description": "Explicit development fallback",
+      "status": "DEGRADED",
+      "execution_type": "heuristic_fallback",
+      "result": "PASSED"
+    },
+    {
+      "scenario": "G",
+      "description": "CUDA / CPU memory exhaustion",
+      "status": "RESOURCE_EXHAUSTED",
+      "execution_type": "failed",
+      "result": "PASSED"
+    },
+    {
+      "scenario": "H",
+      "description": "Invalid image input (None / empty / wrong dim)",
+      "status": "INFERENCE_FAILED",
+      "execution_type": "failed",
+      "result": "PASSED"
+    },
+    {
+      "scenario": "I",
+      "description": "Impossible contract combinations rejected via ValueError",
+      "status": "CONTRACT_REJECTION",
+      "execution_type": "N/A",
+      "result": "PASSED"
+    },
+    {
+      "scenario": "J",
+      "description": "End-to-end service failure integrity",
+      "status": "FAILED",
+      "execution_type": "failed",
+      "result": "PASSED"
+    },
+    {
+      "scenario": "K",
+      "description": "Zero-detection end-to-end distinguishability",
+      "status": "SUCCESS",
+      "execution_type": "model_inference",
+      "result": "PASSED"
+    },
+    {
+      "scenario": "L",
+      "description": "Specialist adapter contract enforcement",
+      "status": "MULTI_STATUS",
+      "execution_type": "PROVENANCE_ALIGNED",
+      "result": "PASSED"
+    }
+  ],
+  "execution_integrity_summary": {
+    "zero_detection_independence": "CONFIRMED (READY, model_inference, output_count=0)",
+    "exception_containment": "CONFIRMED (INFERENCE_FAILED, failed, errors preserved)",
+    "oom_resource_exhaustion": "CONFIRMED (RESOURCE_EXHAUSTED, failed)",
+    "contract_enforcement": "CONFIRMED (impossible combinations rejected)",
+    "silent_substitution_eliminated": "CONFIRMED (ONNX failures do not silently fall back)"
+  },
+  "known_limitations": [
+    "GuideCane & CitySurfaces checkpoints unbundled from git checkout due to repository file size limits; strictly report UNAVAILABLE.",
+    "Indian Streetscapes benchmark evaluates 25 synthetic validation scenes for zero-fallback mechanics; real-world accuracy remains unverified."
+  ],
+  "release_recommendation": "PASS \u2014 READY FOR HUMAN MERGE REVIEW"
+}
