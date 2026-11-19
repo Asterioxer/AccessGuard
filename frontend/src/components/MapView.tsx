@@ -114,6 +114,12 @@ export const MapView: React.FC<MapViewProps> = ({
         console.error('Error rendering segment:', seg.id, err);
       }
     });
+
+    // The initial view is global. Once real OSM geometry arrives, zoom to that imported area.
+    if (segments.length > 0 && mapInstanceRef.current && mapInstanceRef.current.getZoom() <= 3) {
+      const bounds = L.featureGroup(segmentLayerGroupRef.current.getLayers()).getBounds();
+      if (bounds.isValid()) mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 });
+    }
   }, [segments, selectedSegment, onSelectSegment]);
 
   // Update Observation Barrier Markers Layer
