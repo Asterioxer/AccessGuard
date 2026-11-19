@@ -46,7 +46,7 @@ class YOLOSegmentationAdapter(SegmentationAdapter):
         try:
             from ultralytics import YOLO
             seg_default = "data/models/yolov8n-seg.pt"
-            weights = self.model_path if self.model_path and os.path.exists(self.model_path) else (seg_default if os.path.exists(seg_default) else None)
+            weights = self.model_path if self.model_path and os.path.isfile(self.model_path) and os.path.getsize(self.model_path) > 0 else (seg_default if os.path.isfile(seg_default) and os.path.getsize(seg_default) > 0 else None)
 
             if weights:
                 self.model = YOLO(weights)
