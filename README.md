@@ -83,10 +83,17 @@ flowchart TD
 
 ## 4. Quickstart Guide
 
-### Option A: Launch with Docker Compose (Single Command)
+### Option A: Launch with Docker Compose
+Before first launch, set private bootstrap passwords in your shell or an untracked `.env` file:
+```env
+ADMIN_INITIAL_PASSWORD=use-a-unique-strong-password
+VERIFIER_INITIAL_PASSWORD=use-another-unique-strong-password
+```
+Then start the services:
 ```bash
 docker compose up -d --build
 ```
+No default administrator password is embedded in the application. If these variables are unset, startup does not create default accounts.
 - Open Web UI: http://localhost:3000
 - API Documentation: http://localhost:8000/docs
 - Health Status: http://localhost:8000/health
