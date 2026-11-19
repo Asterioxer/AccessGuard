@@ -138,6 +138,9 @@ async def upload_observation(
     saved_path = settings.PROCESSED_DIR / filename
     contributor_id = user_payload.get("sub") if user_payload else None
 
+    if adapter == "dummy":
+        raise HTTPException(status_code=400, detail="The deterministic dummy adapter is reserved for benchmark/test execution and cannot process user uploads.")
+
     # Determine execution policy
     policy = ExecutionPolicy.DEVELOPMENT_FALLBACK if (
         adapter in ("heuristic", "fallback") or settings.CV_ADAPTER == "heuristic"
