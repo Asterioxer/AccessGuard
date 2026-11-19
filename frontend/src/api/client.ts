@@ -82,6 +82,11 @@ export const api = {
 
   // Segments
   getSegments: () => request<PedestrianSegment[]>('/segments'),
+  importOSMPedestrianNetwork: (bbox: [number, number, number, number]) => {
+    const [min_lon, min_lat, max_lon, max_lat] = bbox;
+    const query = new URLSearchParams({ min_lon: String(min_lon), min_lat: String(min_lat), max_lon: String(max_lon), max_lat: String(max_lat) });
+    return request('/segments/import-osm?' + query.toString(), { method: 'POST' });
+  },
   getSegment: (id: string) => request<PedestrianSegment>(`/segments/${id}`),
   recalculateSegment: (id: string) =>
     request<PedestrianSegment>(`/segments/${id}/recalculate`, { method: 'POST' }),
