@@ -88,15 +88,17 @@ class RealityEngine:
             "camera_angle": {}
         }
 
-        successful_executions = 0
-        execution_errors = 0
+        total_scenes = len(scenes)
+        scenes_processed_successfully = 0
+        scenes_processing_failed = 0
         model_telemetry_agg: Dict[str, Dict[str, Any]] = {}
+        all_segmentation_records: List[Any] = []
 
         for sc in scenes:
             img_rel = sc["image_file"]
             img_full = os.path.join(dataset_dir, img_rel)
             if not os.path.exists(img_full):
-                execution_errors += 1
+                scenes_processing_failed += 1
                 continue
 
             with open(img_full, "rb") as f_img:
@@ -104,11 +106,10 @@ class RealityEngine:
 
             img = cv2.imread(img_full)
             if img is None:
-                execution_errors += 1
+                scenes_processing_failed += 1
                 continue
 
             h, w = img.shape[:2]
-            successful_executions += 1
 
             # Ground truth bbox & polygon
             gt_hazard = sc["accessibility_hazard"]
@@ -135,8 +136,21 @@ class RealityEngine:
                 enable_privacy_redaction=False,
                 save_media=False
             )
-            proc_res = self.proc_service.process_image(req)
+            try:
+                proc_res = self.proc_service.process_image(req)
+            except Exception as e:
+                scenes_processing_failed += 1
+                logger.error(f"Inference exception during scene {sc.get('sample_id')}: {e}")
+                continue
+
+            if proc_res.overall_status == "SUCCESS":
+                scenes_processed_successfully += 1
+            else:
+                scenes_processing_failed += 1
+
             preds = proc_res.detections
+            if hasattr(proc_res, "segmentation_results") and proc_res.segmentation_results is not None:
+                all_segmentation_records.append(proc_res.segmentation_results)
 
             # Track model execution records
             for r in proc_res.model_execution_records:
@@ -152,19 +166,34 @@ class RealityEngine:
                         "inferences_attempted": 0,
                         "inferences_succeeded": 0,
                         "inferences_failed": 0,
+                        "unavailable_count": 0,
+                        "fallback_count": 0,
                         "zero_detection_successes": 0
                     }
                 model_telemetry_agg[r.adapter_name]["latencies"].append(r.execution_time_ms)
                 if r.errors:
                     model_telemetry_agg[r.adapter_name]["error_count"] += len(r.errors)
-                if r.status in ("READY", "DEGRADED"):
+
+                if r.status == "READY":
                     model_telemetry_agg[r.adapter_name]["inferences_attempted"] += 1
                     model_telemetry_agg[r.adapter_name]["inferences_succeeded"] += 1
                     if r.output_count == 0:
                         model_telemetry_agg[r.adapter_name]["zero_detection_successes"] += 1
+                elif r.status == "DEGRADED":
+                    model_telemetry_agg[r.adapter_name]["fallback_count"] = (
+                        model_telemetry_agg[r.adapter_name].get("fallback_count", 0) + 1
+                    )
+                    model_telemetry_agg[r.adapter_name]["status"] = r.status
+                    model_telemetry_agg[r.adapter_name]["execution_type"] = r.execution_type
                 elif r.status in ("INFERENCE_FAILED", "RESOURCE_EXHAUSTED", "FAILED"):
                     model_telemetry_agg[r.adapter_name]["inferences_attempted"] += 1
                     model_telemetry_agg[r.adapter_name]["inferences_failed"] += 1
+                    model_telemetry_agg[r.adapter_name]["status"] = r.status
+                    model_telemetry_agg[r.adapter_name]["execution_type"] = r.execution_type
+                elif r.status in ("UNAVAILABLE", "NOT_LOADED"):
+                    model_telemetry_agg[r.adapter_name]["unavailable_count"] = (
+                        model_telemetry_agg[r.adapter_name].get("unavailable_count", 0) + 1
+                    )
                     model_telemetry_agg[r.adapter_name]["status"] = r.status
                     model_telemetry_agg[r.adapter_name]["execution_type"] = r.execution_type
 
@@ -275,8 +304,38 @@ class RealityEngine:
                 "inferences_attempted": tel.get("inferences_attempted", 0),
                 "inferences_succeeded": tel.get("inferences_succeeded", 0),
                 "inferences_failed": tel.get("inferences_failed", 0),
+                "unavailable_count": tel.get("unavailable_count", 0),
+                "fallback_count": tel.get("fallback_count", 0),
                 "zero_detection_successes": tel.get("zero_detection_successes", 0)
             }
+
+        total_inference_attempts = sum(tel.get("inferences_attempted", 0) for tel in model_telemetry_agg.values())
+        total_inference_successes = sum(tel.get("inferences_succeeded", 0) for tel in model_telemetry_agg.values())
+        total_inference_failures = sum(tel.get("inferences_failed", 0) for tel in model_telemetry_agg.values())
+        total_unavailable = sum(tel.get("unavailable_count", 0) for tel in model_telemetry_agg.values())
+        total_fallbacks = sum(tel.get("fallback_count", 0) for tel in model_telemetry_agg.values())
+        total_zero_detections = sum(tel.get("zero_detection_successes", 0) for tel in model_telemetry_agg.values())
+
+        # Aggregate segmentation outcomes directly from actual records
+        seg_statuses = [sr.status for sr in all_segmentation_records]
+        total_seg_regions = sum(sr.regions_count for sr in all_segmentation_records)
+        scenes_with_masks = sum(1 for sr in all_segmentation_records if sr.regions_count > 0)
+
+        if all(s == "READY" for s in seg_statuses) and seg_statuses:
+            overall_seg_status = "READY"
+            overall_seg_mode = "genuine_neural_model"
+        elif any(s in ("INFERENCE_FAILED", "RESOURCE_EXHAUSTED", "FAILED") for s in seg_statuses):
+            overall_seg_status = "INFERENCE_FAILED"
+            overall_seg_mode = "failed"
+        elif any(s == "DEGRADED" for s in seg_statuses):
+            overall_seg_status = "DEGRADED"
+            overall_seg_mode = "heuristic_morphological_fallback"
+        elif all(s == "UNAVAILABLE" for s in seg_statuses) or not seg_statuses:
+            overall_seg_status = "UNAVAILABLE"
+            overall_seg_mode = "none"
+        else:
+            overall_seg_status = "PARTIAL"
+            overall_seg_mode = "mixed"
 
         scorecard = {
             "scorecard_id": f"reality_{uuid.uuid4().hex[:8]}",
@@ -287,12 +346,20 @@ class RealityEngine:
             "real_world_evaluation_distinction": "Synthetic benchmark suite explicitly verifies zero-fallback pipeline mechanics, strict-genuine threshold constraints, and geometric coordinate handling. Real-world physical performance is independently assessed on real-world imagery.",
             "model_version": "v2.0.0-unified",
             "total_scenes_evaluated": total_scenes,
-            "pipeline_execution_rate": round((successful_executions / max(1, total_scenes)) * 100.0, 1),
+            "pipeline_execution_rate": round((scenes_processed_successfully / max(1, total_scenes)) * 100.0, 1),
             "execution_integrity": {
                 "total_scenes": total_scenes,
-                "successful_executions": successful_executions,
-                "execution_errors": execution_errors,
-                "execution_rate_pct": round((successful_executions / max(1, total_scenes)) * 100.0, 1),
+                "scenes_processed_successfully": scenes_processed_successfully,
+                "scenes_processing_failed": scenes_processing_failed,
+                "successful_executions": scenes_processed_successfully,
+                "execution_errors": scenes_processing_failed,
+                "execution_rate_pct": round((scenes_processed_successfully / max(1, total_scenes)) * 100.0, 1),
+                "model_inference_attempts": total_inference_attempts,
+                "model_inference_successes": total_inference_successes,
+                "model_inference_failures": total_inference_failures,
+                "unavailable_models": total_unavailable,
+                "fallback_executions": total_fallbacks,
+                "zero_detection_successes": total_zero_detections,
                 "policy_enforced": self.execution_policy.value,
                 "strict_genuine_enforced": (self.execution_policy == ExecutionPolicy.STRICT_GENUINE)
             },
@@ -314,10 +381,12 @@ class RealityEngine:
                 "per_class": classes_dict
             },
             "segmentation_metrics": {
-                "status": "READY" if (overall_miou > 0.0 or any(mask_ious_by_class.values())) else ("UNAVAILABLE" if self.execution_policy == ExecutionPolicy.STRICT_GENUINE else "DEGRADED"),
+                "status": overall_seg_status,
                 "mean_iou": overall_miou,
                 "per_class_miou": per_class_miou,
-                "execution_mode": "genuine_neural_model" if self.execution_policy == ExecutionPolicy.STRICT_GENUINE else "heuristic_morphological_fallback"
+                "execution_mode": overall_seg_mode,
+                "total_regions_segmented": total_seg_regions,
+                "scenes_with_masks": scenes_with_masks
             },
             "geospatial_accuracy": {
                 "status": "NOT_MEASURED",

@@ -450,31 +450,37 @@ class ImageProcessingService:
             ))
             final_detections = detections
 
-        elif req_adapter == "torchvision":
+        elif req_adapter in ("torchvision", "faster_rcnn"):
             from app.cv.adapters.torchvision_adapter import TorchvisionAdapter
-            tv = TorchvisionAdapter()
+            tv = TorchvisionAdapter(weights_path=getattr(self.hybrid_adapter, "torchvision_weights_path", None))
             t0 = time.perf_counter()
-            detections = tv.predict(redacted_bgr)
+            r_tv = tv.predict_v2(redacted_bgr, allow_fallback=allow_dev_fallback)
             t_tv = (time.perf_counter() - t0) * 1000.0
+
+            warnings_list = []
+            if r_tv.status == AdapterStatus.DEGRADED:
+                warnings_list.append("Torchvision running in fallback mode.")
+            errors_list = [r_tv.error_message] if r_tv.error_message else []
+
             model_exec_records.append(ModelExecutionRecord(
-                adapter_name=tv.name,
+                adapter_name=r_tv.adapter_name,
                 model_family="MaskRCNN-ResNet50",
-                upstream_repo="torchvision",
-                checkpoint_path=None,
-                weight_sha256=None,
+                upstream_repo=r_tv.upstream_repo or "torchvision",
+                checkpoint_path=r_tv.weight_path,
+                weight_sha256=r_tv.weight_sha256,
                 model_architecture="MaskRCNN",
-                model_version=getattr(tv, "version", "1.0.0"),
+                model_version=r_tv.model_version or getattr(tv, "version", "1.0.0"),
                 class_mapping_version="v1.0",
-                device_used="cpu",
-                execution_type="model_inference" if tv.is_initialized else "heuristic_fallback",
+                device_used=r_tv.device_used,
+                execution_type=r_tv.execution_type,
                 execution_time_ms=round(t_tv, 2),
                 input_dimensions=(w, h),
-                output_count=len(detections),
-                status="READY" if tv.is_initialized else "DEGRADED",
-                warnings=[] if tv.is_initialized else ["Torchvision running in fallback mode."],
-                errors=[]
+                output_count=len(r_tv.detections),
+                status=r_tv.status.value,
+                warnings=warnings_list,
+                errors=errors_list
             ))
-            final_detections = detections
+            final_detections = r_tv.detections
 
         elif req_adapter == "dummy":
             from app.cv.adapters.dummy_adapter import DummyAdapter
@@ -786,35 +792,63 @@ class ImageProcessingService:
         """
         Executes genuine segmentation model or explicitly reports UNAVAILABLE.
         Never masquerades heuristic contours as neural model inference.
+        Records initialization vs inference failures separately.
         """
         h, w = image_bgr.shape[:2]
 
+        init_error: Optional[str] = None
         if hasattr(self.seg_adapter, "load") and not getattr(self.seg_adapter, "is_loaded", False):
-            self.seg_adapter.load()
+            try:
+                load_success = self.seg_adapter.load()
+                if not load_success:
+                    init_error = getattr(self.seg_adapter, "_last_error", None) or "Segmentation model load returned False (weights not found or invalid)."
+            except Exception as e:
+                init_error = f"Segmentation adapter initialization exception: {type(e).__name__}: {e}"
+                logger.error(init_error)
 
         if hasattr(self.seg_adapter, "model") and self.seg_adapter.model is not None:
             # Genuine neural segmentation model loaded
-            regions = self.seg_adapter.predict_masks(image_bgr)
-            regions_dicts = [
-                {
-                    "class_id": r.class_id,
-                    "class_name": r.class_name,
-                    "confidence": r.confidence,
-                    "polygon": r.polygon,
-                    "area_ratio": r.area_ratio,
-                    "area_pixels": r.area_pixels
-                }
-                for r in regions
-            ]
-            return SegmentationResultRecord(
-                status="READY",
-                model_identifier=self.seg_adapter.name,
-                model_version=self.seg_adapter.version,
-                execution_type="model_inference",
-                weight_sha256=getattr(self.seg_adapter, "_weight_sha256", None),
-                regions_count=len(regions_dicts),
-                regions=regions_dicts
-            )
+            try:
+                regions = self.seg_adapter.predict_masks(image_bgr)
+                regions_dicts = [
+                    {
+                        "class_id": r.class_id,
+                        "class_name": r.class_name,
+                        "confidence": r.confidence,
+                        "polygon": r.polygon,
+                        "area_ratio": r.area_ratio,
+                        "area_pixels": r.area_pixels
+                    }
+                    for r in regions
+                ]
+                return SegmentationResultRecord(
+                    status="READY",
+                    model_identifier=self.seg_adapter.name,
+                    model_version=getattr(self.seg_adapter, "version", "1.0.0"),
+                    execution_type="model_inference",
+                    weight_sha256=getattr(self.seg_adapter, "_weight_sha256", None),
+                    regions_count=len(regions_dicts),
+                    regions=regions_dicts
+                )
+            except Exception as e:
+                msg = str(e).lower()
+                name = type(e).__name__.lower()
+                is_oom = any(tok in msg or tok in name for tok in (
+                    "out of memory", "cuda oom", "cudadrivererror", "resourceexhausted", "memoryerror"
+                ))
+                fail_status = "RESOURCE_EXHAUSTED" if is_oom else "INFERENCE_FAILED"
+                err_msg = f"Segmentation inference exception: {type(e).__name__}: {e}"
+                logger.error(err_msg)
+                return SegmentationResultRecord(
+                    status=fail_status,
+                    model_identifier=self.seg_adapter.name,
+                    model_version=getattr(self.seg_adapter, "version", "1.0.0"),
+                    execution_type="failed",
+                    weight_sha256=getattr(self.seg_adapter, "_weight_sha256", None),
+                    regions_count=0,
+                    regions=[],
+                    error_message=err_msg
+                )
 
         if allow_fallback:
             # Explicit development fallback mode requested
@@ -842,16 +876,21 @@ class ImageProcessingService:
                 error_message="GENUINE_WEIGHTS_MISSING: operating in development heuristic overlay mode."
             )
 
-        # STRICT_GENUINE mode: missing weights MUST return UNAVAILABLE without fake masks
+        # STRICT_GENUINE mode: missing weights or initialization failure reports UNAVAILABLE without fake masks
+        err_msg = (
+            f"INITIALIZATION_ERROR: {init_error}"
+            if init_error
+            else "MODEL_WEIGHTS_NOT_FOUND: No compatible neural segmentation weights loaded. Segmentation skipped."
+        )
         return SegmentationResultRecord(
             status="UNAVAILABLE",
             model_identifier=self.seg_adapter.name,
-            model_version=self.seg_adapter.version,
+            model_version=getattr(self.seg_adapter, "version", "1.0.0"),
             execution_type="none",
             weight_sha256=None,
             regions_count=0,
             regions=[],
-            error_message="MODEL_WEIGHTS_NOT_FOUND: No compatible neural segmentation weights loaded. Segmentation skipped."
+            error_message=err_msg
         )
 
     def _persist_records(
@@ -1273,7 +1312,13 @@ class ImageProcessingService:
             obs_id = vid_id
             if latitude is not None and longitude is not None:
                 try:
-                    segment_id = snap_point_to_segments(db, latitude, longitude, max_distance_meters=50.0)
+                    all_segments = db.query(PedestrianSegment).all()
+                    snap_res = snap_point_to_segments(
+                        latitude, longitude, all_segments, max_distance_meters=50.0
+                    )
+                    if snap_res:
+                        matched_seg, _ = snap_res
+                        segment_id = matched_seg.id
                 except Exception as e:
                     warnings.append(f"Spatial snapping failed: {e}")
 
