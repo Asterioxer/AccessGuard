@@ -17,7 +17,7 @@ export const AutonomousDashboard: React.FC = () => {
   const [providers, setProviders] = useState<IngestionProviderInfo[]>([]);
   const [jobs, setJobs] = useState<IngestionJob[]>([]);
   const [newJobProvider, setNewJobProvider] = useState('mapillary');
-  const [bboxInput, setBboxInput] = useState('77.208, 28.613, 77.220, 28.625');
+  const [bboxInput, setBboxInput] = useState('');
   const [intervalMin, setIntervalMin] = useState(60);
   const [priority, setPriority] = useState('normal');
 
@@ -232,7 +232,7 @@ export const AutonomousDashboard: React.FC = () => {
           <div>
             <div className="flex items-center gap-3">
               <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-semibold rounded-full border border-emerald-500/40">
-                ● Autonomous Engine Active
+                ● Acquisition requires a configured source
               </span>
               <span className="text-xs text-slate-400">Baseline v1.2.0 | Mission 005</span>
             </div>
@@ -243,7 +243,7 @@ export const AutonomousDashboard: React.FC = () => {
           </div>
           <div className="flex items-center gap-2">
             <span className="px-3 py-1.5 bg-slate-800 border border-slate-700 text-xs rounded-lg text-slate-300">
-              Archived Imagery vs Live Feed Separation: <strong className="text-emerald-400">Enforced</strong>
+              External imagery is only available when a provider is configured
             </span>
           </div>
         </div>
