@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     MEDIA_RETENTION_HOURS: int = 72
     
     # CV Pipeline Settings
-    CV_ADAPTER: str = "heuristic"  # "heuristic", "torchvision", "yolo", "dummy", "hybrid"
+    CV_ADAPTER: str = "hybrid"  # Strict genuine inference by default; heuristic/dummy require explicit opt-in.
     CONFIDENCE_TENTATIVE_THRESHOLD: float = 0.50
     CONFIDENCE_CONFIRMED_THRESHOLD: float = 0.85
     UNCERTAINTY_FLAG_THRESHOLD: float = 0.35
